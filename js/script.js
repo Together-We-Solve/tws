@@ -54,75 +54,7 @@
     }
   });
 
-  /* ─── HERO CANVAS — FLOWING STREAMS ────────── */
-  function initHeroCanvas() {
-    const canvas = document.getElementById('heroCanvas');
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
 
-    let W, H, paths = [], animId;
-
-    function resize() {
-      W = canvas.width = canvas.offsetWidth;
-      H = canvas.height = canvas.offsetHeight;
-    }
-
-    function createPaths() {
-      paths = [
-        // Moss Green Streams
-        { startX: W * 0.2, speed: 0.003, width: 2, color: 'rgba(35, 56, 43, 0.08)', phase: 0, amp: 50 },
-        { startX: W * 0.25, speed: 0.002, width: 1.5, color: 'rgba(35, 56, 43, 0.06)', phase: Math.PI / 3, amp: 40 },
-        // Clay Streams
-        { startX: W * 0.5, speed: 0.0025, width: 2, color: 'rgba(200, 125, 85, 0.08)', phase: Math.PI, amp: 60 },
-        { startX: W * 0.55, speed: 0.0015, width: 1.2, color: 'rgba(200, 125, 85, 0.05)', phase: Math.PI * 1.5, amp: 35 },
-        // Muted Ocean Streams
-        { startX: W * 0.75, speed: 0.0035, width: 2.2, color: 'rgba(61, 90, 108, 0.09)', phase: Math.PI / 2, amp: 70 },
-        { startX: W * 0.8, speed: 0.0018, width: 1.5, color: 'rgba(61, 90, 108, 0.06)', phase: Math.PI / 4, amp: 45 }
-      ];
-    }
-
-    function draw() {
-      ctx.clearRect(0, 0, W, H);
-
-      paths.forEach(p => {
-        p.phase += p.speed;
-        ctx.beginPath();
-        
-        // Start above viewport
-        ctx.moveTo(p.startX, -20);
-
-        for (let y = 0; y <= H; y += 15) {
-          // Dynamic sine offset to create winding organic flow
-          const xOffset = Math.sin(y * 0.004 + p.phase) * p.amp + 
-                          Math.cos(y * 0.01 + p.phase * 0.6) * (p.amp * 0.4);
-          
-          // Let paths converge slightly towards the middle of screen, representing collaboration
-          const convergence = Math.sin((y / H) * Math.PI) * (W * 0.08);
-          const x = p.startX + xOffset + (p.startX > W * 0.5 ? -convergence : convergence);
-          
-          ctx.lineTo(x, y);
-        }
-
-        ctx.strokeStyle = p.color;
-        ctx.lineWidth = p.width;
-        ctx.lineCap = 'round';
-        ctx.lineJoin = 'round';
-        ctx.stroke();
-      });
-
-      animId = requestAnimationFrame(draw);
-    }
-
-    resize();
-    createPaths();
-    draw();
-
-    const ro = new ResizeObserver(() => {
-      resize();
-      createPaths();
-    });
-    ro.observe(canvas.parentElement);
-  }
 
   /* ─── JOURNEY CANVAS — GROWING ROOTS ───────── */
   function initJourneyCanvas() {
@@ -198,9 +130,10 @@
         if (t <= 0) continue;
 
         const dy = p2.y - p1.y;
-        // Winding bezier control points
-        const cp1 = { x: p1.x, y: p1.y + dy * 0.4 };
-        const cp2 = { x: p2.x, y: p1.y + dy * 0.6 };
+        // Wiggle the control points horizontally (alternating directions) to create winding organic flow down the center
+        const wiggleSign = i % 2 === 0 ? 1 : -1;
+        const cp1 = { x: p1.x + wiggleSign * 35, y: p1.y + dy * 0.35 };
+        const cp2 = { x: p2.x - wiggleSign * 35, y: p1.y + dy * 0.65 };
 
         ctx.beginPath();
         ctx.moveTo(p1.x, p1.y);
@@ -247,6 +180,15 @@
         start: 'top 80%',
         onEnter: () => {
           step.classList.add('active');
+          
+          // Animate step text block itself to fade/slide in
+          gsap.to(step, {
+            opacity: 1,
+            y: 0,
+            duration: 1.1,
+            ease: 'power3.out'
+          });
+
           draw();
           
           // Animate the root segment growing down to this step
@@ -613,7 +555,7 @@
   /* ─── PARALLAX HERO CONTENT ────────────────── */
   function initParallax() {
     gsap.to('.hero-content', {
-      y: 60,
+      y: 40,
       ease: 'none',
       scrollTrigger: {
         trigger: '.hero',
@@ -654,7 +596,6 @@
     gsap.registerPlugin(ScrollTrigger);
 
     // Canvases
-    initHeroCanvas();
     initJourneyCanvas();
     initVisionCanvas();
     initJoinCanvas();
