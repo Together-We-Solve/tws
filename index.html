@@ -5,7 +5,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Together We Solve</title>
-    <link rel="stylesheet" href="/css/styles.css" />
+    <link rel="stylesheet" href="css/styles.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -75,7 +75,8 @@
         </div>
         <div class="reality-statement reveal-text">
           <p>Progress does not stall because solutions don't exist.<br />It stalls because solutions remain
-            <em>scattered</em>.</p>
+            <em>scattered</em>.
+          </p>
         </div>
       </div>
     </section>
@@ -132,6 +133,7 @@
 
     <!-- SECTION 5: HOW CHANGE HAPPENS -->
     <section class="section journey" id="journey">
+      <canvas class="journey-canvas" id="journeyCanvas"></canvas>
       <div class="container">
         <p class="label reveal-text">How Change Happens</p>
         <h2 class="section-headline reveal-text">A single conversation<br />can change a life.</h2>
@@ -143,7 +145,6 @@
               <p>Something is difficult. Something is unclear. A person encounters a wall.</p>
             </div>
           </div>
-          <div class="journey-connector"></div>
           <div class="journey-step" data-step="1">
             <div class="step-dot"></div>
             <div class="step-content">
@@ -151,7 +152,6 @@
               <p>They choose to ask. Not a search engine. Not silence. A person.</p>
             </div>
           </div>
-          <div class="journey-connector"></div>
           <div class="journey-step" data-step="2">
             <div class="step-dot"></div>
             <div class="step-content">
@@ -159,7 +159,6 @@
               <p>Someone who has been there responds. Two experiences meet.</p>
             </div>
           </div>
-          <div class="journey-connector"></div>
           <div class="journey-step" data-step="3">
             <div class="step-dot"></div>
             <div class="step-content">
@@ -167,7 +166,6 @@
               <p>Clarity forms. A path becomes visible where there was none.</p>
             </div>
           </div>
-          <div class="journey-connector"></div>
           <div class="journey-step" data-step="4">
             <div class="step-dot"></div>
             <div class="step-content">
@@ -175,7 +173,6 @@
               <p>The problem is resolved. Not by one person — by two.</p>
             </div>
           </div>
-          <div class="journey-connector"></div>
           <div class="journey-step" data-step="5">
             <div class="step-dot"></div>
             <div class="step-content">
@@ -303,7 +300,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
     <script src="https://unpkg.com/lenis@1.1.13/dist/lenis.min.js"></script>
     <script src="https://unpkg.com/split-type@0.3.4/umd/index.min.js"></script>
-    <script src="/js/script.js"></script>
+    <script src="js/script.js"></script>
   </body>
 
 </html>
