@@ -1,5 +1,6 @@
 /* ============================================
    TOGETHER WE SOLVE — script.js
+   Evolved Generative & Organic Animations
    ============================================ */
 
 (function () {
@@ -53,206 +54,368 @@
     }
   });
 
-  /* ─── HERO CANVAS — NETWORK ────────────────── */
+  /* ─── HERO CANVAS — FLOWING STREAMS ────────── */
   function initHeroCanvas() {
     const canvas = document.getElementById('heroCanvas');
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
 
-    let W, H, nodes = [], animId;
+    let W, H, paths = [], animId;
 
     function resize() {
       W = canvas.width = canvas.offsetWidth;
       H = canvas.height = canvas.offsetHeight;
     }
 
-    function Node(x, y) {
-      this.x = x;
-      this.y = y;
-      this.vx = (Math.random() - 0.5) * 0.22;
-      this.vy = (Math.random() - 0.5) * 0.22;
-      this.r = Math.random() * 1.5 + 0.5;
-      this.opacity = Math.random() * 0.5 + 0.2;
-    }
-
-    function initNodes() {
-      nodes = [];
-      const count = Math.min(Math.floor((W * H) / 14000), 90);
-      for (let i = 0; i < count; i++) {
-        nodes.push(new Node(Math.random() * W, Math.random() * H));
-      }
+    function createPaths() {
+      paths = [
+        // Moss Green Streams
+        { startX: W * 0.2, speed: 0.003, width: 2, color: 'rgba(35, 56, 43, 0.08)', phase: 0, amp: 50 },
+        { startX: W * 0.25, speed: 0.002, width: 1.5, color: 'rgba(35, 56, 43, 0.06)', phase: Math.PI / 3, amp: 40 },
+        // Clay Streams
+        { startX: W * 0.5, speed: 0.0025, width: 2, color: 'rgba(200, 125, 85, 0.08)', phase: Math.PI, amp: 60 },
+        { startX: W * 0.55, speed: 0.0015, width: 1.2, color: 'rgba(200, 125, 85, 0.05)', phase: Math.PI * 1.5, amp: 35 },
+        // Muted Ocean Streams
+        { startX: W * 0.75, speed: 0.0035, width: 2.2, color: 'rgba(61, 90, 108, 0.09)', phase: Math.PI / 2, amp: 70 },
+        { startX: W * 0.8, speed: 0.0018, width: 1.5, color: 'rgba(61, 90, 108, 0.06)', phase: Math.PI / 4, amp: 45 }
+      ];
     }
 
     function draw() {
       ctx.clearRect(0, 0, W, H);
-      const DIST = 160;
 
-      for (let n of nodes) {
-        n.x += n.vx;
-        n.y += n.vy;
-        if (n.x < -20) n.x = W + 20;
-        if (n.x > W + 20) n.x = -20;
-        if (n.y < -20) n.y = H + 20;
-        if (n.y > H + 20) n.y = -20;
-      }
-
-      for (let i = 0; i < nodes.length; i++) {
-        for (let j = i + 1; j < nodes.length; j++) {
-          const dx = nodes[i].x - nodes[j].x;
-          const dy = nodes[i].y - nodes[j].y;
-          const d = Math.sqrt(dx * dx + dy * dy);
-          if (d < DIST) {
-            const alpha = (1 - d / DIST) * 0.25;
-            ctx.beginPath();
-            ctx.strokeStyle = `rgba(37,99,235,${alpha})`;
-            ctx.lineWidth = 0.8;
-            ctx.moveTo(nodes[i].x, nodes[i].y);
-            ctx.lineTo(nodes[j].x, nodes[j].y);
-            ctx.stroke();
-          }
-        }
-      }
-
-      for (let n of nodes) {
+      paths.forEach(p => {
+        p.phase += p.speed;
         ctx.beginPath();
-        ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(255,255,255,${n.opacity})`;
-        ctx.fill();
-      }
+        
+        // Start above viewport
+        ctx.moveTo(p.startX, -20);
+
+        for (let y = 0; y <= H; y += 15) {
+          // Dynamic sine offset to create winding organic flow
+          const xOffset = Math.sin(y * 0.004 + p.phase) * p.amp + 
+                          Math.cos(y * 0.01 + p.phase * 0.6) * (p.amp * 0.4);
+          
+          // Let paths converge slightly towards the middle of screen, representing collaboration
+          const convergence = Math.sin((y / H) * Math.PI) * (W * 0.08);
+          const x = p.startX + xOffset + (p.startX > W * 0.5 ? -convergence : convergence);
+          
+          ctx.lineTo(x, y);
+        }
+
+        ctx.strokeStyle = p.color;
+        ctx.lineWidth = p.width;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.stroke();
+      });
 
       animId = requestAnimationFrame(draw);
     }
 
     resize();
-    initNodes();
+    createPaths();
     draw();
 
     const ro = new ResizeObserver(() => {
       resize();
-      initNodes();
+      createPaths();
     });
     ro.observe(canvas.parentElement);
   }
 
-  /* ─── JOIN CANVAS — DENSER NETWORK ────────── */
+  /* ─── JOURNEY CANVAS — GROWING ROOTS ───────── */
+  function initJourneyCanvas() {
+    const canvas = document.getElementById('journeyCanvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const steps = document.querySelectorAll('.journey-step');
+    const dots = document.querySelectorAll('.step-dot');
+
+    let W, H, dotCoords = [];
+    // Segments progress: segment i represents connection from dot i to dot i+1
+    let segmentProgress = Array(steps.length - 1).fill(0);
+
+    function resize() {
+      W = canvas.width = canvas.offsetWidth;
+      H = canvas.height = canvas.offsetHeight;
+      updateDotCoordinates();
+      draw();
+    }
+
+    function updateDotCoordinates() {
+      const canvasRect = canvas.getBoundingClientRect();
+      dotCoords = [];
+      dots.forEach(dot => {
+        const dotRect = dot.getBoundingClientRect();
+        const x = dotRect.left - canvasRect.left + dotRect.width / 2;
+        const y = dotRect.top - canvasRect.top + dotRect.height / 2;
+        dotCoords.push({ x, y });
+      });
+    }
+
+    // Helper to evaluate cubic bezier point
+    function getBezierPoint(p1, cp1, cp2, p2, t) {
+      const mt = 1 - t;
+      const mt2 = mt * mt;
+      const mt3 = mt2 * mt;
+      const t2 = t * t;
+      const t3 = t2 * t;
+      
+      const x = mt3 * p1.x + 3 * mt2 * t * cp1.x + 3 * mt * t2 * cp2.x + t3 * p2.x;
+      const y = mt3 * p1.y + 3 * mt2 * t * cp1.y + 3 * mt * t2 * cp2.y + t3 * p2.y;
+      return { x, y };
+    }
+
+    // Draw little organic leaves at step dots
+    function drawLeaf(x, y, angle, size) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(angle);
+      ctx.beginPath();
+      // Draw organic leaf shape using bezier curves
+      ctx.moveTo(0, 0);
+      ctx.bezierCurveTo(-size / 2, -size / 2, -size / 2, -size, 0, -size);
+      ctx.bezierCurveTo(size / 2, -size, size / 2, -size / 2, 0, 0);
+      ctx.fillStyle = '#23382B'; // Moss green
+      ctx.fill();
+      ctx.strokeStyle = '#FAF6F0'; // Warm Ivory spine
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, W, H);
+      if (dotCoords.length < 2) return;
+
+      // Draw the growing path segment by segment
+      for (let i = 0; i < dotCoords.length - 1; i++) {
+        const p1 = dotCoords[i];
+        const p2 = dotCoords[i + 1];
+        const t = segmentProgress[i];
+
+        if (t <= 0) continue;
+
+        const dy = p2.y - p1.y;
+        // Winding bezier control points
+        const cp1 = { x: p1.x, y: p1.y + dy * 0.4 };
+        const cp2 = { x: p2.x, y: p1.y + dy * 0.6 };
+
+        ctx.beginPath();
+        ctx.moveTo(p1.x, p1.y);
+
+        // Draw curves with resolution
+        const stepsCount = Math.floor(t * 30);
+        for (let j = 1; j <= stepsCount; j++) {
+          const currT = (j / stepsCount) * t;
+          const pt = getBezierPoint(p1, cp1, cp2, p2, currT);
+          ctx.lineTo(pt.x, pt.y);
+        }
+
+        ctx.strokeStyle = 'rgba(200, 125, 85, 0.4)'; // Clay root path background shadow
+        ctx.lineWidth = 4;
+        ctx.stroke();
+
+        ctx.strokeStyle = '#23382B'; // Deep Moss root
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+
+      // Draw leaves on active nodes
+      dotCoords.forEach((dot, index) => {
+        // If the step is active, draw a leaf sprouting
+        const step = steps[index];
+        if (step && step.classList.contains('active')) {
+          const isLeft = index % 2 === 0;
+          const leafSize = 10;
+          if (isLeft) {
+            drawLeaf(dot.x, dot.y, -Math.PI / 4, leafSize);
+            drawLeaf(dot.x, dot.y, -Math.PI / 1.5, leafSize * 0.8);
+          } else {
+            drawLeaf(dot.x, dot.y, Math.PI / 4, leafSize);
+            drawLeaf(dot.x, dot.y, Math.PI / 1.5, leafSize * 0.8);
+          }
+        }
+      });
+    }
+
+    // Bind segments to ScrollTriggers of the steps
+    steps.forEach((step, i) => {
+      ScrollTrigger.create({
+        trigger: step,
+        start: 'top 80%',
+        onEnter: () => {
+          step.classList.add('active');
+          draw();
+          
+          // Animate the root segment growing down to this step
+          if (i > 0) {
+            gsap.to(segmentProgress, {
+              [i - 1]: 1,
+              duration: 1.4,
+              ease: 'power2.out',
+              onUpdate: draw
+            });
+          }
+        },
+        once: true
+      });
+    });
+
+    resize();
+    
+    window.addEventListener('resize', () => {
+      updateDotCoordinates();
+      draw();
+    });
+
+    // Redraw periodically during scroll triggers to maintain sync
+    ScrollTrigger.addEventListener('refresh', () => {
+      updateDotCoordinates();
+      draw();
+    });
+  }
+
+  /* ─── VISION CANVAS — TOPOGRAPHIC WAVES ────── */
+  function initVisionCanvas() {
+    const canvas = document.querySelector('#visionCanvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    let W, H, layers = [];
+
+    function resize() {
+      const wrap = canvas.parentElement;
+      W = canvas.width = wrap.offsetWidth;
+      H = canvas.height = wrap.offsetHeight;
+      createLayers();
+    }
+
+    function createLayers() {
+      // Warm, organic topographic waves
+      layers = [
+        { baseHeight: H * 0.45, amp: 28, freq: 0.0018, speed: 0.0015, color: 'rgba(35, 56, 43, 0.35)', phase: 0 },
+        { baseHeight: H * 0.35, amp: 35, freq: 0.0025, speed: 0.0012, color: 'rgba(61, 90, 108, 0.25)', phase: Math.PI / 3 },
+        { baseHeight: H * 0.25, amp: 22, freq: 0.003, speed: 0.002, color: 'rgba(200, 125, 85, 0.15)', phase: Math.PI * 0.75 },
+        { baseHeight: H * 0.15, amp: 40, freq: 0.0012, speed: 0.001, color: 'rgba(26, 46, 34, 0.45)', phase: Math.PI }
+      ];
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, W, H);
+
+      layers.forEach(l => {
+        l.phase += l.speed;
+        ctx.beginPath();
+        ctx.moveTo(0, H + 20);
+
+        for (let x = 0; x <= W; x += 8) {
+          const y = H - l.baseHeight + 
+                    Math.sin(x * l.freq + l.phase) * l.amp + 
+                    Math.cos(x * 0.004 + l.phase * 0.5) * (l.amp * 0.3);
+          ctx.lineTo(x, y);
+        }
+
+        ctx.lineTo(W + 20, H + 20);
+        ctx.closePath();
+        ctx.fillStyle = l.color;
+        ctx.fill();
+      });
+
+      requestAnimationFrame(draw);
+    }
+
+    resize();
+    draw();
+    const ro = new ResizeObserver(resize);
+    ro.observe(canvas.parentElement);
+  }
+
+  /* ─── JOIN CANVAS — WATERCOLOR RIPPLES ─────── */
   function initJoinCanvas() {
     const canvas = document.getElementById('joinCanvas');
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
-    let W, H, nodes = [];
+    let W, H, ripples = [];
 
     function resize() {
       W = canvas.width = canvas.offsetWidth;
       H = canvas.height = canvas.offsetHeight;
     }
 
-    function Node() {
-      this.x = Math.random() * W;
-      this.y = Math.random() * H;
-      this.vx = (Math.random() - 0.5) * 0.18;
-      this.vy = (Math.random() - 0.5) * 0.18;
-      this.r = Math.random() * 2 + 0.5;
-    }
-
-    function init() {
-      nodes = [];
-      const count = Math.min(Math.floor((W * H) / 9000), 130);
-      for (let i = 0; i < count; i++) nodes.push(new Node());
-    }
-
-    let pulse = 0;
-
-    function draw() {
-      ctx.clearRect(0, 0, W, H);
-      pulse += 0.008;
-      const DIST = 180;
-
-      for (let n of nodes) {
-        n.x += n.vx;
-        n.y += n.vy;
-        if (n.x < -20) n.x = W + 20;
-        if (n.x > W + 20) n.x = -20;
-        if (n.y < -20) n.y = H + 20;
-        if (n.y > H + 20) n.y = -20;
+    class Ripple {
+      constructor(x, y) {
+        this.x = x || Math.random() * W;
+        this.y = y || Math.random() * H;
+        this.r = 10;
+        this.maxRadius = Math.random() * 200 + 150;
+        this.speed = Math.random() * 0.8 + 0.6;
+        this.opacity = 0.55;
+        this.phase = Math.random() * Math.PI;
+        this.noiseSpeed = Math.random() * 0.02 + 0.01;
       }
 
-      for (let i = 0; i < nodes.length; i++) {
-        for (let j = i + 1; j < nodes.length; j++) {
-          const dx = nodes[i].x - nodes[j].x;
-          const dy = nodes[i].y - nodes[j].y;
-          const d = Math.sqrt(dx * dx + dy * dy);
-          if (d < DIST) {
-            const pAlpha = 0.15 + Math.sin(pulse) * 0.06;
-            const alpha = (1 - d / DIST) * pAlpha;
-            const useGreen = Math.random() > 0.7;
-            ctx.beginPath();
-            ctx.strokeStyle = useGreen
-              ? `rgba(34,197,94,${alpha})`
-              : `rgba(37,99,235,${alpha})`;
-            ctx.lineWidth = 0.7;
-            ctx.moveTo(nodes[i].x, nodes[i].y);
-            ctx.lineTo(nodes[j].x, nodes[j].y);
-            ctx.stroke();
-          }
-        }
+      update() {
+        this.r += this.speed;
+        this.phase += this.noiseSpeed;
+        this.opacity = 1 - (this.r / this.maxRadius);
       }
 
-      for (let n of nodes) {
+      draw() {
         ctx.beginPath();
-        ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(255,255,255,0.35)`;
-        ctx.fill();
-      }
-
-      requestAnimationFrame(draw);
-    }
-
-    resize();
-    init();
-    draw();
-
-    const ro = new ResizeObserver(() => { resize(); init(); });
-    ro.observe(canvas.parentElement);
-  }
-
-  /* ─── VISION CANVAS ────────────────────────── */
-  function initVisionCanvas() {
-    const canvas = document.querySelector('#visionCanvas');
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    let W, H;
-
-    function resize() {
-      const wrap = canvas.parentElement;
-      W = canvas.width = wrap.offsetWidth;
-      H = canvas.height = wrap.offsetHeight;
-    }
-
-    let t = 0;
-    const paths = Array.from({ length: 6 }, (_, i) => ({
-      offset: i * (Math.PI / 3),
-      speed: 0.0004 + i * 0.0001,
-      alpha: 0.15 + i * 0.04,
-    }));
-
-    function draw() {
-      ctx.clearRect(0, 0, W, H);
-      t += 0.5;
-      for (let p of paths) {
-        ctx.beginPath();
-        for (let x = 0; x <= W; x += 4) {
-          const y = H / 2 + Math.sin((x * 0.005) + t * p.speed * 1000 + p.offset) * (H * 0.12);
-          x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+        const segments = 16;
+        
+        // Draw imperfect organic circle to mimic bleeding ink/watercolor ripples
+        for (let i = 0; i <= segments; i++) {
+          const angle = (i / segments) * Math.PI * 2;
+          const noise = Math.sin(angle * 5 + this.phase) * (this.r * 0.06);
+          const rad = this.r + noise;
+          const rx = this.x + Math.cos(angle) * rad;
+          const ry = this.y + Math.sin(angle) * rad;
+          
+          if (i === 0) ctx.moveTo(rx, ry);
+          else ctx.lineTo(rx, ry);
         }
-        ctx.strokeStyle = `rgba(37,99,235,${p.alpha})`;
-        ctx.lineWidth = 1;
+
+        ctx.closePath();
+        ctx.strokeStyle = `rgba(200, 125, 85, ${this.opacity * 0.35})`;
+        ctx.lineWidth = 1.2;
         ctx.stroke();
       }
+    }
+
+    function addRipple() {
+      if (ripples.length < 5) {
+        ripples.push(new Ripple());
+      }
+    }
+
+    // Add continuous slow ripples representing collective waves of influence
+    setInterval(addRipple, 2200);
+
+    // Spawn a ripple on click/touch to show small actions create impact
+    canvas.addEventListener('click', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+      const clickY = e.clientY - rect.top;
+      ripples.push(new Ripple(clickX, clickY));
+    });
+
+    function draw() {
+      ctx.clearRect(0, 0, W, H);
+      ripples.forEach((r, index) => {
+        r.update();
+        r.draw();
+        if (r.r >= r.maxRadius) {
+          ripples.splice(index, 1);
+        }
+      });
       requestAnimationFrame(draw);
     }
 
     resize();
     draw();
+
     const ro = new ResizeObserver(resize);
     ro.observe(canvas.parentElement);
   }
@@ -272,7 +435,7 @@
               y: '0%',
               opacity: 1,
               duration: options.duration || 1,
-              stagger: options.stagger || 0.08,
+              stagger: options.stagger || 0.06,
               ease: options.ease || 'power3.out',
               delay: options.delay || 0,
             });
@@ -294,18 +457,18 @@
 
   /* ─── HERO ENTRANCE ────────────────────────── */
   function animateHero() {
-    const tl = gsap.timeline({ delay: 0.3 });
+    const tl = gsap.timeline({ delay: 0.2 });
 
-    tl.to('.hero-eyebrow', { opacity: 1, y: 0, duration: 0.9, ease: 'power2.out' })
-      .to('.hero-headline', { opacity: 1, y: 0, duration: 1.1, ease: 'power3.out' }, '-=0.5')
-      .to('.hero-tagline', { opacity: 1, y: 0, duration: 0.9, ease: 'power2.out' }, '-=0.6')
-      .to('.hero-body', { opacity: 1, y: 0, duration: 0.9, ease: 'power2.out' }, '-=0.5')
+    tl.to('.hero-eyebrow', { opacity: 1, y: 0, duration: 0.8, ease: 'power2.out' })
+      .to('.hero-headline', { opacity: 1, y: 0, duration: 1.0, ease: 'power3.out' }, '-=0.5')
+      .to('.hero-tagline', { opacity: 1, y: 0, duration: 0.8, ease: 'power2.out' }, '-=0.6')
+      .to('.hero-body', { opacity: 1, y: 0, duration: 0.8, ease: 'power2.out' }, '-=0.5')
       .to('.hero-actions', { opacity: 1, y: 0, duration: 0.8, ease: 'power2.out' }, '-=0.4')
       .to('.hero-scroll-hint', { opacity: 1, duration: 0.8, ease: 'power2.out' }, '-=0.3');
   }
 
   /* ─── GENERIC REVEAL ───────────────────────── */
-  function animateRevealText(els, stagger = 0.1) {
+  function animateRevealText(els) {
     els.forEach(el => {
       ScrollTrigger.create({
         trigger: el,
@@ -325,14 +488,14 @@
 
   /* ─── REALITY SECTION ──────────────────────── */
   function animateReality() {
-    document.querySelectorAll('.reveal-text').forEach(el => {
+    document.querySelectorAll('.reality .reveal-text').forEach(el => {
       gsap.set(el, { opacity: 0, y: 20 });
     });
 
     ScrollTrigger.batch('.reality .reveal-text', {
       start: 'top 88%',
       onEnter: batch => gsap.to(batch, {
-        opacity: 1, y: 0, duration: 1, stagger: 0.12, ease: 'power3.out'
+        opacity: 1, y: 0, duration: 1, stagger: 0.1, ease: 'power3.out'
       }),
       once: true,
     });
@@ -390,37 +553,6 @@
     });
   }
 
-  /* ─── JOURNEY STEPS ────────────────────────── */
-  function animateJourney() {
-    const steps = document.querySelectorAll('.journey-step');
-    const connectors = document.querySelectorAll('.journey-connector');
-
-    steps.forEach((step, i) => {
-      ScrollTrigger.create({
-        trigger: step,
-        start: 'top 82%',
-        onEnter: () => {
-          gsap.to(step, {
-            opacity: 1,
-            x: 0,
-            duration: 0.8,
-            ease: 'power3.out',
-            onComplete: () => step.classList.add('active'),
-          });
-          if (connectors[i]) {
-            gsap.to(connectors[i], {
-              scaleY: 1,
-              duration: 0.6,
-              ease: 'power2.inOut',
-              delay: 0.4,
-            });
-          }
-        },
-        once: true,
-      });
-    });
-  }
-
   /* ─── VALUE CARDS ──────────────────────────── */
   function animateValues() {
     ScrollTrigger.batch('.value-card', {
@@ -465,7 +597,7 @@
     ScrollTrigger.batch('.join .reveal-text, .join-headline', {
       start: 'top 88%',
       onEnter: batch => gsap.to(batch, {
-        opacity: 1, y: 0, duration: 1, stagger: 0.1, ease: 'power3.out'
+        opacity: 1, y: 0, duration: 1, stagger: 0.08, ease: 'power3.out'
       }),
       once: true,
     });
@@ -523,8 +655,9 @@
 
     // Canvases
     initHeroCanvas();
-    initJoinCanvas();
+    initJourneyCanvas();
     initVisionCanvas();
+    initJoinCanvas();
 
     // Entrance
     animateHero();
@@ -535,7 +668,6 @@
     animateReality();
     animateWhyRows();
     animateBelief();
-    animateJourney();
     animateValues();
     animateVision();
     animateJoin();
