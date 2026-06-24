@@ -1,0 +1,517 @@
+/* ============================================
+   TOGETHER WE SOLVE — login.css
+   Warm and Editorial Portal Login Styles
+   ============================================ */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  /* Editorial Color System */
+  --bg-warm: #FAF6F0;       /* Warm Ivory Paper */
+  --text-charcoal: #1C1E1D; /* Charcoal Ink */
+  --accent-moss: #23382B;   /* Deep Forest Moss */
+  --accent-ocean: #3D5A6C;  /* Muted Ocean Blue */
+  --accent-clay: #C87D55;   /* Earthy Warm Clay */
+  --bg-fog: #EBECE8;        /* Soft Foggy Grey-Green */
+  --bg-dark-moss: #1A2E22;  /* Rich Dark Moss Background */
+
+  /* Spacing & Borders */
+  --border-light: rgba(28, 30, 29, 0.08);
+  --border-dark: rgba(250, 246, 240, 0.1);
+  --font-display: 'DM Serif Display', serif;
+  --font-body: 'DM Sans', sans-serif;
+  --transition-smooth: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+html {
+  font-size: 16px;
+  scroll-behavior: auto;
+  background-color: var(--bg-warm);
+}
+
+body {
+  background-color: var(--bg-warm);
+  color: var(--text-charcoal);
+  font-family: var(--font-body);
+  font-weight: 300;
+  line-height: 1.8;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ─── Tactile Paper Texture Overlay ────────────────── */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  opacity: 0.045;
+  pointer-events: none;
+  z-index: 9999;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+}
+
+/* ─── NAV (Editorial Header) ────────────────── */
+.nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  padding: 24px 64px;
+  display: flex;
+  align-items: center;
+  transition: var(--transition-smooth);
+}
+
+.nav.scrolled {
+  background: rgba(250, 246, 240, 0.92);
+  backdrop-filter: blur(16px);
+  padding: 16px 64px;
+  border-bottom: 1px solid var(--border-light);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.02);
+}
+
+.nav-inner {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.nav-logo {
+  font-family: var(--font-display);
+  font-size: 20px;
+  color: var(--text-charcoal);
+  text-decoration: none;
+  letter-spacing: -0.01em;
+  font-weight: 400;
+  flex-shrink: 0;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 36px;
+}
+
+.nav-link {
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--text-charcoal);
+  text-decoration: none;
+  letter-spacing: 0.01em;
+  opacity: 0.75;
+  transition: opacity 0.3s, color 0.3s;
+  position: relative;
+}
+
+.nav-link:hover, .nav-link.active {
+  opacity: 1;
+  color: var(--accent-moss);
+}
+
+.nav-link.active::after {
+  content: "";
+  position: absolute;
+  bottom: -6px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--accent-clay);
+  border-radius: 2px;
+}
+
+.nav-cta {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--bg-warm);
+  text-decoration: none;
+  padding: 12px 28px;
+  border: none;
+  border-radius: 100px;
+  transition: var(--transition-smooth);
+  letter-spacing: 0.03em;
+  background: var(--accent-moss);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.nav-cta:hover {
+  background: var(--text-charcoal);
+  color: var(--bg-warm);
+  transform: translateY(-1px);
+}
+
+.nav-cta-arrow {
+  font-size: 14px;
+  display: inline-block;
+  transition: transform 0.3s;
+}
+
+.nav-cta:hover .nav-cta-arrow {
+  transform: translate(2px, -2px);
+}
+
+@media (max-width: 900px) {
+  .nav-links { display: none; }
+}
+
+@media (max-width: 600px) {
+  .nav { padding: 18px 24px; }
+  .nav.scrolled { padding: 14px 24px; }
+}
+
+/* ─── BUTTONS ─────────────────────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  border-radius: 100px;
+  transition: var(--transition-smooth);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.btn-arrow {
+  font-size: 15px;
+  display: inline-block;
+  transition: transform 0.3s;
+}
+
+.btn:hover .btn-arrow {
+  transform: translate(2px, -2px);
+}
+
+.btn-primary {
+  background: var(--accent-moss);
+  color: var(--bg-warm);
+  padding: 14px 30px;
+  border: 1px solid var(--accent-moss);
+}
+
+.btn-primary:hover {
+  background: #1a4a2e;
+  border-color: #1a4a2e;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(35, 56, 43, 0.18);
+}
+
+.btn-ghost {
+  color: var(--text-charcoal);
+  opacity: 0.8;
+  padding: 10px 20px;
+  border: 1px solid transparent;
+}
+
+.btn-ghost:hover {
+  opacity: 1;
+  color: var(--accent-clay);
+}
+
+.btn-sm {
+  font-size: 12px;
+  padding: 10px 22px;
+}
+
+.btn-full {
+  width: 100%;
+  justify-content: center;
+}
+
+/* ─── LOGIN WRAPPER ────────────────────────── */
+.login-wrapper {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--bg-warm);
+  overflow: hidden;
+  padding: 120px 24px 80px 24px;
+}
+
+.login-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.75;
+}
+
+.login-card-container {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 480px;
+}
+
+/* Thick paper editorial card */
+.login-card {
+  background: var(--bg-warm);
+  border: 1px solid rgba(28, 30, 29, 0.06);
+  border-radius: 12px;
+  padding: 48px;
+  box-shadow: 0 20px 60px rgba(28, 30, 29, 0.03);
+  transform: rotate(-0.5deg);
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.6s;
+}
+
+.login-card:hover {
+  transform: rotate(0deg) scale(1.005);
+  box-shadow: 0 30px 80px rgba(28, 30, 29, 0.06);
+}
+
+@media (max-width: 480px) {
+  .login-card {
+    padding: 32px 24px;
+  }
+}
+
+.login-accent-line {
+  width: 36px;
+  height: 3px;
+  background: var(--accent-clay);
+  margin-bottom: 24px;
+}
+
+.label {
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--accent-clay);
+  margin-bottom: 12px;
+  display: block;
+}
+
+.login-title {
+  font-family: var(--font-display);
+  font-size: clamp(32px, 4.5vw, 44px);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--accent-moss);
+  margin-bottom: 12px;
+}
+
+.login-subtitle {
+  font-size: 13.5px;
+  line-height: 1.6;
+  opacity: 0.75;
+  margin-bottom: 36px;
+}
+
+/* Inputs */
+.login-form .input-group {
+  margin-bottom: 24px;
+}
+
+.input-label {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent-moss);
+  display: block;
+  margin-bottom: 8px;
+}
+
+.login-form input[type="text"],
+.login-form input[type="password"] {
+  width: 100%;
+  background: transparent;
+  border: 1px solid rgba(28, 30, 29, 0.15);
+  border-radius: 6px;
+  padding: 12px 16px;
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--text-charcoal);
+  outline: none;
+  transition: var(--transition-smooth);
+}
+
+.login-form input[type="text"]:focus,
+.login-form input[type="password"]:focus {
+  border-color: var(--accent-moss);
+  background: rgba(28, 30, 29, 0.005);
+  box-shadow: 0 4px 12px rgba(35, 56, 43, 0.02);
+}
+
+/* Role options selectors */
+.role-selectors {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.role-option input[type="radio"] {
+  display: none;
+}
+
+.role-option-inner {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border: 1px solid rgba(28, 30, 29, 0.1);
+  border-radius: 8px;
+  padding: 16px;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+  background: var(--bg-warm);
+}
+
+.role-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.role-info {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
+
+.role-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-charcoal);
+  line-height: 1.3;
+}
+
+.role-desc {
+  font-size: 11.5px;
+  color: var(--text-charcoal);
+  opacity: 0.6;
+}
+
+.role-option:hover .role-option-inner {
+  border-color: rgba(28, 30, 29, 0.2);
+  background: rgba(28, 30, 29, 0.005);
+}
+
+.role-option input[type="radio"]:checked + .role-option-inner {
+  border-color: var(--accent-clay);
+  background: rgba(200, 125, 85, 0.03);
+  box-shadow: 0 4px 16px rgba(200, 125, 85, 0.04);
+}
+
+.login-actions {
+  margin-top: 36px;
+}
+
+.login-footer {
+  margin-top: 24px;
+  border-top: 1px solid var(--border-light);
+  padding-top: 18px;
+  text-align: center;
+}
+
+.login-footer p {
+  font-size: 11px;
+  line-height: 1.5;
+  opacity: 0.55;
+}
+
+/* ─── FOOTER ──────────────────────────────── */
+.footer {
+  background: var(--bg-dark-moss);
+  color: var(--bg-warm);
+  padding: 80px 0;
+  border-top: 1px solid rgba(250, 246, 240, 0.08);
+}
+
+.footer-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 64px;
+  display: flex;
+  flex-direction: column;
+  gap: 60px;
+}
+
+@media (max-width: 768px) {
+  .footer-inner { padding: 0 28px; }
+}
+
+.footer-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 40px;
+}
+
+.footer-brand {
+  max-width: 320px;
+}
+
+.footer-name {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  margin-bottom: 8px;
+}
+
+.footer-tagline {
+  font-size: 13px;
+  opacity: 0.7;
+  line-height: 1.6;
+}
+
+.footer-nav {
+  display: flex;
+  gap: 40px;
+}
+
+@media (max-width: 600px) {
+  .footer-nav {
+    flex-direction: column;
+    gap: 16px;
+  }
+}
+
+.footer-nav a {
+  color: var(--bg-warm);
+  text-decoration: none;
+  font-size: 14px;
+  opacity: 0.7;
+  transition: opacity 0.3s;
+}
+
+.footer-nav a:hover {
+  opacity: 1;
+}
+
+.footer-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid rgba(250, 246, 240, 0.08);
+  padding-top: 40px;
+  flex-wrap: wrap;
+  gap: 24px;
+}
+
+.footer-copy {
+  font-size: 13px;
+  opacity: 0.6;
+  max-width: 600px;
+}

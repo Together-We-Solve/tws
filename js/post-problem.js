@@ -383,6 +383,15 @@
         const tried = formFields.tried.value.trim();
         const ripple = formFields.ripple.value.trim();
 
+        // Retrieve session to set author (owner)
+        let authorName = 'Elena Rostova'; // Default fallback
+        try {
+          const session = JSON.parse(sessionStorage.getItem('portal_session'));
+          if (session && session.username) {
+            authorName = session.username;
+          }
+        } catch (_) {}
+
         // Create a structured problem object
         const newProblem = {
           id: 'prob_' + Date.now(),
@@ -392,8 +401,14 @@
           tried: tried,
           ripple: ripple,
           date: new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
-          status: 'Open',
-          solver: 'Seeking Solver...',
+          status: 'Pending Review', // Set to Pending Review for admin audit
+          solver: authorName,       // Acts as the owner/author's name
+          contributors: [],
+          solvedBy: '',
+          complexity: '',
+          ownerReview: '',
+          winnerXP: 0,
+          attemptXP: 0,
           clones: 0,
           views: 1
         };
@@ -403,6 +418,15 @@
           const existingProblems = JSON.parse(localStorage.getItem('community_problems')) || [];
           existingProblems.push(newProblem);
           localStorage.setItem('community_problems', JSON.stringify(existingProblems));
+          
+          // Log to system activity logs if available
+          const logs = JSON.parse(localStorage.getItem('admin_system_logs')) || [];
+          logs.unshift({
+            timestamp: new Date().toLocaleTimeString('en-US', { hour12: false }) + ' ' + new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+            type: 'SYSTEM',
+            message: `New friction "${title}" voiced by author "${authorName}". Queued for admin review.`
+          });
+          localStorage.setItem('admin_system_logs', JSON.stringify(logs));
         } catch (err) {
           console.error('Failed to save problem to localStorage:', err);
         }

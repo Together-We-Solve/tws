@@ -331,6 +331,11 @@
       
       // Iterate to prepend, showing the most recently added problem at the top
       customProblems.forEach(prob => {
+        // Skip private drafts or pending reviews
+        if (prob.status === 'Pending Review' || prob.status === 'Pending Owner Closure' || prob.status === 'Closed by Owner') {
+          return;
+        }
+
         const item = document.createElement('div');
         item.className = 'timeline-item';
         item.setAttribute('data-category', prob.category);
@@ -343,6 +348,71 @@
         };
         const catClass = categoryClassMap[prob.category] || 'tech';
 
+        const isSolved = prob.status === 'Solved';
+
+        let badgeHtml = '';
+        let solverMetaHtml = '';
+        let opportunityHtml = '';
+
+        if (isSolved) {
+          badgeHtml = `<span style="font-size: 10px; font-family: var(--font-body); text-transform: uppercase; letter-spacing: 0.1em; padding: 3px 10px; border-radius: 100px; background: rgba(35, 56, 43, 0.08); color: var(--accent-moss); margin-left: 8px; font-weight: 600; vertical-align: middle;">Co-Authored Solution</span>`;
+          
+          const solverUrlName = prob.solvedBy.replace(/ /g, '_');
+          const othersList = prob.contributors ? prob.contributors.filter(c => c !== prob.solvedBy) : [];
+          let othersHtml = '';
+          if (othersList.length > 0) {
+            othersHtml = ` (with participation from: ${othersList.map(c => `<a href="user-dashboard.html?username=${c.replace(/ /g, '_')}" style="color: var(--accent-ocean); font-weight: 500;">${c}</a>`).join(', ')})`;
+          }
+
+          solverMetaHtml = `
+            <span class="meta-field">Resolved By: <a href="user-dashboard.html?username=${solverUrlName}" style="color: var(--accent-moss); font-weight: 600; text-decoration: underline;">${prob.solvedBy}</a>${othersHtml}</span>
+          `;
+
+          opportunityHtml = `
+            <div class="drawer-section" style="grid-column: span 3; border-top: 1px dashed var(--border-light); padding-top: 18px; margin-top: 12px; background: rgba(35, 56, 43, 0.015); padding: 16px; border-radius: 8px;">
+              <h4 style="color: var(--accent-moss); margin-bottom: 6px; text-transform: uppercase; font-size: 11px; font-weight: 600;">Verified Resolution & Owner Feedback</h4>
+              <p style="font-style: italic; opacity: 0.85;">"${prob.ownerReview || 'Challenge successfully completed and archived.'}"</p>
+              <div style="font-size: 11px; opacity: 0.6; margin-top: 10px; display: flex; gap: 15px;">
+                <span>Complexity: <strong>${prob.complexity}</strong></span>
+                <span>Council Award: <strong>+${prob.winnerXP || 150} XP Solver, +${prob.attemptXP || 40} XP Attempts</strong></span>
+              </div>
+            </div>
+          `;
+        } else {
+          badgeHtml = `<span style="font-size: 10px; font-family: var(--font-body); text-transform: uppercase; letter-spacing: 0.1em; padding: 3px 10px; border-radius: 100px; background: rgba(200, 125, 85, 0.1); color: var(--accent-clay); margin-left: 8px; font-weight: 600; vertical-align: middle;">Open Challenge</span>`;
+          
+          const attemptsCount = prob.contributors ? prob.contributors.length : 0;
+          let attemptsInfo = 'Seeking Solver...';
+          if (attemptsCount > 0) {
+            attemptsInfo = `${attemptsCount} Solver${attemptsCount > 1 ? 's' : ''} attempting (External)`;
+          }
+
+          solverMetaHtml = `
+            <span class="meta-field">Status: <strong style="color: var(--accent-clay); font-style: italic;">${attemptsInfo}</strong></span>
+          `;
+
+          let contributorsAvatarsHtml = '';
+          if (attemptsCount > 0) {
+            contributorsAvatarsHtml = `
+              <div style="margin-top: 8px; font-size: 12px; opacity: 0.7;">
+                Attempting: <strong>${prob.contributors.join(', ')}</strong>
+              </div>
+            `;
+          }
+
+          opportunityHtml = `
+            <div class="drawer-section" style="grid-column: span 3; border-top: 1px dashed var(--border-light); padding-top: 18px; margin-top: 12px; display: flex; flex-direction: column; gap: 12px; align-items: flex-start;">
+              <h4 style="color: var(--accent-clay); text-transform: uppercase; font-size: 11px; font-weight: 600;">Cooperative Bounty Opportunity</h4>
+              <p>This challenge is currently open and being solved in external applications. You can self-assign to register your attempt, earning participation points even if someone else closes it first.</p>
+              ${contributorsAvatarsHtml}
+              <div style="display: flex; gap: 10px; margin-top: 8px; width: 100%;">
+                <button type="button" class="btn btn-primary btn-sm btn-attempt-challenge" data-id="${prob.id}" style="padding: 8px 16px; font-size: 12px; border-radius: 100px; border: none; cursor: pointer; background: var(--accent-moss); color: var(--bg-warm);">Claim & Attempt Challenge</button>
+                <a href="user-dashboard.html" class="btn btn-outline btn-sm" style="padding: 8px 16px; font-size: 12px; border-radius: 100px; border: 1px solid var(--border-light); color: var(--text-charcoal); text-decoration: none;">View Profiles</a>
+              </div>
+            </div>
+          `;
+        }
+
         item.innerHTML = `
           <div class="timeline-marker"></div>
           <div class="timeline-card">
@@ -350,11 +420,11 @@
               <span class="item-date">${prob.date}</span>
               <span class="category-tag ${catClass}">${prob.category}</span>
             </div>
-            <h3 class="item-title">${prob.title} <span style="font-size: 11px; font-family: var(--font-body); text-transform: uppercase; letter-spacing: 0.1em; padding: 3px 8px; border-radius: 100px; background: rgba(200, 125, 85, 0.1); color: var(--accent-clay); margin-left: 8px; font-weight: 600; vertical-align: middle;">Active Friction</span></h3>
+            <h3 class="item-title">${prob.title} ${badgeHtml}</h3>
             <p class="item-summary">${prob.friction.substring(0, 120)}...</p>
             
             <div class="item-meta">
-              <span class="meta-field">Solver: <strong style="color: var(--accent-clay); font-style: italic;">${prob.solver}</strong></span>
+              ${solverMetaHtml}
               <div class="ripple-score">
                 <span class="score-val">✨ ${prob.clones} Clones</span>
                 <span class="score-val">👁️ ${prob.views} Views</span>
@@ -378,10 +448,7 @@
                   <h4>The Ripple (Outreach)</h4>
                   <p>${prob.ripple}</p>
                 </div>
-                <div class="drawer-section" style="grid-column: span 3; border-top: 1px dashed var(--border-light); padding-top: 18px; margin-top: 12px;">
-                  <h4>The Opportunity</h4>
-                  <p>This obstacle is currently open. If you have the experience or tools to help, <a href="mailto:help@togetherwesolve.org?subject=Solving: ${prob.title}" style="color: var(--accent-clay); text-decoration: underline; font-weight: 500;">Offer a Solution ↗</a> or start a collaboration with the author.</p>
-                </div>
+                ${opportunityHtml}
               </div>
             </div>
           </div>
@@ -390,8 +457,63 @@
         // Prepend to timeline to display at the top of the archive
         timeline.insertBefore(item, timeline.firstChild);
       });
+
+      // Attach click events for "Attempt Challenge"
+      document.querySelectorAll('.btn-attempt-challenge').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation(); // Avoid triggering accordion toggle
+          const problemId = btn.getAttribute('data-id');
+          attemptChallenge(problemId);
+        });
+      });
+
     } catch (err) {
       console.error('Failed to load custom problems from localStorage:', err);
+    }
+  }
+
+  function attemptChallenge(problemId) {
+    try {
+      const session = JSON.parse(sessionStorage.getItem('portal_session'));
+      if (!session) {
+        alert('Authentication Error: Please sign in to the portal to claim and attempt this challenge.');
+        window.location.href = 'login.html';
+        return;
+      }
+
+      const username = session.username;
+
+      const problems = JSON.parse(localStorage.getItem('community_problems')) || [];
+      const problem = problems.find(p => p.id === problemId);
+
+      if (!problem) return;
+
+      if (!problem.contributors) {
+        problem.contributors = [];
+      }
+
+      if (problem.contributors.includes(username)) {
+        alert('Challenge Notification: You are already registered as an attempting contributor for this challenge!');
+        return;
+      }
+
+      problem.contributors.push(username);
+      localStorage.setItem('community_problems', JSON.stringify(problems));
+
+      // Record system log
+      const logs = JSON.parse(localStorage.getItem('admin_system_logs')) || [];
+      logs.unshift({
+        timestamp: new Date().toLocaleTimeString('en-US', { hour12: false }) + ' ' + new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+        type: 'LEDGER',
+        message: `Contributor "${username}" self-assigned to attempt challenge "${problem.title}" externally.`
+      });
+      localStorage.setItem('admin_system_logs', JSON.stringify(logs));
+
+      alert(`Success! You have successfully registered as a contributor to attempt "${problem.title}"!\nWork on your solution externally. The problem owner will verify the winner and complexity once resolved.`);
+      
+      window.location.reload();
+    } catch (err) {
+      console.error('Failed to attempt challenge:', err);
     }
   }
 

@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Oversight Console — Together We Solve</title>
+    <link rel="stylesheet" href="css/admin-dashboard.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap"
+      rel="stylesheet" />
+  </head>
+  <body class="admin-console-body">
+
+    <!-- ADMIN APP LAYOUT -->
+    <div class="admin-app-shell">
+      
+      <!-- SIDEBAR -->
+      <aside class="admin-sidebar">
+        <div class="sidebar-header">
+          <a href="index.html" class="sidebar-logo">Together We Solve</a>
+          <span class="sidebar-tag">Oversight Panel</span>
+        </div>
+
+        <div class="admin-profile-card">
+          <div class="admin-avatar">CD</div>
+          <div class="admin-profile-info">
+            <span class="profile-name">Clara Dupont</span>
+            <span class="profile-role">Principal Auditor</span>
+          </div>
+        </div>
+
+        <!-- NAVIGATION TABS -->
+        <nav class="sidebar-nav">
+          <button class="nav-tab-btn active" data-tab="review">
+            <span class="tab-icon">📝</span>
+            <span class="tab-label">Review Queue</span>
+            <span class="tab-badge" id="badgePendingCount">0</span>
+          </button>
+          
+          <button class="nav-tab-btn" data-tab="verification">
+            <span class="tab-icon">🛡️</span>
+            <span class="tab-label">Verifications</span>
+            <span class="tab-badge" id="badgeVerificationCount">0</span>
+          </button>
+
+          <button class="nav-tab-btn" data-tab="solvers">
+            <span class="tab-icon">👥</span>
+            <span class="tab-label">Solvers Ledger</span>
+          </button>
+
+          <button class="nav-tab-btn" data-tab="settings">
+            <span class="tab-icon">⚙️</span>
+            <span class="tab-label">System Settings</span>
+          </button>
+
+          <button class="nav-tab-btn" data-tab="logs">
+            <span class="tab-icon">📋</span>
+            <span class="tab-label">System Logs</span>
+          </button>
+        </nav>
+
+        <div class="sidebar-footer">
+          <button class="btn btn-outline btn-sm btn-full" id="signOutBtn">Sign Out Portal</button>
+        </div>
+      </aside>
+
+      <!-- MAIN PANEL -->
+      <main class="admin-main-panel">
+        
+        <!-- TOP BAR -->
+        <header class="console-topbar">
+          <div class="topbar-left">
+            <h1 class="active-tab-title" id="activeTabTitle">Review Queue</h1>
+          </div>
+          <div class="topbar-right">
+            <div class="system-time" id="systemDate">June 24, 2026</div>
+            <div class="admin-indicator">
+              <span class="indicator-dot"></span>
+              <span class="indicator-txt">System Connected</span>
+            </div>
+          </div>
+        </header>
+
+        <!-- QUICK STATS BAR -->
+        <section class="console-stats-bar">
+          <div class="stat-card">
+            <span class="stat-label">Pending Review</span>
+            <div class="stat-value-row">
+              <span class="stat-number" id="statPendingReviews">0</span>
+              <span class="stat-trend trend-neutral">Frictions</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Verification Audits</span>
+            <div class="stat-value-row">
+              <span class="stat-number" id="statPendingVerifications">0</span>
+              <span class="stat-trend trend-warning" id="statPendingVerificationsBadge">Action Req.</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Resolution Rate</span>
+            <div class="stat-value-row">
+              <span class="stat-number" id="statResolutionRate">0%</span>
+              <span class="stat-trend trend-positive" id="statTotalSolved">0 Solved</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Solvers & XP</span>
+            <div class="stat-value-row">
+              <span class="stat-number" id="statTotalSolvers">0</span>
+              <span class="stat-trend trend-info" id="statTotalXP">0 XP</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- CONTENT WINDOW -->
+        <div class="console-content-viewport">
+          
+          <!-- TAB 1: REVIEW QUEUE (MASTER-DETAIL DUAL PANE) -->
+          <section class="console-tab-panel active" id="panel-review">
+            <div class="dual-pane-layout">
+              
+              <!-- Left Master List -->
+              <div class="master-list-pane">
+                <div class="pane-header">
+                  <h3>Voiced Frictions</h3>
+                  <div class="pane-search-row" style="display: flex; gap: 8px; margin-top: 12px; margin-bottom: 8px;">
+                    <input type="text" id="frictionListSearch" class="pane-search-input" placeholder="Search title or author..." style="flex: 1;" />
+                    <select id="frictionCategoryFilter" class="editor-input select-input" style="width: 110px; padding: 6px 12px; font-size: 11px; font-weight: 500; border-radius: 6px; border: 1px solid var(--border-light); background: var(--bg-warm); color: var(--text-charcoal); outline: none; height: auto;">
+                      <option value="all">All Cats</option>
+                      <option value="Technical">Technical</option>
+                      <option value="Education">Education</option>
+                      <option value="Environmental">Environmental</option>
+                      <option value="Community">Community</option>
+                    </select>
+                  </div>
+                  <span class="pane-subtitle" id="masterQueueCount">0 pending review</span>
+                </div>
+                
+                <div class="master-list-items" id="reviewMasterList">
+                  <!-- Dynamic items go here -->
+                </div>
+
+                <!-- Placeholder shown when queue is empty -->
+                <div class="empty-pane-placeholder" id="reviewQueueEmpty">
+                  <span class="placeholder-icon">📜</span>
+                  <h4>All Frictions Published</h4>
+                  <p>Voiced frictions have been audited, categorized, and published to the public registry timeline.</p>
+                  <p class="hint">Submit new frictions via the <a href="post-problem.html" target="_blank" style="color: var(--accent-clay); text-decoration: underline;">Post Problem Form</a> to populate the queue.</p>
+                </div>
+              </div>
+              
+              <!-- Right Detail Viewer & Editor -->
+              <div class="detail-viewer-pane" id="reviewDetailPane">
+                
+                <!-- Shown when no item is selected -->
+                <div class="detail-unselected-state" id="detailUnselectedState">
+                  <span class="unselected-icon">👈</span>
+                  <h3>Select a Friction</h3>
+                  <p>Choose an item from the voiced frictions list to review, edit, and publish to the public registry archive.</p>
+                </div>
+
+                <!-- Detail Editor Form (Initially Hidden) -->
+                <div class="detail-editor-form" id="detailEditorForm" style="display: none;">
+                  <div class="pane-header flex-header">
+                    <div>
+                      <span class="meta-label" id="detailAuthor">Voiced by: Elena Rostova</span>
+                      <span class="meta-date" id="detailDate">June 2026</span>
+                    </div>
+                    <span class="category-tag text-uppercase" id="detailCategoryTag">Technical</span>
+                  </div>
+
+                  <div class="editor-fields-grid">
+                    
+                    <!-- Title Input -->
+                    <div class="editor-field-group span-full">
+                      <label for="editTitle" class="editor-label">Registry Title</label>
+                      <input type="text" id="editTitle" class="editor-input" />
+                    </div>
+
+                    <!-- Friction Textarea -->
+                    <div class="editor-field-group span-full">
+                      <label for="editFriction" class="editor-label">The Friction (Voiced Wall)</label>
+                      <textarea id="editFriction" class="editor-textarea"></textarea>
+                    </div>
+
+                    <!-- Tried Textarea -->
+                    <div class="editor-field-group">
+                      <label for="editTried" class="editor-label">Solver's Search (Paths Tried)</label>
+                      <textarea id="editTried" class="editor-textarea small"></textarea>
+                    </div>
+
+                    <!-- Ripple Textarea -->
+                    <div class="editor-field-group">
+                      <label for="editRipple" class="editor-label">Expected Ripple (Outreach)</label>
+                      <textarea id="editRipple" class="editor-textarea small"></textarea>
+                    </div>
+
+                    <!-- Tailored Resolution Story Input -->
+                    <div class="editor-field-group span-full highlight-field">
+                      <label for="editResolution" class="editor-label">Co-Authored Resolution Story</label>
+                      <textarea id="editResolution" class="editor-textarea" placeholder="Describe the collaborative steps and final outcome that resolved this friction..."></textarea>
+                      <p class="field-help">Admins can edit and tailor the resolution story before archiving. Defaults to a category blueprint if left blank.</p>
+                    </div>
+
+                  </div>
+
+                  <!-- Admin Action Panel -->
+                  <div class="editor-action-footer">
+                    <div class="action-left" style="display: flex; gap: 8px;">
+                      <button type="button" class="btn btn-outline btn-sm btn-flag" id="btnFlagFriction">Flag for Detail</button>
+                      <button type="button" class="btn btn-outline btn-sm btn-danger" id="btnDeleteFriction" style="color: #c85555; border-color: rgba(200, 85, 85, 0.25); background: transparent;">Delete</button>
+                    </div>
+                    <div class="action-right">
+                      <button type="button" class="btn btn-primary btn-sm" id="btnPublishFriction">Verify & Publish to Registry</button>
+                    </div>
+                  </div>
+
+                </div>
+
+              </div>
+
+            </div>
+          </section>
+
+          <!-- TAB 2: VERIFICATIONS QUEUE -->
+          <section class="console-tab-panel" id="panel-verification">
+            <div class="dense-layout-container">
+              <div class="pane-header">
+                <h3>Solution Verification Audits</h3>
+                <span class="pane-subtitle">Confirm co-authored resolutions and award helper points</span>
+              </div>
+
+              <div class="audit-cards-grid" id="verificationCardsGrid">
+                <!-- Dynamic verification cards go here -->
+              </div>
+
+              <!-- Placeholder shown when queue is empty -->
+              <div class="empty-pane-placeholder" id="verificationQueueEmpty" style="display: none;">
+                <span class="placeholder-icon">🛡️</span>
+                <h4>All Solutions Audited</h4>
+                <p>All proposed solutions have been verified, and solvers have been credited with their impact points.</p>
+              </div>
+            </div>
+          </section>
+
+          <!-- TAB 3: SOLVERS LEDGER (MANAGE LEADERBOARD VALUES) -->
+          <section class="console-tab-panel" id="panel-solvers">
+            <div class="solvers-panel-layout">
+              
+              <!-- Left list of solvers -->
+              <div class="solvers-list-pane">
+                <div class="pane-header search-header" style="display: flex; flex-direction: column; gap: 8px;">
+                  <h3>Solvers Directory</h3>
+                  <input type="text" id="solverListSearch" class="pane-search-input" placeholder="Search solvers..." />
+                  <div style="display: flex; gap: 8px;">
+                    <select id="solverSortSelect" class="editor-input select-input" style="flex: 1; padding: 6px 12px; font-size: 11px; height: auto;">
+                      <option value="points-desc">XP (High to Low)</option>
+                      <option value="points-asc">XP (Low to High)</option>
+                      <option value="name-asc">Name (A to Z)</option>
+                    </select>
+                    <button type="button" class="btn btn-primary btn-sm" id="btnRecruitSolver" style="padding: 6px 12px; font-size: 11px; white-space: nowrap; background: var(--accent-moss); color: var(--bg-warm);">+ Recruit</button>
+                  </div>
+                </div>
+                
+                <div class="solvers-compact-list" id="solversCompactList">
+                  <!-- Dynamic solver rows go here -->
+                </div>
+              </div>
+              
+              <!-- Right Solver Editor Pane -->
+              <div class="solver-editor-pane" id="solverEditorPane">
+                
+                <!-- Unselected Solver State -->
+                <div class="detail-unselected-state" id="solverUnselectedState">
+                  <span class="unselected-icon">👥</span>
+                  <h3>Select a Solver</h3>
+                  <p>Choose a solver from the directory to adjust their impact points, manage their specialties, or award custom badges of empathy.</p>
+                </div>
+
+                <!-- Solver Profile Editor Form (Initially Hidden) -->
+                <div class="solver-profile-form" id="solverProfileForm" style="display: none;">
+                  <div class="pane-header flex-header">
+                    <div>
+                      <h3 class="solver-profile-name" id="profileName">Elena Rostova</h3>
+                      <span class="solver-profile-role" id="profileRole">The Bridge Builder</span>
+                    </div>
+                    <div class="profile-badge-circle" id="profileInitials">ER</div>
+                  </div>
+
+                  <div class="solver-edit-grid">
+                    
+                    <!-- Points field -->
+                    <div class="editor-field-group">
+                      <label for="editSolverPoints" class="editor-label">Impact Points (XP)</label>
+                      <input type="number" id="editSolverPoints" class="editor-input" />
+                      <p class="field-help">Adjusting points will instantly recalculate ranks and update the Leaderboard page.</p>
+                    </div>
+
+                    <!-- Solved Count field -->
+                    <div class="editor-field-group">
+                      <label for="editSolverSolved" class="editor-label">Verified Solutions</label>
+                      <input type="number" id="editSolverSolved" class="editor-input" />
+                    </div>
+
+                    <!-- Specialty field -->
+                    <div class="editor-field-group span-full">
+                      <label for="editSolverSpecialty" class="editor-label">Primary Domain Expertise</label>
+                      <input type="text" id="editSolverSpecialty" class="editor-input" />
+                    </div>
+
+                    <!-- Badges Management (Checkboxes) -->
+                    <div class="editor-field-group span-full">
+                      <label class="editor-label">Awarded Empathy Badges</label>
+                      <div class="badges-check-grid">
+                        
+                        <label class="badge-check-card">
+                          <input type="checkbox" name="badges" value="Golden Heart" />
+                          <div class="badge-check-inner">
+                            <span class="badge-check-icon">❤️</span>
+                            <span class="badge-check-title">Golden Heart</span>
+                          </div>
+                        </label>
+
+                        <label class="badge-check-card">
+                          <input type="checkbox" name="badges" value="Deep Thinker" />
+                          <div class="badge-check-inner">
+                            <span class="badge-check-icon">🧠</span>
+                            <span class="badge-check-title">Deep Thinker</span>
+                          </div>
+                        </label>
+
+                        <label class="badge-check-card">
+                          <input type="checkbox" name="badges" value="Root Sprouter" />
+                          <div class="badge-check-inner">
+                            <span class="badge-check-icon">🌿</span>
+                            <span class="badge-check-title">Root Sprouter</span>
+                          </div>
+                        </label>
+
+                        <label class="badge-check-card">
+                          <input type="checkbox" name="badges" value="Constant Beacon" />
+                          <div class="badge-check-inner">
+                            <span class="badge-check-icon">🕯️</span>
+                            <span class="badge-check-title">Constant Beacon</span>
+                          </div>
+                        </label>
+
+                        <label class="badge-check-card">
+                          <input type="checkbox" name="badges" value="Sudden Light" />
+                          <div class="badge-check-inner">
+                            <span class="badge-check-icon">💡</span>
+                            <span class="badge-check-title">Sudden Light</span>
+                          </div>
+                        </label>
+
+                        <label class="badge-check-card">
+                          <input type="checkbox" name="badges" value="Dignity Guard" />
+                          <div class="badge-check-inner">
+                            <span class="badge-check-icon">🛡️</span>
+                            <span class="badge-check-title">Dignity Guard</span>
+                          </div>
+                        </label>
+
+                      </div>
+                    </div>
+
+                  </div>
+
+                  <!-- Save Footer -->
+                  <div class="editor-action-footer justify-end" style="display: flex; gap: 10px; width: 100%;">
+                    <button type="button" class="btn btn-outline btn-sm btn-danger" id="btnDeleteSolver" style="color: #c85555; border-color: rgba(200, 85, 85, 0.25); background: transparent;">Delete Solver</button>
+                    <button type="button" class="btn btn-primary btn-sm" id="btnSaveSolver">Save Solver Ledger Profile</button>
+                  </div>
+
+                </div>
+
+              </div>
+
+            </div>
+          </section>
+
+          <!-- TAB 4: SYSTEM SETTINGS -->
+          <section class="console-tab-panel" id="panel-settings">
+            <div class="settings-layout-container">
+              <div class="pane-header">
+                <h3>Global Community Parameters</h3>
+                <span class="pane-subtitle">Configure operational rules, verification limits, and gamification rewards</span>
+              </div>
+
+              <form id="settingsForm" class="settings-form">
+                <div class="settings-grid-panel">
+                  
+                  <div class="settings-card">
+                    <h4>Gamification & XP Weights</h4>
+                    <div class="settings-fields">
+                      <div class="editor-field-group">
+                        <label for="setBaseFrictionXP" class="editor-label">Base XP for Voicing Friction</label>
+                        <input type="number" id="setBaseFrictionXP" class="editor-input" value="50" />
+                      </div>
+                      <div class="editor-field-group">
+                        <label for="setBaseSolutionXP" class="editor-label">Base XP for Verifying Solution</label>
+                        <input type="number" id="setBaseSolutionXP" class="editor-input" value="150" />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="settings-card">
+                    <h4>Form Validation Constraints</h4>
+                    <div class="settings-fields">
+                      <div class="editor-field-group">
+                        <label for="setMinTitleLen" class="editor-label">Minimum Title Length (characters)</label>
+                        <input type="number" id="setMinTitleLen" class="editor-input" value="8" />
+                      </div>
+                      <div class="editor-field-group">
+                        <label for="setMinFrictionLen" class="editor-label">Minimum Friction Length (characters)</label>
+                        <input type="number" id="setMinFrictionLen" class="editor-input" value="40" />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="settings-card">
+                    <h4>Vulnerability Encouragement Level</h4>
+                    <div class="settings-fields">
+                      <div class="editor-field-group">
+                        <label for="setEncouragementLevel" class="editor-label">Gauge Message Level</label>
+                        <select id="setEncouragementLevel" class="editor-input select-input">
+                          <option value="high">High (Maximum Supportive Prompts)</option>
+                          <option value="medium" selected>Medium (Standard Encouragement)</option>
+                          <option value="low">Low (Basic Threshold Indicators)</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="settings-card span-full" style="grid-column: span 2; margin-top: 10px; border-top: 1px dashed var(--border-light); padding-top: 20px;">
+                    <h4 style="color: var(--accent-clay);">System Database Operations</h4>
+                    <p style="font-size: 12.5px; opacity: 0.7; margin-bottom: 15px; line-height: 1.5;">
+                      Perform administrative backup, restore, or system wipe operations. All data is persisted client-side in your browser's local storage.
+                    </p>
+                    <div class="database-actions" style="display: flex; gap: 12px; flex-wrap: wrap;">
+                      <button type="button" class="btn btn-outline btn-sm" id="btnExportDB" style="display: flex; align-items: center; gap: 6px; padding: 10px 16px;">
+                        <span>📥</span> Export DB Backup (.json)
+                      </button>
+                      
+                      <label class="btn btn-outline btn-sm" style="display: flex; align-items: center; gap: 6px; cursor: pointer; margin: 0; padding: 10px 16px;">
+                        <span>📤</span> Import DB Backup
+                        <input type="file" id="importDBFile" accept=".json" style="display: none;" />
+                      </label>
+
+                      <button type="button" class="btn btn-outline btn-sm" id="btnResetDB" style="color: #c85555; border-color: rgba(200, 85, 85, 0.25); display: flex; align-items: center; gap: 6px; padding: 10px 16px; background: transparent;">
+                        <span>🔄</span> Reset to Defaults
+                      </button>
+                    </div>
+                  </div>
+
+                </div>
+
+                <div class="settings-action-footer">
+                  <button type="submit" class="btn btn-primary btn-sm">Save System Configurations</button>
+                </div>
+              </form>
+            </div>
+          </section>
+
+          <!-- TAB 5: SYSTEM LOGS -->
+          <section class="console-tab-panel" id="panel-logs">
+            <div class="dense-layout-container" style="display: flex; flex-direction: column; height: 100%; padding: 32px 24px; box-sizing: border-box;">
+              <div class="pane-header" style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 18px; flex-shrink: 0; margin-bottom: 16px;">
+                <div>
+                  <h3>System Activity Ledger</h3>
+                  <span class="pane-subtitle">Real-time log of administrative audits, solver updates, and database actions</span>
+                </div>
+                <button type="button" class="btn btn-outline btn-sm" id="btnClearLogs" style="color: #c85555; border-color: rgba(200, 85, 85, 0.25); background: transparent; padding: 8px 16px; font-size: 11px;">Clear Activity Logs</button>
+              </div>
+
+              <div class="log-console-container" style="flex: 1; background: #1C1E1D; color: #d0d2d0; font-family: 'Courier New', Courier, monospace; font-size: 13px; border-radius: 8px; padding: 20px; overflow-y: auto; box-shadow: inset 0 2px 8px rgba(0,0,0,0.3); border: 1px solid rgba(28,30,29,0.15); line-height: 1.6; text-align: left;">
+                <div id="logConsoleLines">
+                  <!-- Dynamic log entries go here -->
+                </div>
+              </div>
+            </div>
+          </section>
+
+        </div>
+
+      </main>
+
+    </div>
+
+    <!-- SCRIPTS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <script src="https://unpkg.com/lenis@1.1.13/dist/lenis.min.js"></script>
+    <script src="js/admin-dashboard.js"></script>
+  </body>
+</html>

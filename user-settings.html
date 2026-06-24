@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Profile Settings — Together We Solve</title>
+    <link rel="stylesheet" href="css/user-settings.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap"
+      rel="stylesheet" />
+  </head>
+  <body class="settings-body">
+
+    <!-- NAV -->
+    <nav class="nav" id="nav">
+      <div class="nav-inner">
+        <a href="index.html" class="nav-logo">Together We Solve</a>
+        <div class="nav-links">
+          <a href="leaderboard.html" class="nav-link">Leaderboard</a>
+          <a href="hall-of-fame.html" class="nav-link">Hall of Fame</a>
+          <a href="impact-archive.html" class="nav-link">Impact Archive</a>
+          <a href="post-problem.html" class="nav-link">Post a Problem</a>
+          <a href="user-dashboard.html" class="nav-link" id="navDashboardLink">My Profile</a>
+          <a href="user-settings.html" class="nav-link active" id="navSettingsLink">Settings</a>
+        </div>
+        <button class="nav-cta" id="signOutBtn">Sign Out <span class="nav-cta-arrow">↗</span></button>
+      </div>
+    </nav>
+
+    <!-- SETTINGS HEADER -->
+    <header class="settings-hero">
+      <div class="container hero-content">
+        <div class="hero-eyebrow">
+          <span class="hero-eyebrow-text">Private Workspace</span>
+          <div class="hero-eyebrow-line"></div>
+        </div>
+        <h1 class="hero-headline">Workspace & Settings</h1>
+        <p class="hero-tagline">Manage your public identity, view achievements, and review attempts on your voiced frictions.</p>
+      </div>
+    </header>
+
+    <!-- MAIN CONFIGURATION SECTION -->
+    <section class="section config-section">
+      <div class="container">
+        <div class="settings-grid">
+          
+          <!-- Left: Identity Form -->
+          <div class="settings-card card-form">
+            <h2 class="card-title">Public Identity</h2>
+            <p class="card-subtitle">These details will be displayed on your public profile and contribution timelines.</p>
+            
+            <form id="identityForm" class="settings-form">
+              <div class="form-fields-grid">
+                
+                <div class="form-field-group">
+                  <label for="displayName" class="form-label">Display Name</label>
+                  <input type="text" id="displayName" class="form-input" placeholder="e.g. Elena Rostova" required />
+                </div>
+
+                <div class="form-field-group">
+                  <label for="displayRole" class="form-label">Profile Role Tagline</label>
+                  <input type="text" id="displayRole" class="form-input" placeholder="e.g. The Bridge Builder" required />
+                </div>
+
+                <div class="form-field-group">
+                  <label for="displaySpecialty" class="form-label">Primary Domain Expertise (Specialty)</label>
+                  <input type="text" id="displaySpecialty" class="form-input" placeholder="e.g. Technical Systems & Language" required />
+                </div>
+
+                <div class="form-field-group-inline">
+                  <div class="form-field-group" style="flex: 1;">
+                    <label for="avatarInitials" class="form-label">Avatar Initials</label>
+                    <input type="text" id="avatarInitials" class="form-input" placeholder="e.g. ER" maxlength="2" required />
+                  </div>
+                  <div class="avatar-preview-wrap">
+                    <span class="avatar-preview-label">Preview</span>
+                    <div class="avatar-preview-circle" id="avatarPreview">ER</div>
+                  </div>
+                </div>
+
+              </div>
+
+              <div class="form-action-footer">
+                <button type="submit" class="btn btn-primary" id="btnSaveIdentity">Save Identity Details</button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Right: Summary Dashboard -->
+          <div class="settings-card card-summary">
+            <h2 class="card-title">Solver Credentials</h2>
+            <p class="card-subtitle">Your dynamically computed contribution stats across the platform.</p>
+            
+            <div class="credentials-stats-list">
+              <div class="cred-stat-row">
+                <span class="cred-stat-label">Impact Points (XP)</span>
+                <span class="cred-stat-value" id="credPoints">0 XP</span>
+              </div>
+              <div class="cred-stat-row">
+                <span class="cred-stat-label">Resolved Challenges</span>
+                <span class="cred-stat-value" id="credSolved">0 Solved</span>
+              </div>
+              <div class="cred-stat-row">
+                <span class="cred-stat-label">Rank Status</span>
+                <span class="cred-stat-value" id="credRank">Level I</span>
+              </div>
+            </div>
+
+            <div class="badges-row-wrap" style="margin-top: 32px; border-top: 1px solid var(--border-light); padding-top: 24px;">
+              <h3 style="font-family: var(--font-display); font-size: 16px; margin-bottom: 12px; color: var(--accent-moss);">Your Empathy Badges</h3>
+              <div class="compact-badges-rack" id="compactBadgesRack">
+                <!-- Badges dynamically seeded here -->
+              </div>
+            </div>
+
+            <div class="profile-link-wrap" style="margin-top: 24px;">
+              <a href="user-dashboard.html" class="btn btn-outline btn-sm btn-full" style="display: block; text-align: center;">View My Public Profile ↗</a>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- MY VOICED FRICTIONS TRACKER -->
+    <section class="section frictions-tracker-section">
+      <div class="container">
+        <p class="label">Frictions Ledger</p>
+        <h2 class="section-headline">My Voiced Frictions</h2>
+        <p class="section-subtitle">Track the lifecycle of the obstacles you have shared and verify community solutions.</p>
+
+        <div class="tracker-table-container">
+          <table class="tracker-table">
+            <thead>
+              <tr>
+                <th>Date Voiced</th>
+                <th>Challenge Title</th>
+                <th>Category</th>
+                <th>Assigned Attempts</th>
+                <th>Auditing Status</th>
+                <th style="text-align: right;">Action</th>
+              </tr>
+            </thead>
+            <tbody id="trackerTableBody">
+              <!-- Dynamic table rows go here -->
+            </tbody>
+          </table>
+
+          <!-- Empty state placeholder -->
+          <div class="tracker-empty-placeholder" id="trackerEmptyState" style="display: none;">
+            <span class="placeholder-icon">🌱</span>
+            <h3>No Voiced Frictions Yet</h3>
+            <p>You haven't shared any frictions with the community. Voicing your obstacles is the first step toward collaborative change.</p>
+            <a href="post-problem.html" class="btn btn-primary btn-sm" style="margin-top: 15px;">Voice Your Friction <span class="btn-arrow">↗</span></a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- OWNER VERIFICATION & CLOSURE MODAL -->
+    <div class="modal-overlay" id="verificationModal" style="display: none;">
+      <div class="modal-card">
+        <button class="modal-close-btn" id="btnCloseModal">✕</button>
+        
+        <div class="modal-header">
+          <span class="modal-eyebrow">Council Resolution Audit</span>
+          <h3 class="modal-title" id="modalProblemTitle">SMS Agricultural Pest Alert Gateway</h3>
+          <p class="modal-subtitle">Review community attempts, select the primary solver, and verify the complexity to close this challenge.</p>
+        </div>
+
+        <form id="verificationForm" class="modal-form">
+          <div class="form-fields-grid">
+            
+            <!-- Select Winner Dropdown -->
+            <div class="form-field-group span-full">
+              <label for="verifySelectWinner" class="form-label">Who solved this challenge? (Primary Solver)</label>
+              <select id="verifySelectWinner" class="form-input select-input" required>
+                <!-- Contributors list dynamically injected here -->
+              </select>
+              <p class="field-help">Choose the contributor whose external solution successfully resolved your friction. They will receive the primary XP bounty.</p>
+            </div>
+
+            <!-- Complexity Select -->
+            <div class="form-field-group span-full">
+              <label for="verifyComplexity" class="form-label">Solution Complexity Level</label>
+              <select id="verifyComplexity" class="form-input select-input" required>
+                <option value="Low">Low Complexity (Winner: +100 XP, attempts: +40 XP)</option>
+                <option value="Medium" selected>Medium Complexity (Winner: +200 XP, attempts: +40 XP)</option>
+                <option value="High">High Complexity (Winner: +400 XP, attempts: +40 XP)</option>
+              </select>
+              <p class="field-help">Select the complexity of the solution. This determines the XP points distributed to the winner upon final council audit.</p>
+            </div>
+
+            <!-- Review Textarea -->
+            <div class="form-field-group span-full">
+              <label for="verifyReviewText" class="form-label">Your Resolution Review & Feedback</label>
+              <textarea id="verifyReviewText" class="form-textarea" placeholder="Explain how their solution worked for you, its effectiveness, and any feedback... (minimum 15 characters)" required></textarea>
+              <p class="field-help">Your review will be co-authored alongside the solution and archived in the public timeline for anyone to read.</p>
+            </div>
+
+          </div>
+
+          <div class="modal-action-footer">
+            <div class="action-left">
+              <button type="button" class="btn btn-outline btn-sm btn-danger" id="btnRejectSolution">Send Back for Revision</button>
+            </div>
+            <div class="action-right">
+              <button type="submit" class="btn btn-primary btn-sm" id="btnApproveClose">Resolve & Close Challenge</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+      <div class="footer-inner">
+        <div class="footer-top">
+          <div class="footer-brand">
+            <p class="footer-name">Together We Solve</p>
+            <p class="footer-tagline">No problem too small. No challenge too big.</p>
+          </div>
+          <nav class="footer-nav">
+            <a href="leaderboard.html">Leaderboard</a>
+            <a href="hall-of-fame.html">Hall of Fame</a>
+            <a href="impact-archive.html">Impact Archive</a>
+          </nav>
+        </div>
+        <div class="footer-bottom">
+          <p class="footer-copy">A movement built on the belief that people can solve more together than they ever could alone.</p>
+          <a href="post-problem.html" class="btn btn-ghost btn-sm">Share a Problem</a>
+        </div>
+      </div>
+    </footer>
+
+    <!-- SCRIPTS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <script src="https://unpkg.com/lenis@1.1.13/dist/lenis.min.js"></script>
+    <script src="js/user-settings.js"></script>
+  </body>
+</html>
