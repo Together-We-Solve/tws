@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>The Solvers Ledger — Together We Solve</title>
+    <link rel="stylesheet" href="css/leaderboard.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap"
+      rel="stylesheet" />
+  </head>
+  <body>
+
+    <!-- NAV -->
+    <nav class="nav" id="nav">
+      <div class="nav-inner">
+        <a href="index.html" class="nav-logo">Together We Solve</a>
+        <div class="nav-links">
+          <a href="leaderboard.html" class="nav-link active">Leaderboard</a>
+          <a href="hall-of-fame.html" class="nav-link">Hall of Fame</a>
+          <a href="impact-archive.html" class="nav-link">Impact Archive</a>
+          <a href="post-problem.html" class="nav-link">Post a Problem</a>
+        </div>
+        <a href="post-problem.html" class="nav-cta">Share a Problem <span class="nav-cta-arrow">↗</span></a>
+      </div>
+    </nav>
+
+    <!-- HERO SECTION -->
+    <header class="hero-section">
+      <canvas class="leaderboard-canvas" id="leaderboardCanvas"></canvas>
+      <div class="container hero-content">
+        <div class="hero-eyebrow">
+          <span class="hero-eyebrow-text">Collective Influence</span>
+          <div class="hero-eyebrow-line"></div>
+        </div>
+        <h1 class="hero-headline">The Solvers<br />Ledger</h1>
+        <p class="hero-tagline">Rewarding vulnerability, celebrating collaboration, and tracing the ripples of help.</p>
+        <p class="hero-body">This ledger documents the individuals whose generous contributions of knowledge, empathy, and time have helped our community overcome obstacles. Ranks are determined by Impact Points, reflecting solutions verified and downstream ripples created.</p>
+      </div>
+    </header>
+
+    <!-- SECTION: PODIUM (TOP 3) -->
+    <section class="section podium-section">
+      <div class="container">
+        <p class="label">The Vanguard</p>
+        <h2 class="section-headline">Vanguard of the Movement</h2>
+        
+        <div class="podium-grid">
+          
+          <!-- Rank 2 Card (Left) -->
+          <div class="podium-card rank-2" data-rank="2">
+            <div class="podium-badge">2</div>
+            <div class="avatar-wrap">
+              <div class="avatar-initials">MV</div>
+            </div>
+            <h3 class="podium-name">Marcus Vance</h3>
+            <span class="podium-title">The Catalyst</span>
+            <div class="podium-specialty">Community & Environment</div>
+            <div class="podium-metrics">
+              <div class="metric-item">
+                <span class="metric-val">4,210</span>
+                <span class="metric-lbl">Impact Pts</span>
+              </div>
+              <div class="metric-item">
+                <span class="metric-val">98</span>
+                <span class="metric-lbl">Solved</span>
+              </div>
+            </div>
+            <div class="podium-badges">
+              <span class="badge-tag" title="Helped fund or organize environmental solutions">Root Sprouter</span>
+              <span class="badge-tag" title="Highly consistent weekly answers">Constant Beacon</span>
+            </div>
+            <p class="podium-quote">"Helping a neighbor rebuild is not a chore; it is the fundamental brick of community."</p>
+          </div>
+
+          <!-- Rank 1 Card (Center, Tallest) -->
+          <div class="podium-card rank-1" data-rank="1">
+            <div class="podium-badge">1</div>
+            <div class="avatar-wrap">
+              <div class="avatar-initials">ER</div>
+            </div>
+            <h3 class="podium-name">Elena Rostova</h3>
+            <span class="podium-title">The Bridge Builder</span>
+            <div class="podium-specialty">Technical Systems & Language</div>
+            <div class="podium-metrics">
+              <div class="metric-item">
+                <span class="metric-val">4,850</span>
+                <span class="metric-lbl">Impact Pts</span>
+              </div>
+              <div class="metric-item">
+                <span class="metric-val">124</span>
+                <span class="metric-lbl">Solved</span>
+              </div>
+            </div>
+            <div class="podium-badges">
+              <span class="badge-tag gold" title="Awarded for extreme empathy and clarity in solutions">Golden Heart</span>
+              <span class="badge-tag gold" title="Successfully solved complex architectural problems">Deep Thinker</span>
+            </div>
+            <p class="podium-quote">"Knowledge is the only resource that increases when you share it with others."</p>
+          </div>
+
+          <!-- Rank 3 Card (Right) -->
+          <div class="podium-card rank-3" data-rank="3">
+            <div class="podium-badge">3</div>
+            <div class="avatar-wrap">
+              <div class="avatar-initials">AT</div>
+            </div>
+            <h3 class="podium-name">Aiko Tanaka</h3>
+            <span class="podium-title">The Oracle</span>
+            <div class="podium-specialty">Educational Mentorship</div>
+            <div class="podium-metrics">
+              <div class="metric-item">
+                <span class="metric-val">3,950</span>
+                <span class="metric-lbl">Impact Pts</span>
+              </div>
+              <div class="metric-item">
+                <span class="metric-val">87</span>
+                <span class="metric-lbl">Solved</span>
+              </div>
+            </div>
+            <div class="podium-badges">
+              <span class="badge-tag" title="Provided a path out of a complex blocking problem">Sudden Light</span>
+              <span class="badge-tag" title="Always treats questions with dignity and respect">Dignity Guard</span>
+            </div>
+            <p class="podium-quote">"Questions are doors. When we answer them together, we walk through them together."</p>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION: THE LEDGER (RANKS 4+) -->
+    <section class="section ledger-section">
+      <div class="container">
+        <div class="ledger-header">
+          <div>
+            <p class="label">The Ledger</p>
+            <h2 class="section-headline">Community Rank</h2>
+          </div>
+          
+          <!-- Controls (Filters & Search) -->
+          <div class="ledger-controls">
+            <div class="search-box">
+              <input type="text" id="solverSearch" placeholder="Search solvers by name or badge..." />
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            </div>
+            <div class="filter-buttons">
+              <button class="filter-btn active" data-filter="all">All Specialties</button>
+              <button class="filter-btn" data-filter="Technical">Technical</button>
+              <button class="filter-btn" data-filter="Community">Community</button>
+              <button class="filter-btn" data-filter="Education">Education</button>
+              <button class="filter-btn" data-filter="Environmental">Environmental</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Ledger Table -->
+        <div class="ledger-table-wrap">
+          <table class="ledger-table" id="ledgerTable">
+            <thead>
+              <tr>
+                <th class="col-rank">Rank</th>
+                <th class="col-solver">Solver</th>
+                <th class="col-specialty">Primary Field</th>
+                <th class="col-solved">Problems Solved</th>
+                <th class="col-badges">Key Badges</th>
+                <th class="col-impact">Impact Points</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Row 4 -->
+              <tr class="ledger-row" data-specialty="Technical">
+                <td class="col-rank"><span class="rank-number">04</span></td>
+                <td class="col-solver">
+                  <div class="solver-profile">
+                    <div class="solver-avatar">DK</div>
+                    <div class="solver-info">
+                      <span class="solver-name">David K.</span>
+                      <span class="solver-sub">Web Infrastructure</span>
+                    </div>
+                  </div>
+                </td>
+                <td class="col-specialty"><span class="specialty-tag tech">Technical</span></td>
+                <td class="col-solved">73</td>
+                <td class="col-badges">
+                  <div class="badge-row">
+                    <span class="mini-badge" title="Solved 50+ technical problems">Code Pioneer</span>
+                    <span class="mini-badge" title="Detailed documentation additions">Archivist</span>
+                  </div>
+                </td>
+                <td class="col-impact"><span class="impact-pts">3,520</span></td>
+              </tr>
+
+              <!-- Row 5 -->
+              <tr class="ledger-row" data-specialty="Education">
+                <td class="col-rank"><span class="rank-number">05</span></td>
+                <td class="col-solver">
+                  <div class="solver-profile">
+                    <div class="solver-avatar">AD</div>
+                    <div class="solver-info">
+                      <span class="solver-name">Amara Diallo</span>
+                      <span class="solver-sub">Healthcare Educator</span>
+                    </div>
+                  </div>
+                </td>
+                <td class="col-specialty"><span class="specialty-tag education">Education</span></td>
+                <td class="col-solved">64</td>
+                <td class="col-badges">
+                  <div class="badge-row">
+                    <span class="mini-badge" title="Helped write healthcare resources">Health Spark</span>
+                    <span class="mini-badge" title="Mentored 20+ junior helpers">Compass</span>
+                  </div>
+                </td>
+                <td class="col-impact"><span class="impact-pts">3,240</span></td>
+              </tr>
+
+              <!-- Row 6 -->
+              <tr class="ledger-row" data-specialty="Environmental">
+                <td class="col-rank"><span class="rank-number">06</span></td>
+                <td class="col-solver">
+                  <div class="solver-profile">
+                    <div class="solver-avatar">SN</div>
+                    <div class="solver-info">
+                      <span class="solver-name">Siddharth Nair</span>
+                      <span class="solver-sub">Local Ecology</span>
+                    </div>
+                  </div>
+                </td>
+                <td class="col-specialty"><span class="specialty-tag environmental">Environmental</span></td>
+                <td class="col-solved">59</td>
+                <td class="col-badges">
+                  <div class="badge-row">
+                    <span class="mini-badge" title="Designed community gardens">Eco Architect</span>
+                    <span class="mini-badge" title="Highly detailed soil restoration advice">Soil Sage</span>
+                  </div>
+                </td>
+                <td class="col-impact"><span class="impact-pts">3,110</span></td>
+              </tr>
+
+              <!-- Row 7 -->
+              <tr class="ledger-row" data-specialty="Technical">
+                <td class="col-rank"><span class="rank-number">07</span></td>
+                <td class="col-solver">
+                  <div class="solver-profile">
+                    <div class="solver-avatar">CD</div>
+                    <div class="solver-info">
+                      <span class="solver-name">Clara Dupont</span>
+                      <span class="solver-sub">Technical Writer</span>
+                    </div>
+                  </div>
+                </td>
+                <td class="col-specialty"><span class="specialty-tag tech">Technical</span></td>
+                <td class="col-solved">52</td>
+                <td class="col-badges">
+                  <div class="badge-row">
+                    <span class="mini-badge" title="Outstanding manual clarifications">Clarity Weaver</span>
+                    <span class="mini-badge" title="Translated 15+ articles">Bridge</span>
+                  </div>
+                </td>
+                <td class="col-impact"><span class="impact-pts">2,890</span></td>
+              </tr>
+
+              <!-- Row 8 -->
+              <tr class="ledger-row" data-specialty="Community">
+                <td class="col-rank"><span class="rank-number">08</span></td>
+                <td class="col-solver">
+                  <div class="solver-profile">
+                    <div class="solver-avatar">MS</div>
+                    <div class="solver-info">
+                      <span class="solver-name">Mateo Silva</span>
+                      <span class="solver-sub">Neighborhood Care</span>
+                    </div>
+                  </div>
+                </td>
+                <td class="col-specialty"><span class="specialty-tag community">Community</span></td>
+                <td class="col-solved">48</td>
+                <td class="col-badges">
+                  <div class="badge-row">
+                    <span class="mini-badge" title="Helped coordinate local food collection">Civic Guard</span>
+                    <span class="mini-badge" title="First to respond to urgent needs">First Light</span>
+                  </div>
+                </td>
+                <td class="col-impact"><span class="impact-pts">2,650</span></td>
+              </tr>
+
+              <!-- Row 9 -->
+              <tr class="ledger-row" data-specialty="Technical">
+                <td class="col-rank"><span class="rank-number">09</span></td>
+                <td class="col-solver">
+                  <div class="solver-profile">
+                    <div class="solver-avatar">ZC</div>
+                    <div class="solver-info">
+                      <span class="solver-name">Zoe Chen</span>
+                      <span class="solver-sub">UI/UX Mentorship</span>
+                    </div>
+                  </div>
+                </td>
+                <td class="col-specialty"><span class="specialty-tag tech">Technical</span></td>
+                <td class="col-solved">41</td>
+                <td class="col-badges">
+                  <div class="badge-row">
+                    <span class="mini-badge" title="Designed 12 non-profit websites">Form Weaver</span>
+                    <span class="mini-badge" title="Conducted accessibility reviews">Dignity Guard</span>
+                  </div>
+                </td>
+                <td class="col-impact"><span class="impact-pts">2,420</span></td>
+              </tr>
+
+              <!-- Row 10 -->
+              <tr class="ledger-row" data-specialty="Education">
+                <td class="col-rank"><span class="rank-number">10</span></td>
+                <td class="col-solver">
+                  <div class="solver-profile">
+                    <div class="solver-avatar">LO</div>
+                    <div class="solver-info">
+                      <span class="solver-name">Liam O'Connor</span>
+                      <span class="solver-sub">Historical Research</span>
+                    </div>
+                  </div>
+                </td>
+                <td class="col-specialty"><span class="specialty-tag education">Education</span></td>
+                <td class="col-solved">36</td>
+                <td class="col-badges">
+                  <div class="badge-row">
+                    <span class="mini-badge" title="Uncovered obscure historical records">Deep Miner</span>
+                    <span class="mini-badge" title="Solved 20+ research blocks">Fact Finder</span>
+                  </div>
+                </td>
+                <td class="col-impact"><span class="impact-pts">2,180</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="ledger-footer">
+          <p>Ranks and impact metrics update dynamically as the community validates solutions and users mark answers as helpful.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+      <div class="footer-inner">
+        <div class="footer-top">
+          <div class="footer-brand">
+            <p class="footer-name">Together We Solve</p>
+            <p class="footer-tagline">No problem too small. No challenge too big.</p>
+          </div>
+          <nav class="footer-nav">
+            <a href="index.html">Home</a>
+            <a href="leaderboard.html">Leaderboard</a>
+            <a href="hall-of-fame.html">Hall of Fame</a>
+            <a href="impact-archive.html">Impact Archive</a>
+          </nav>
+        </div>
+        <div class="footer-bottom">
+          <p class="footer-copy">A movement built on the belief that people can solve more together than they ever could alone.</p>
+          <a href="post-problem.html" class="btn btn-ghost btn-sm">Share a Problem</a>
+        </div>
+      </div>
+    </footer>
+
+    <!-- SCRIPTS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <script src="https://unpkg.com/lenis@1.1.13/dist/lenis.min.js"></script>
+    <script src="https://unpkg.com/split-type@0.3.4/umd/index.min.js"></script>
+    <script src="js/leaderboard.js"></script>
+  </body>
+</html>

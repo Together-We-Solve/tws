@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>The Pantheon (Hall of Fame) — Together We Solve</title>
+    <link rel="stylesheet" href="css/hall-of-fame.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap"
+      rel="stylesheet" />
+  </head>
+  <body class="hall-of-fame-body">
+
+    <!-- NAV -->
+    <nav class="nav" id="nav">
+      <div class="nav-inner">
+        <a href="index.html" class="nav-logo">Together We Solve</a>
+        <div class="nav-links">
+          <a href="leaderboard.html" class="nav-link">Leaderboard</a>
+          <a href="hall-of-fame.html" class="nav-link active">Hall of Fame</a>
+          <a href="impact-archive.html" class="nav-link">Impact Archive</a>
+          <a href="post-problem.html" class="nav-link">Post a Problem</a>
+        </div>
+        <a href="post-problem.html" class="nav-cta">Share a Problem <span class="nav-cta-arrow">↗</span></a>
+      </div>
+    </nav>
+
+    <!-- HERO / TITLE -->
+    <header class="pantheon-hero">
+      <div class="canvas-wrap">
+        <canvas id="goldDustCanvas"></canvas>
+      </div>
+      <div class="container hero-content">
+        <div class="hero-eyebrow">
+          <span class="hero-eyebrow-text">Legacy of Help</span>
+          <div class="hero-eyebrow-line"></div>
+        </div>
+        <h1 class="hero-headline">The Pantheon</h1>
+        <p class="hero-tagline">Celebrating the legendary individuals whose enduring contributions have shaped the very foundation of our community.</p>
+        <p class="hero-body">Induction into the Pantheon is reserved for those who have demonstrated extraordinary long-term commitment, solved foundational challenges, and sparked immense downstream ripples of progress. They represent the peak of collaborative human goodwill.</p>
+      </div>
+    </header>
+
+    <!-- GALLERY OF LEGENDS -->
+    <section class="section gallery-section">
+      <div class="container">
+        <p class="label">The Legends</p>
+        <h2 class="section-headline">Inducted Pioneers</h2>
+        
+        <div class="legends-grid">
+          
+          <!-- Legend 1: Dr. Evelyn Harper -->
+          <div class="legend-card" data-legend="harper">
+            <div class="legend-accent-bar"></div>
+            <div class="legend-year">Inducted 2024</div>
+            <div class="avatar-circle">EH</div>
+            <h3 class="legend-name">Dr. Evelyn Harper</h3>
+            <span class="legend-role">The Seed Sower</span>
+            <div class="legend-stats">
+              <div class="stat">
+                <span class="stat-num">12,450</span>
+                <span class="stat-lbl">Impact Pts</span>
+              </div>
+              <div class="stat">
+                <span class="stat-num">342</span>
+                <span class="stat-lbl">Solved</span>
+              </div>
+            </div>
+            <p class="legend-teaser">"Rebuilt the curriculum mapping tool for underfunded remote schools, saving educators 800+ hours yearly."</p>
+            <span class="view-story-btn">Read Her Journey →</span>
+          </div>
+
+          <!-- Legend 2: Kofi Anan -->
+          <div class="legend-card" data-legend="anan">
+            <div class="legend-accent-bar"></div>
+            <div class="legend-year">Inducted 2024</div>
+            <div class="avatar-circle">KA</div>
+            <h3 class="legend-name">Kofi Anan</h3>
+            <span class="legend-role">The Tech Pioneer</span>
+            <div class="legend-stats">
+              <div class="stat">
+                <span class="stat-num">10,120</span>
+                <span class="stat-lbl">Impact Pts</span>
+              </div>
+              <div class="stat">
+                <span class="stat-num">280</span>
+                <span class="stat-lbl">Solved</span>
+              </div>
+            </div>
+            <p class="legend-teaser">"Developed a low-cost SMS query system that connects rural farmers with agricultural specialists without internet access."</p>
+            <span class="view-story-btn">Read His Journey →</span>
+          </div>
+
+          <!-- Legend 3: Maya Lin -->
+          <div class="legend-card" data-legend="lin">
+            <div class="legend-accent-bar"></div>
+            <div class="legend-year">Inducted 2025</div>
+            <div class="avatar-circle">ML</div>
+            <h3 class="legend-name">Maya Lin</h3>
+            <span class="legend-role">The Green Sentinel</span>
+            <div class="legend-stats">
+              <div class="stat">
+                <span class="stat-num">9,850</span>
+                <span class="stat-lbl">Impact Pts</span>
+              </div>
+              <div class="stat">
+                <span class="stat-num">245</span>
+                <span class="stat-lbl">Solved</span>
+              </div>
+            </div>
+            <p class="legend-teaser">"Designed a decentralized rainwater collection network that helped 14 community gardens survive severe local droughts."</p>
+            <span class="view-story-btn">Read Her Journey →</span>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- STORY MODALS -->
+    
+    <!-- Evelyn Harper Modal -->
+    <div class="story-modal-overlay" id="modal-harper">
+      <div class="story-modal-card">
+        <button class="close-modal-btn" aria-label="Close modal">×</button>
+        <div class="modal-grid">
+          <div class="modal-sidebar">
+            <div class="modal-avatar">EH</div>
+            <h2 class="modal-name">Dr. Evelyn Harper</h2>
+            <span class="modal-role">The Seed Sower</span>
+            <p class="modal-bio-intro">A lifelong educator who believes that barriers in technology should never stand in the way of learning. Inducted for her revolutionary work on digital curriculum tools for rural schools.</p>
+            <div class="modal-meta-list">
+              <div class="meta-item">
+                <span class="meta-lbl">Total Solved</span>
+                <span class="meta-val">342 Problems</span>
+              </div>
+              <div class="meta-item">
+                <span class="meta-lbl">Impact Score</span>
+                <span class="meta-val">12,450 Points</span>
+              </div>
+              <div class="meta-item">
+                <span class="meta-lbl">Downstream Ripples</span>
+                <span class="meta-val">14,200+ Educators</span>
+              </div>
+            </div>
+          </div>
+          <div class="modal-content">
+            <p class="modal-label">The Journey</p>
+            <h3 class="modal-heading">Democratizing Curriculum Mapping</h3>
+            <blockquote class="modal-quote">"Education is not a privilege to be locked behind gates; it is a wild garden where every seed deserves soil."</blockquote>
+            <p class="modal-body-text">In late 2023, Evelyn encountered a recurring friction posted by three separate school teachers in remote mountain regions: they were drowning in curriculum paperwork, taking hours away from teaching. Existing commercial tools required high-speed internet and expensive licenses.</p>
+            <p class="modal-body-text">Instead of suggesting static solutions, Evelyn collaborated directly with the teachers. Over two months, she designed and refined an offline-first, light-weight spreadsheet-driven mapping tool. This tool allowed teachers to generate structured lesson pathways that fit local state requirements without needing active connectivity.</p>
+            
+            <p class="modal-label">Honors & Badges</p>
+            <div class="modal-badges-row">
+              <div class="badge-item">
+                <span class="badge-icon">🌟</span>
+                <span class="badge-name">The Catalyst V</span>
+              </div>
+              <div class="badge-item">
+                <span class="badge-icon">🌿</span>
+                <span class="badge-name">Civic Alchemist IV</span>
+              </div>
+              <div class="badge-item">
+                <span class="badge-icon">🛡️</span>
+                <span class="badge-name">Dignity Sentinel</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Kofi Anan Modal -->
+    <div class="story-modal-overlay" id="modal-anan">
+      <div class="story-modal-card">
+        <button class="close-modal-btn" aria-label="Close modal">×</button>
+        <div class="modal-grid">
+          <div class="modal-sidebar">
+            <div class="modal-avatar">KA</div>
+            <h2 class="modal-name">Kofi Anan</h2>
+            <span class="modal-role">The Tech Pioneer</span>
+            <p class="modal-bio-intro">A systems developer focused on high-utility, low-bandwidth communication protocols. Inducted for bridging the technological divide in agricultural communities.</p>
+            <div class="modal-meta-list">
+              <div class="meta-item">
+                <span class="meta-lbl">Total Solved</span>
+                <span class="meta-val">280 Problems</span>
+              </div>
+              <div class="meta-item">
+                <span class="meta-lbl">Impact Score</span>
+                <span class="meta-val">10,120 Points</span>
+              </div>
+              <div class="meta-item">
+                <span class="meta-lbl">Downstream Ripples</span>
+                <span class="meta-val">8,500+ Smallholders</span>
+              </div>
+            </div>
+          </div>
+          <div class="modal-content">
+            <p class="modal-label">The Journey</p>
+            <h3 class="modal-heading">Connecting the Unconnected</h3>
+            <blockquote class="modal-quote">"Technology is at its best when it is invisible and indispensable. It should serve the community, not the other way around."</blockquote>
+            <p class="modal-body-text">Kofi noticed a critical, recurring issue in the impact archive: local farmers in remote regions were losing crops to pests because they could not access real-time agricultural advisories. Internet connectivity was either non-existent or prohibitively expensive.</p>
+            <p class="modal-body-text">Leveraging open-source SMS gateways, Kofi spent weeks developing a highly compressed text protocol. It allowed farmers to send short, formatted codes via basic cellular signals and receive automated, localized pest control advice or connect with on-duty agronomists. The system has since been cloned in four distinct rural regions, dramatically increasing crop yields.</p>
+
+            <p class="modal-label">Honors & Badges</p>
+            <div class="modal-badges-row">
+              <div class="badge-item">
+                <span class="badge-icon">🛠️</span>
+                <span class="badge-name">Code Architect V</span>
+              </div>
+              <div class="badge-item">
+                <span class="badge-icon">🌉</span>
+                <span class="badge-name">Bridge Builder V</span>
+              </div>
+              <div class="badge-item">
+                <span class="badge-icon">💡</span>
+                <span class="badge-name">Sudden Light</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Maya Lin Modal -->
+    <div class="story-modal-overlay" id="modal-lin">
+      <div class="story-modal-card">
+        <button class="close-modal-btn" aria-label="Close modal">×</button>
+        <div class="modal-grid">
+          <div class="modal-sidebar">
+            <div class="modal-avatar">ML</div>
+            <h2 class="modal-name">Maya Lin</h2>
+            <span class="modal-role">The Green Sentinel</span>
+            <p class="modal-bio-intro">An urban ecologist dedicated to resource circularity and community resilience. Inducted for her structural water solutions during urban drought crises.</p>
+            <div class="modal-meta-list">
+              <div class="meta-item">
+                <span class="meta-lbl">Total Solved</span>
+                <span class="meta-val">245 Problems</span>
+              </div>
+              <div class="meta-item">
+                <span class="meta-lbl">Impact Score</span>
+                <span class="meta-val">9,850 Points</span>
+              </div>
+              <div class="meta-item">
+                <span class="meta-lbl">Downstream Ripples</span>
+                <span class="meta-val">14 Communities</span>
+              </div>
+            </div>
+          </div>
+          <div class="modal-content">
+            <p class="modal-label">The Journey</p>
+            <h3 class="modal-heading">The Rainwater Circle</h3>
+            <blockquote class="modal-quote">"To heal the earth, we must first heal the disconnect between people. Community gardens do both."</blockquote>
+            <p class="modal-body-text">During the severe dry spell of 2024, municipal water restrictions threatened to wipe out urban community food gardens. These gardens served as key food sources and therapeutic hubs for low-income neighborhoods.</p>
+            <p class="modal-body-text">Maya stepped in to design an ultra-simple, gravity-fed rainwater diversion and storage blueprint. Built entirely out of recycled materials, drums, and food-grade piping, the system allowed gardens to safely collect, filter, and distribute rainfall. Her blueprint was shared openly in the Impact Archive, empowering 14 city gardens to withstand the drought without municipal water intake.</p>
+
+            <p class="modal-label">Honors & Badges</p>
+            <div class="modal-badges-row">
+              <div class="badge-item">
+                <span class="badge-icon">🌱</span>
+                <span class="badge-name">Root Sprouter V</span>
+              </div>
+              <div class="badge-item">
+                <span class="badge-icon">🦉</span>
+                <span class="badge-name">Eco Sage V</span>
+              </div>
+              <div class="badge-item">
+                <span class="badge-icon">🌊</span>
+                <span class="badge-name">Ripple Catalyst</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+      <div class="footer-inner">
+        <div class="footer-top">
+          <div class="footer-brand">
+            <p class="footer-name">Together We Solve</p>
+            <p class="footer-tagline">No problem too small. No challenge too big.</p>
+          </div>
+          <nav class="footer-nav">
+            <a href="index.html">Home</a>
+            <a href="leaderboard.html">Leaderboard</a>
+            <a href="hall-of-fame.html">Hall of Fame</a>
+            <a href="impact-archive.html">Impact Archive</a>
+          </nav>
+        </div>
+        <div class="footer-bottom">
+          <p class="footer-copy">A movement built on the belief that people can solve more together than they ever could alone.</p>
+          <a href="post-problem.html" class="btn btn-ghost btn-sm">Share a Problem</a>
+        </div>
+      </div>
+    </footer>
+
+    <!-- SCRIPTS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <script src="https://unpkg.com/lenis@1.1.13/dist/lenis.min.js"></script>
+    <script src="js/hall-of-fame.js"></script>
+  </body>
+</html>

@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Voice Your Friction — Together We Solve</title>
+    <link rel="stylesheet" href="css/post-problem.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap"
+      rel="stylesheet" />
+  </head>
+  <body>
+
+    <!-- NAV -->
+    <nav class="nav" id="nav">
+      <div class="nav-inner">
+        <a href="index.html" class="nav-logo">Together We Solve</a>
+        <div class="nav-links">
+          <a href="leaderboard.html" class="nav-link">Leaderboard</a>
+          <a href="hall-of-fame.html" class="nav-link">Hall of Fame</a>
+          <a href="impact-archive.html" class="nav-link">Impact Archive</a>
+          <a href="post-problem.html" class="nav-link active">Post a Problem</a>
+        </div>
+        <a href="post-problem.html" class="nav-cta">Share a Problem <span class="nav-cta-arrow">↗</span></a>
+      </div>
+    </nav>
+
+    <!-- MAIN FORM WRAPPER -->
+    <main class="form-wrapper">
+      <div class="container main-grid">
+        
+        <!-- FORM MAIN COLUMN -->
+        <div class="form-container">
+          
+          <!-- SPROUTING LEAF PROGRESS BAR -->
+          <div class="progress-branch-wrap">
+            <div class="branch-line"></div>
+            <div class="branch-nodes">
+              <div class="branch-node active" data-step="1">
+                <span class="node-num">01</span>
+                <div class="leaf-sprout"></div>
+                <span class="node-lbl">The Spark</span>
+              </div>
+              <div class="branch-node" data-step="2">
+                <span class="node-num">02</span>
+                <div class="leaf-sprout"></div>
+                <span class="node-lbl">The Friction</span>
+              </div>
+              <div class="branch-node" data-step="3">
+                <span class="node-num">03</span>
+                <div class="leaf-sprout"></div>
+                <span class="node-lbl">The Search</span>
+              </div>
+              <div class="branch-node" data-step="4">
+                <span class="node-num">04</span>
+                <div class="leaf-sprout"></div>
+                <span class="node-lbl">The Ripple</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- THE FORM ELEMENT -->
+          <form id="frictionForm" class="editorial-form" novalidate>
+            
+            <!-- STEP 1: THE SPARK (Category & Title) -->
+            <div class="form-step active" id="step-1">
+              <div class="step-header">
+                <p class="label">Step 01 / The Spark</p>
+                <h2 class="step-title">Where does the spark begin?</h2>
+                <p class="step-intro">Identify the core field of your challenge and give it a clear, descriptive headline. This helps the right solvers find you.</p>
+              </div>
+
+              <div class="input-group">
+                <label class="input-label">Select Your Category</label>
+                <div class="category-cards">
+                  
+                  <label class="cat-card">
+                    <input type="radio" name="category" value="Technical" required />
+                    <div class="cat-card-inner">
+                      <div class="cat-icon">🛠️</div>
+                      <h3>Technical</h3>
+                      <p>Software blocks, code, offline servers, low-bandwidth tools.</p>
+                    </div>
+                  </label>
+
+                  <label class="cat-card">
+                    <input type="radio" name="category" value="Community" />
+                    <div class="cat-card-inner">
+                      <div class="cat-icon">🤝</div>
+                      <h3>Community</h3>
+                      <p>Local logistics, neighbourhood mutual aid, childcare networks.</p>
+                    </div>
+                  </label>
+
+                  <label class="cat-card">
+                    <input type="radio" name="category" value="Education" />
+                    <div class="cat-card-inner">
+                      <div class="cat-icon">📖</div>
+                      <h3>Education</h3>
+                      <p>Teaching resources, literacy guides, offline classroom aids.</p>
+                    </div>
+                  </label>
+
+                  <label class="cat-card">
+                    <input type="radio" name="category" value="Environmental" />
+                    <div class="cat-card-inner">
+                      <div class="cat-icon">🌿</div>
+                      <h3>Environmental</h3>
+                      <p>Ecology, community gardening, rainwater blueprints, soil care.</p>
+                    </div>
+                  </label>
+
+                </div>
+                <div class="error-msg" id="err-category">Please select a category to continue.</div>
+              </div>
+
+              <div class="input-group text-group">
+                <label for="problemTitle" class="input-label">Describe your spark in a headline</label>
+                <input type="text" id="problemTitle" name="title" placeholder="e.g., Designing an offline inventory system for rural food banks" required minlength="8" />
+                <p class="input-help">Keep it concise and action-oriented. Max 80 characters.</p>
+                <div class="error-msg" id="err-title">Please write a clear title (at least 8 characters).</div>
+              </div>
+
+              <div class="step-actions">
+                <button type="button" class="btn btn-primary next-step-btn">Continue to Friction <span class="btn-arrow">↗</span></button>
+              </div>
+            </div>
+
+            <!-- STEP 2: THE FRICTION (The Wall) -->
+            <div class="form-step" id="step-2">
+              <div class="step-header">
+                <p class="label">Step 02 / The Friction</p>
+                <h2 class="step-title">Voice the wall you've met.</h2>
+                <p class="step-intro">Vulnerability is not weakness. Describe where progress fell silent. Write with as much detail and honesty as you can.</p>
+              </div>
+
+              <div class="input-group text-group">
+                <label for="problemFriction" class="input-label">The Friction</label>
+                <textarea id="problemFriction" name="friction" placeholder="What is holding you back? What does the obstacle feel like? (e.g., 'We have a manual ledger for food distribution, but three volunteers are typing over each other, leading to mismatched totals...')" required minlength="40"></textarea>
+                <p class="input-help">Write at least 40 characters. A detailed explanation makes it easier for others to relate and help.</p>
+                <div class="error-msg" id="err-friction">Please explain your friction in more detail (minimum 40 characters).</div>
+              </div>
+
+              <div class="step-actions">
+                <button type="button" class="btn btn-outline prev-step-btn">← Back</button>
+                <button type="button" class="btn btn-primary next-step-btn">Continue to Search <span class="btn-arrow">↗</span></button>
+              </div>
+            </div>
+
+            <!-- STEP 3: THE SEARCH (Paths Walked) -->
+            <div class="form-step" id="step-3">
+              <div class="step-header">
+                <p class="label">Step 03 / The Search</p>
+                <h2 class="step-title">What paths have you walked?</h2>
+                <p class="step-intro">Before we discover a new direction together, tell the community what you have already tried. This saves energy and guides the search.</p>
+              </div>
+
+              <div class="input-group text-group">
+                <label for="problemTried" class="input-label">Paths Already Walked</label>
+                <textarea id="problemTried" name="tried" placeholder="What resources did you look up? What temporary quick-fixes did you test? (e.g., 'We tried using Google Sheets in offline mode, but volunteers lost their cell signals entirely, causing sync overrides...')" required minlength="30"></textarea>
+                <p class="input-help">Write at least 30 characters. Mentioning past failures is highly valuable data for solvers.</p>
+                <div class="error-msg" id="err-tried">Please tell us what you've tried so far (minimum 30 characters).</div>
+              </div>
+
+              <div class="step-actions">
+                <button type="button" class="btn btn-outline prev-step-btn">← Back</button>
+                <button type="button" class="btn btn-primary next-step-btn">Continue to Ripple <span class="btn-arrow">↗</span></button>
+              </div>
+            </div>
+
+            <!-- STEP 4: THE RIPPLE (Impact Outreach) -->
+            <div class="form-step" id="step-4">
+              <div class="step-header">
+                <p class="label">Step 04 / The Ripple</p>
+                <h2 class="step-title">Whom does this ripple affect?</h2>
+                <p class="step-intro">When we solve this, who else can move forward? Tracing the potential outreach turns a single struggle into a roadmap for others.</p>
+              </div>
+
+              <div class="input-group text-group">
+                <label for="problemRipple" class="input-label">The Outward Impact</label>
+                <textarea id="problemRipple" name="ripple" placeholder="How will solving this help others? Who else faces this same wall? (e.g., 'If we resolve this offline sync, it will protect food allocations for 250 local families. Additionally, other rural food drives can clone this protocol...')" required minlength="30"></textarea>
+                <p class="input-help">Write at least 30 characters. Estimating the reach highlights the value of your vulnerability.</p>
+                <div class="error-msg" id="err-ripple">Please describe the potential ripple of a solution (minimum 30 characters).</div>
+              </div>
+
+              <div class="step-actions">
+                <button type="button" class="btn btn-outline prev-step-btn">← Back</button>
+                <button type="submit" class="btn btn-primary" id="submitFormBtn">Share Your Spark <span class="btn-arrow">↗</span></button>
+              </div>
+            </div>
+
+          </form>
+        </div>
+
+        <!-- SIDEBAR: ENCOURAGEMENT PANEL -->
+        <aside class="form-sidebar">
+          <div class="encouragement-card">
+            <div class="gauge-wrap">
+              <!-- Custom SVG Gauge representing vulnerability level -->
+              <svg class="gauge-svg" width="120" height="120" viewBox="0 0 120 120">
+                <circle class="gauge-bg" cx="60" cy="60" r="50"></circle>
+                <circle class="gauge-fill" cx="60" cy="60" r="50"></circle>
+              </svg>
+              <div class="gauge-text">
+                <span class="gauge-pct">0%</span>
+                <span class="gauge-lbl">Vulnerability</span>
+              </div>
+            </div>
+            
+            <h3 class="encouragement-title">Vulnerability Gauge</h3>
+            <p class="encouragement-body" id="encouragementText">Complete the sections of the form to begin. Sharing your doubts takes courage — we are here to support you.</p>
+            
+            <div class="reward-hint">
+              <span class="reward-icon">✨</span>
+              <span class="reward-txt">Completing this form awards your first <strong>Spark Badge</strong> and <strong>50 Impact Points</strong>!</span>
+            </div>
+          </div>
+        </aside>
+
+      </div>
+    </main>
+
+    <!-- CELEBRATION OVERLAY (FULL SCREEN) -->
+    <div class="celebration-overlay" id="celebrationOverlay">
+      <canvas id="celebrationCanvas"></canvas>
+      <div class="celebration-card">
+        <div class="badge-display">
+          <!-- Spark Badge Vector drawing -->
+          <div class="badge-ring">
+            <div class="badge-spark">✦</div>
+          </div>
+        </div>
+        <h2 class="celebration-title">The Spark is Shared!</h2>
+        <p class="celebration-subtitle">You have successfully voiced your friction. Progress begins with vulnerability.</p>
+        
+        <div class="stats-awarded">
+          <div class="award-item">
+            <span class="award-val">+50</span>
+            <span class="award-lbl">Impact Points</span>
+          </div>
+          <div class="award-item">
+            <span class="award-val">1st</span>
+            <span class="award-lbl">Spark Badge</span>
+          </div>
+        </div>
+
+        <p class="celebration-desc">Your problem has been recorded in the community registry. Nearby solvers have been notified, and your courage has already begun to ripple outward.</p>
+        
+        <div class="celebration-actions">
+          <a href="impact-archive.html" class="btn btn-primary">View Impact Archive</a>
+          <a href="index.html" class="btn btn-outline">Return Home</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+      <div class="footer-inner">
+        <div class="footer-top">
+          <div class="footer-brand">
+            <p class="footer-name">Together We Solve</p>
+            <p class="footer-tagline">No problem too small. No challenge too big.</p>
+          </div>
+          <nav class="footer-nav">
+            <a href="index.html">Home</a>
+            <a href="leaderboard.html">Leaderboard</a>
+            <a href="hall-of-fame.html">Hall of Fame</a>
+            <a href="impact-archive.html">Impact Archive</a>
+          </nav>
+        </div>
+        <div class="footer-bottom">
+          <p class="footer-copy">A movement built on the belief that people can solve more together than they ever could alone.</p>
+          <a href="post-problem.html" class="btn btn-ghost btn-sm">Share a Problem</a>
+        </div>
+      </div>
+    </footer>
+
+    <!-- SCRIPTS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <script src="https://unpkg.com/lenis@1.1.13/dist/lenis.min.js"></script>
+    <script src="js/post-problem.js"></script>
+  </body>
+</html>
