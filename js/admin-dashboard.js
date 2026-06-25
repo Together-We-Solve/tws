@@ -5,13 +5,45 @@
 
 (function () {
   'use strict';
+  const esc = window.TWS.escapeHTML;
 
   // State Variables
   let activeProblemId = null;
   let activeSolverId = null;
   let isRecruitingMode = false;
+  const dashboardMode = window.TWS_DASHBOARD_MODE || 'Founder';
 
-  // Default Solvers Directory to seed localStorage if empty
+  function getProblems() {
+    return window.TWS.memory.problems.length ? window.TWS.memory.problems : defaultProblems;
+  }
+
+  function getSolvers() {
+    return window.TWS.memory.users.length ? window.TWS.memory.users : defaultSolvers;
+  }
+
+  async function saveProblemToFirestore(problem) {
+    await window.TWS.saveProblem(problem);
+  }
+
+  async function deleteProblemFromFirestore(problemId) {
+    await window.TWS.deleteProblem(problemId);
+  }
+
+  async function saveSolverToFirestore(solver) {
+    const id = solver.uid || solver.id || window.TWS.toUsername(solver.username || solver.name);
+    await window.TWS.saveUserProfile(id, {
+      ...solver,
+      displayName: solver.displayName || solver.name,
+      username: solver.username || window.TWS.toUsername(solver.name),
+      stats: {
+        ...(solver.stats || {}),
+        totalImpactPoints: Number(solver.points) || Number(solver.stats?.totalImpactPoints) || 0,
+        problemsSolved: Number(solver.solved) || Number(solver.stats?.problemsSolved) || 0
+      }
+    });
+  }
+
+  // Default Solvers Directory to seed Firestore if empty
   const defaultSolvers = [
     { id: 'sol_1', name: 'Elena Rostova', role: 'The Bridge Builder', specialty: 'Technical Systems & Language', points: 4850, solved: 12, initials: 'ER', badges: ['Golden Heart', 'Deep Thinker'] },
     { id: 'sol_2', name: 'Marcus Vance', role: 'The Catalyst', specialty: 'Community & Environment', points: 4210, solved: 9, initials: 'MV', badges: ['Root Sprouter', 'Constant Beacon'] },
@@ -25,7 +57,7 @@
     { id: 'sol_10', name: 'Liam O\'Connor', role: 'The Deep Miner', specialty: 'Historical Research', points: 2180, solved: 3, initials: 'LO', badges: ['Deep Thinker'] }
   ];
 
-  // Default Problems to seed localStorage if empty
+  // Default Problems to seed Firestore if empty
   const defaultProblems = [
     {
       id: 'prob_1',
@@ -132,18 +164,36 @@
         window.location.href = 'login.html';
         return;
       }
-      if (session.role !== 'Admin') {
-        window.location.href = 'user-dashboard.html';
+      const privileges = Array.isArray(session.privileges) ? session.privileges : [];
+      const founderRoles = ['Founder', 'Co-Founder'];
+      const evaluatorRoles = ['Founder', 'Co-Founder', 'Evaluator', 'Innovator'];
+      const canManageSystem = founderRoles.includes(session.role) || privileges.includes('manage_system');
+      const canEvaluate = evaluatorRoles.includes(session.role)
+        || privileges.includes('evaluate_submissions')
+        || privileges.includes('award_points')
+        || privileges.includes('close_verified_problems');
+
+      if (dashboardMode === 'Evaluator' && !canEvaluate) {
+        window.location.href = founderRoles.includes(session.role) ? 'admin-dashboard.html' : 'user-profile.html';
         return;
+      }
+      if (dashboardMode !== 'Evaluator' && !canManageSystem) {
+        window.location.href = canEvaluate ? 'evaluator-dashboard.html' : 'user-profile.html';
+        return;
+      }
+
+      if (dashboardMode === 'Evaluator') {
+        document.querySelectorAll('.founder-only').forEach((el) => el.remove());
       }
 
       // Update Admin Sidebar details
       const profileNameEl = document.querySelector('.profile-name');
       const avatarEl = document.querySelector('.admin-avatar');
-      if (profileNameEl && session.username) {
-        profileNameEl.textContent = session.username;
+      const profileLabel = session.displayName || session.username;
+      if (profileNameEl && profileLabel) {
+        profileNameEl.textContent = profileLabel;
         // Extract initials
-        const parts = session.username.split(' ');
+        const parts = profileLabel.split(' ');
         let initials = '';
         if (parts.length > 0) initials += parts[0].charAt(0).toUpperCase();
         if (parts.length > 1) initials += parts[1].charAt(0).toUpperCase();
@@ -156,19 +206,8 @@
 
   /* ─── SYSTEM ACTIVITY LOGGING ────────────────── */
   function logSystemActivity(type, message) {
-    try {
-      const logs = JSON.parse(localStorage.getItem('admin_system_logs')) || [];
-      const newLog = {
-        timestamp: new Date().toLocaleTimeString('en-US', { hour12: false }) + ' ' + new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-        type: type, // 'SYSTEM' | 'AUDIT' | 'LEDGER' | 'DATABASE'
-        message: message
-      };
-      logs.unshift(newLog); // Prepend so most recent is at the top
-      localStorage.setItem('admin_system_logs', JSON.stringify(logs));
-      renderSystemLogs();
-    } catch (err) {
-      console.error('Failed to write system log:', err);
-    }
+    window.TWS.logSystemActivity(type, message);
+    renderSystemLogs();
   }
 
   function renderSystemLogs() {
@@ -176,7 +215,7 @@
     if (!consoleLines) return;
 
     try {
-      const logs = JSON.parse(localStorage.getItem('admin_system_logs')) || [];
+      const logs = window.TWS.loadSystemLogs();
       if (logs.length === 0) {
         consoleLines.innerHTML = `<div class="log-line"><span class="log-timestamp">[System Initialized]</span> <span class="log-tag system">SYSTEM</span> Terminal online. Standing by for administrative actions...</div>`;
         return;
@@ -184,9 +223,9 @@
 
       consoleLines.innerHTML = logs.map(log => `
         <div class="log-line">
-          <span class="log-timestamp">[${log.timestamp}]</span>
-          <span class="log-tag ${log.type.toLowerCase()}">${log.type}</span>
-          <span class="log-content">${log.message}</span>
+          <span class="log-timestamp">[${esc(log.timestamp)}]</span>
+          <span class="log-tag ${esc(log.type).toLowerCase()}">${esc(log.type)}</span>
+          <span class="log-content">${esc(log.message)}</span>
         </div>
       `).join('');
     } catch (err) {
@@ -199,7 +238,7 @@
     if (clearBtn) {
       clearBtn.addEventListener('click', () => {
         if (confirm('Are you sure you want to clear all activity logs? This action is irreversible.')) {
-          localStorage.setItem('admin_system_logs', JSON.stringify([]));
+          window.TWS.clearSystemLogs();
           logSystemActivity('SYSTEM', 'Cleared system activity log history.');
           renderSystemLogs();
         }
@@ -303,8 +342,8 @@
   /* ─── DYNAMIC STATISTICS COMPUTATIONS ────────── */
   function calculateSystemStats() {
     try {
-      const problems = JSON.parse(localStorage.getItem('community_problems')) || defaultProblems;
-      const solvers = JSON.parse(localStorage.getItem('community_solvers')) || defaultSolvers;
+      const problems = getProblems();
+      const solvers = getSolvers();
 
       // Pending Review (status: 'Pending Review')
       const pendingReviews = problems.filter(p => p.status === 'Pending Review').length;
@@ -317,7 +356,7 @@
       
       const resolutionRate = totalChallenges > 0 ? Math.round((solvedProblems / totalChallenges) * 100) : 0;
       const totalSolvers = solvers.length;
-      const totalXP = solvers.reduce((sum, s) => sum + s.points, 0);
+      const totalXP = solvers.reduce((sum, s) => sum + Number(s.points || s.stats?.totalImpactPoints || 0), 0);
 
       // Update DOM
       const statPendingReviewsEl = document.getElementById('statPendingReviews');
@@ -344,10 +383,10 @@
       const verBadge = document.getElementById('statPendingVerificationsBadge');
       if (verBadge) {
         if (pendingVerifications > 0) {
-          verBadge.textContent = 'Action Req.';
+          verBadge.textContent = '';
           verBadge.className = 'stat-trend trend-warning';
         } else {
-          verBadge.textContent = '0 Audits';
+          verBadge.textContent = '';
           verBadge.className = 'stat-trend trend-neutral';
         }
       }
@@ -410,7 +449,7 @@
     if (detailUnselected) detailUnselected.style.display = 'flex';
 
     try {
-      const allProblems = JSON.parse(localStorage.getItem('community_problems')) || defaultProblems;
+      const allProblems = getProblems();
       
       // Filter out problems that are NOT 'Pending Review'
       let pendingProblems = allProblems.filter(p => p.status === 'Pending Review');
@@ -454,11 +493,11 @@
 
           item.innerHTML = `
             <div class="item-header-meta">
-              <span class="item-meta-author">${prob.date}</span>
-              <span class="category-mini-tag ${catClass}">${prob.category}</span>
-            </div>
-            <h4 class="item-title-text">${prob.title}</h4>
-            <p class="item-snippet">${prob.friction}</p>
+            <span class="item-meta-author">${esc(prob.date)}</span>
+            <span class="category-mini-tag ${catClass}">${esc(prob.category)}</span>
+          </div>
+            <h4 class="item-title-text">${esc(prob.title)}</h4>
+            <p class="item-snippet">${esc(prob.friction)}</p>
           `;
 
           item.addEventListener('click', () => {
@@ -490,7 +529,7 @@
     activeProblemId = prob.id;
 
     // Set fields
-    document.getElementById('detailAuthor').innerHTML = `Draft Case ID: <strong style="color: var(--accent-clay);">${prob.id}</strong>`;
+    document.getElementById('detailAuthor').innerHTML = `Draft Case ID: <strong style="color: var(--accent-clay);">${esc(prob.id)}</strong>`;
     document.getElementById('detailDate').textContent = prob.date;
 
     const catTag = document.getElementById('detailCategoryTag');
@@ -521,7 +560,7 @@
     // Publish Button
     const publishBtn = document.getElementById('btnPublishFriction');
     if (publishBtn) {
-      publishBtn.addEventListener('click', () => {
+      publishBtn.addEventListener('click', async () => {
         if (!activeProblemId) return;
 
         const title = document.getElementById('editTitle').value.trim();
@@ -535,24 +574,26 @@
         }
 
         try {
-          const allProblems = JSON.parse(localStorage.getItem('community_problems')) || defaultProblems;
+          const allProblems = getProblems();
+          let publishedProblem = null;
           const updatedProblems = allProblems.map(p => {
             if (p.id === activeProblemId) {
-              return {
+              publishedProblem = {
                 ...p,
                 title: title,
                 friction: friction,
                 tried: tried,
                 ripple: ripple,
-                status: 'Open', // Change status to Open (published challenge)
-                solver: 'Seeking Solver...',
-                contributors: []
+                status: 'Open',
+                contributors: p.contributors || []
               };
+              return publishedProblem;
             }
             return p;
           });
 
-          localStorage.setItem('community_problems', JSON.stringify(updatedProblems));
+          window.TWS.memory.problems = updatedProblems;
+          if (publishedProblem) await saveProblemToFirestore(publishedProblem);
           logSystemActivity('AUDIT', `Approved & published friction "${title}" to the public timeline as an Open Challenge.`);
           alert('Friction successfully audited and published as an Open Challenge!');
 
@@ -591,15 +632,12 @@
     // Delete Submission Button
     const deleteBtn = document.getElementById('btnDeleteFriction');
     if (deleteBtn) {
-      deleteBtn.addEventListener('click', () => {
+      deleteBtn.addEventListener('click', async () => {
         if (!activeProblemId) return;
 
         if (confirm('Are you sure you want to delete this voiced friction submission? This action is permanent.')) {
           try {
-            const allProblems = JSON.parse(localStorage.getItem('community_problems')) || defaultProblems;
-            const updatedProblems = allProblems.filter(p => p.id !== activeProblemId);
-
-            localStorage.setItem('community_problems', JSON.stringify(updatedProblems));
+            await deleteProblemFromFirestore(activeProblemId);
             logSystemActivity('AUDIT', `Deleted spam/inappropriate friction submission ID ${activeProblemId}.`);
 
             const cardEl = document.querySelector(`.master-queue-item[data-id="${activeProblemId}"]`);
@@ -634,7 +672,7 @@
     grid.innerHTML = '';
 
     try {
-      const allProblems = JSON.parse(localStorage.getItem('community_problems')) || defaultProblems;
+      const allProblems = getProblems();
       const pendingClosures = allProblems.filter(p => p.status === 'Closed by Owner');
 
       if (pendingClosures.length > 0) {
@@ -654,31 +692,31 @@
           card.innerHTML = `
             <div class="audit-card-header">
               <div>
-                <span class="audit-category">${prob.category} Systems</span>
-                <h4 class="audit-title">${prob.title}</h4>
+                <span class="audit-category">${esc(prob.category)} Systems</span>
+                <h4 class="audit-title">${esc(prob.title)}</h4>
               </div>
-              <span class="complexity-indicator ${prob.complexity.toLowerCase()}">${prob.complexity} Complexity</span>
+              <span class="complexity-indicator ${esc(prob.complexity).toLowerCase()}">${esc(prob.complexity)} Complexity</span>
             </div>
             
             <div class="audit-meta-row" style="flex-wrap: wrap; gap: 15px; font-size: 12.5px; border-bottom: 1px dashed var(--border-light); padding-bottom: 12px; margin-bottom: 12px;">
-              <span>Problem Owner: <strong>${prob.solver || 'Unknown'}</strong></span>
-              <span>Selected Solver (Winner): <strong style="color: var(--accent-moss);">${prob.solvedBy}</strong></span>
-              <span>Other Attempted Contributors: <strong>${prob.contributors.filter(c => c !== prob.solvedBy).join(', ') || 'None'}</strong></span>
+              <span>Problem Owner: <strong>${esc(prob.solver || 'Unknown')}</strong></span>
+              <span>Selected Solver (Winner): <strong style="color: var(--accent-moss);">${esc(prob.solvedBy)}</strong></span>
+              <span>Other Attempted Contributors: <strong>${esc(prob.contributors.filter(c => c !== prob.solvedBy).join(', ') || 'None')}</strong></span>
             </div>
 
             <div class="verification-card-detail-box">
               <span style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--accent-clay); display: block; margin-bottom: 4px;">Friction Context:</span>
-              ${prob.friction}
+              ${esc(prob.friction)}
             </div>
             
             <div class="verification-card-resolution">
               <span style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--accent-moss); display: block; margin-bottom: 4px;">Owner's Resolution Review & Feedback:</span>
-              "${prob.ownerReview || 'No review written.'}"
+              "${esc(prob.ownerReview || 'No review written.')}"
             </div>
 
             <div style="display: flex; gap: 20px; align-items: center; margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border-light); flex-wrap: wrap;">
               <div class="editor-field-group" style="margin: 0; flex: 1; min-width: 150px;">
-                <label class="editor-label" style="font-size: 10px; margin-bottom: 4px;">Winner Award XP (${prob.solvedBy})</label>
+                <label class="editor-label" style="font-size: 10px; margin-bottom: 4px;">Winner Award XP (${esc(prob.solvedBy)})</label>
                 <input type="number" class="editor-input val-winner-xp" value="${suggestedPoints}" style="padding: 8px 12px; font-size: 13px;" />
               </div>
               <div class="editor-field-group" style="margin: 0; flex: 1; min-width: 150px;">
@@ -716,23 +754,24 @@
     }
   }
 
-  function finalizeSolutionAudit(problemId, winnerXP, attemptXP, cardElement) {
+  async function finalizeSolutionAudit(problemId, winnerXP, attemptXP, cardElement) {
     try {
-      const problems = JSON.parse(localStorage.getItem('community_problems')) || defaultProblems;
-      const solvers = JSON.parse(localStorage.getItem('community_solvers')) || defaultSolvers;
+      const problems = getProblems();
+      const solvers = getSolvers();
 
       let winnerName = '';
       let attemptsList = [];
       let challengeTitle = '';
 
       // Update problem status to Solved and record final point distribution
+      let finalizedProblem = null;
       const updatedProblems = problems.map(p => {
         if (p.id === problemId) {
           winnerName = p.solvedBy;
           attemptsList = p.contributors.filter(c => c !== p.solvedBy);
           challengeTitle = p.title;
 
-          return {
+          finalizedProblem = {
             ...p,
             status: 'Solved',
             winnerXP: winnerXP,
@@ -740,6 +779,7 @@
             clones: p.clones + Math.floor(Math.random() * 5) + 3,
             views: p.views + Math.floor(Math.random() * 50) + 20
           };
+          return finalizedProblem;
         }
         return p;
       });
@@ -765,8 +805,10 @@
       });
 
       // Persist updates
-      localStorage.setItem('community_problems', JSON.stringify(updatedProblems));
-      localStorage.setItem('community_solvers', JSON.stringify(updatedSolvers));
+      window.TWS.memory.problems = updatedProblems;
+      window.TWS.memory.users = updatedSolvers;
+      if (finalizedProblem) await saveProblemToFirestore(finalizedProblem);
+      await Promise.all(updatedSolvers.map(saveSolverToFirestore));
 
       logSystemActivity('AUDIT', `Finalized audit for "${challengeTitle}". Awarded +${winnerXP} XP to solver "${winnerName}" (Winner) and +${attemptXP} XP to participants [${attemptsList.join(', ') || 'None'}].`);
       alert(`Challenge successfully finalized!\n- ${winnerName} awarded +${winnerXP} XP\n- Participants awarded +${attemptXP} XP`);
@@ -786,19 +828,20 @@
     }
   }
 
-  function rejectSolutionAudit(problemId, cardElement) {
+  async function rejectSolutionAudit(problemId, cardElement) {
     if (!confirm('Are you sure you want to reject this solution draft and re-open the challenge? The status will revert to "Open" and solvers will need to re-attempt.')) {
       return;
     }
 
     try {
-      const problems = JSON.parse(localStorage.getItem('community_problems')) || defaultProblems;
+      const problems = getProblems();
       let challengeTitle = '';
 
+      let rejectedProblem = null;
       const updatedProblems = problems.map(p => {
         if (p.id === problemId) {
           challengeTitle = p.title;
-          return {
+          rejectedProblem = {
             ...p,
             status: 'Open', // Revert back to Open challenge
             solvedBy: '',
@@ -807,11 +850,13 @@
             winnerXP: 0,
             attemptXP: 0
           };
+          return rejectedProblem;
         }
         return p;
       });
 
-      localStorage.setItem('community_problems', JSON.stringify(updatedProblems));
+      window.TWS.memory.problems = updatedProblems;
+      if (rejectedProblem) await saveProblemToFirestore(rejectedProblem);
       logSystemActivity('AUDIT', `Rejected closure for "${challengeTitle}". Reverted status back to Open Challenge.`);
       alert('Closure rejected. The challenge has been re-opened for community contributors.');
 
@@ -838,10 +883,6 @@
     const recruitBtn = document.getElementById('btnRecruitSolver');
 
     if (!listContainer) return;
-
-    if (!localStorage.getItem('community_solvers')) {
-      localStorage.setItem('community_solvers', JSON.stringify(defaultSolvers));
-    }
 
     resetSolverEditor();
 
@@ -875,24 +916,24 @@
     listContainer.innerHTML = '';
 
     try {
-      let solvers = JSON.parse(localStorage.getItem('community_solvers')) || defaultSolvers;
+      let solvers = getSolvers();
 
       // Filter
       if (searchVal) {
         solvers = solvers.filter(s => 
-          s.name.toLowerCase().includes(searchVal) || 
-          s.role.toLowerCase().includes(searchVal) || 
-          s.specialty.toLowerCase().includes(searchVal)
+          String(s.name || s.displayName || '').toLowerCase().includes(searchVal) ||
+          String(s.role || '').toLowerCase().includes(searchVal) ||
+          String(s.specialty || '').toLowerCase().includes(searchVal)
         );
       }
 
       // Sort
       if (sortVal === 'points-desc') {
-        solvers.sort((a, b) => b.points - a.points);
+        solvers.sort((a, b) => Number(b.points || b.stats?.totalImpactPoints || 0) - Number(a.points || a.stats?.totalImpactPoints || 0));
       } else if (sortVal === 'points-asc') {
-        solvers.sort((a, b) => a.points - b.points);
+        solvers.sort((a, b) => Number(a.points || a.stats?.totalImpactPoints || 0) - Number(b.points || b.stats?.totalImpactPoints || 0));
       } else if (sortVal === 'name-asc') {
-        solvers.sort((a, b) => a.name.localeCompare(b.name));
+        solvers.sort((a, b) => String(a.name || a.displayName || '').localeCompare(String(b.name || b.displayName || '')));
       }
 
       solvers.forEach(solver => {
@@ -904,12 +945,12 @@
         }
 
         row.innerHTML = `
-          <div class="row-avatar">${solver.initials}</div>
+          <div class="row-avatar">${esc(solver.initials || window.TWS.initialsFromName(solver.name || solver.displayName))}</div>
           <div class="row-info">
-            <span class="row-name">${solver.name}</span>
-            <span class="row-xp">${solver.role}</span>
+            <span class="row-name">${esc(solver.name || solver.displayName)}</span>
+            <span class="row-xp">${esc(solver.role)}</span>
           </div>
-          <span class="row-solved-badge">${solver.points.toLocaleString()} XP</span>
+          <span class="row-solved-badge">${Number(solver.points || solver.stats?.totalImpactPoints || 0).toLocaleString()} XP</span>
         `;
 
         row.addEventListener('click', () => {
@@ -1031,9 +1072,8 @@
     const deleteBtn = document.getElementById('btnDeleteSolver');
 
     if (saveBtn) {
-      saveBtn.addEventListener('click', () => {
-        const solvers = JSON.parse(localStorage.getItem('community_solvers')) || defaultSolvers;
-
+      saveBtn.addEventListener('click', async () => {
+        const solvers = getSolvers();
         const points = parseInt(document.getElementById('editSolverPoints').value) || 0;
         const solved = parseInt(document.getElementById('editSolverSolved').value) || 0;
         const specialty = document.getElementById('editSolverSpecialty').value.trim() || 'General Helping';
@@ -1065,7 +1105,7 @@
           const newSolver = {
             id: newId,
             name: name,
-            role: 'The Pioneer',
+            role: 'Contributor',
             specialty: specialty,
             points: points,
             solved: solved,
@@ -1073,8 +1113,8 @@
             badges: checkedBadges
           };
 
-          solvers.push(newSolver);
-          localStorage.setItem('community_solvers', JSON.stringify(solvers));
+          window.TWS.memory.users = solvers.concat(newSolver);
+          await saveSolverToFirestore(newSolver);
           logSystemActivity('LEDGER', `Recruited new community contributor "${name}" (${initials}) with specialty: "${specialty}".`);
           alert(`Contributor ${name} has been successfully added to the solvers directory!`);
 
@@ -1102,7 +1142,9 @@
             return s;
           });
 
-          localStorage.setItem('community_solvers', JSON.stringify(updatedSolvers));
+          window.TWS.memory.users = updatedSolvers;
+          const updatedSolver = updatedSolvers.find(s => s.id === activeSolverId);
+          if (updatedSolver) await saveSolverToFirestore(updatedSolver);
           logSystemActivity('LEDGER', `Updated profile stats for solver ID ${activeSolverId} (${points} XP, ${solved} solved).`);
           alert('Solver profile updated in ledger registry.');
 
@@ -1113,16 +1155,16 @@
     }
 
     if (deleteBtn) {
-      deleteBtn.addEventListener('click', () => {
+      deleteBtn.addEventListener('click', async () => {
         if (!activeSolverId) return;
 
         if (confirm('Are you sure you want to remove this solver from the community directory? Their historical contributions will remain, but they will be deleted from the leaderboard rankings.')) {
           try {
-            const solvers = JSON.parse(localStorage.getItem('community_solvers')) || defaultSolvers;
+            const solvers = getSolvers();
             const targetSolver = solvers.find(s => s.id === activeSolverId);
             const updatedSolvers = solvers.filter(s => s.id !== activeSolverId);
 
-            localStorage.setItem('community_solvers', JSON.stringify(updatedSolvers));
+            window.TWS.memory.users = updatedSolvers;
             logSystemActivity('LEDGER', `De-registered contributor "${targetSolver ? targetSolver.name : activeSolverId}" from the ledger.`);
             alert('Contributor de-registered from the registry.');
 
@@ -1138,23 +1180,19 @@
   }
 
   /* ─── TAB 4: SYSTEM SETTINGS & DATABASE CONTROL ── */
-  function initSettingsForm() {
+  async function initSettingsForm() {
     const form = document.getElementById('settingsForm');
     if (!form) return;
 
     // Load constraints
     try {
-      let settings = JSON.parse(localStorage.getItem('community_settings'));
-      if (!settings) {
-        settings = {
-          baseFrictionXP: 50,
-          baseSolutionXP: 150,
-          minTitleLen: 8,
-          minFrictionLen: 40,
-          encouragementLevel: 'medium'
-        };
-        localStorage.setItem('community_settings', JSON.stringify(settings));
-      }
+      let settings = await window.TWS.loadSettings({
+        baseFrictionXP: 50,
+        baseSolutionXP: 150,
+        minTitleLen: 8,
+        minFrictionLen: 40,
+        encouragementLevel: 'medium'
+      });
       document.getElementById('setBaseFrictionXP').value = settings.baseFrictionXP;
       document.getElementById('setBaseSolutionXP').value = settings.baseSolutionXP;
       document.getElementById('setMinTitleLen').value = settings.minTitleLen;
@@ -1162,7 +1200,7 @@
       document.getElementById('setEncouragementLevel').value = settings.encouragementLevel;
     } catch (_) {}
 
-    form.addEventListener('submit', (e) => {
+    form.addEventListener('submit', async (e) => {
       e.preventDefault();
 
       const baseFrictionXP = parseInt(document.getElementById('setBaseFrictionXP').value) || 50;
@@ -1180,7 +1218,7 @@
       };
 
       try {
-        localStorage.setItem('community_settings', JSON.stringify(newSettings));
+        await window.TWS.saveSettings(newSettings);
         logSystemActivity('SYSTEM', 'Saved new global community XP weights and form validation parameters.');
         alert('System configurations successfully saved!');
       } catch (err) {
@@ -1194,10 +1232,10 @@
       exportBtn.addEventListener('click', () => {
         try {
           const dbData = {
-            problems: JSON.parse(localStorage.getItem('community_problems')) || defaultProblems,
-            solvers: JSON.parse(localStorage.getItem('community_solvers')) || defaultSolvers,
-            settings: JSON.parse(localStorage.getItem('community_settings')) || {},
-            logs: JSON.parse(localStorage.getItem('admin_system_logs')) || []
+            problems: getProblems(),
+            users: getSolvers(),
+            settings: window.TWS.memory.settings || {},
+            logs: window.TWS.memory.logs || []
           };
 
           const jsonString = JSON.stringify(dbData, null, 2);
@@ -1213,7 +1251,7 @@
           document.body.removeChild(link);
           URL.revokeObjectURL(url);
 
-          logSystemActivity('DATABASE', 'Successfully exported full local database JSON backup.');
+          logSystemActivity('DATABASE', 'Exported current Firestore snapshot as JSON backup.');
         } catch (err) {
           alert('Database Export Error: ' + err.message);
         }
@@ -1228,22 +1266,22 @@
         if (!file) return;
 
         const reader = new FileReader();
-        reader.onload = function (event) {
+        reader.onload = async function (event) {
           try {
             const data = JSON.parse(event.target.result);
 
             // Validation checks
-            if (!data.problems || !Array.isArray(data.problems) || !data.solvers || !Array.isArray(data.solvers)) {
-              throw new Error('Invalid file structure: Missing "problems" or "solvers" array registries.');
+            const importedUsers = data.users || data.solvers;
+            if (!data.problems || !Array.isArray(data.problems) || !Array.isArray(importedUsers)) {
+              throw new Error('Invalid file structure: Missing "problems" and "users" arrays.');
             }
 
-            localStorage.setItem('community_problems', JSON.stringify(data.problems));
-            localStorage.setItem('community_solvers', JSON.stringify(data.solvers));
-            if (data.settings) localStorage.setItem('community_settings', JSON.stringify(data.settings));
-            if (data.logs) localStorage.setItem('admin_system_logs', JSON.stringify(data.logs));
+            await Promise.all(data.problems.map((problem) => window.TWS.saveProblem(problem)));
+            await Promise.all(importedUsers.map(saveSolverToFirestore));
+            if (data.settings) await window.TWS.saveSettings(data.settings);
 
-            logSystemActivity('DATABASE', `Successfully restored system database from backup file: "${file.name}".`);
-            alert('Database successfully restored! Overwriting all local tables.');
+            logSystemActivity('DATABASE', `Imported Firestore data from backup file: "${file.name}".`);
+            alert('Database successfully imported into Firestore.');
 
             window.location.reload();
           } catch (err) {
@@ -1257,16 +1295,11 @@
     // Database Actions: Reset
     const resetBtn = document.getElementById('btnResetDB');
     if (resetBtn) {
-      resetBtn.addEventListener('click', () => {
+      resetBtn.addEventListener('click', async () => {
         if (confirm('CRITICAL WARNING: Are you sure you want to reset the entire database to clean system defaults? This will erase all custom submissions, solver modifications, and log history.')) {
           try {
-            localStorage.removeItem('community_problems');
-            localStorage.removeItem('community_solvers');
-            localStorage.removeItem('community_settings');
-            localStorage.removeItem('admin_system_logs');
-            
-            localStorage.setItem('community_problems', JSON.stringify(defaultProblems));
-            localStorage.setItem('community_solvers', JSON.stringify(defaultSolvers));
+            await Promise.all(defaultProblems.map((problem) => window.TWS.saveProblem(problem)));
+            await Promise.all(defaultSolvers.map(saveSolverToFirestore));
             
             logSystemActivity('DATABASE', 'Wiped database registries and seeded factory defaults.');
             alert('System reset complete! Factory defaults seeded.');
@@ -1281,6 +1314,52 @@
   }
 
   /* ─── SIGN OUT PORTAL ──────────────────────── */
+  function initRoleAssignment() {
+    const assignBtn = document.getElementById('btnAssignRole');
+    if (!assignBtn) return;
+
+    const emailInput = document.getElementById('roleAssignEmail');
+    const nameInput = document.getElementById('roleAssignName');
+    const roleInput = document.getElementById('roleAssignRole');
+    const statusEl = document.getElementById('roleAssignStatus');
+
+    const setStatus = (message, isError = false) => {
+      if (!statusEl) return;
+      statusEl.textContent = message;
+      statusEl.style.color = isError ? '#b91c1c' : '#166534';
+    };
+
+    assignBtn.addEventListener('click', async () => {
+      const email = emailInput?.value.trim();
+      const displayName = nameInput?.value.trim();
+      const role = roleInput?.value;
+
+      if (!email || !role) {
+        setStatus('Enter an email and select a role before assigning access.', true);
+        return;
+      }
+
+      if (!window.TWSAccess?.setRoleAssignment) {
+        setStatus('Firebase access module is not ready. Refresh and try again.', true);
+        return;
+      }
+
+      assignBtn.disabled = true;
+      setStatus('Saving role assignment...');
+
+      try {
+        const result = await window.TWSAccess.setRoleAssignment({ email, displayName, role });
+        setStatus(`${result.role} access saved for ${result.email}.`);
+        logSystemActivity('SYSTEM', `Assigned ${result.role} privileges to ${result.email}.`);
+      } catch (err) {
+        console.error('Role assignment failed:', err);
+        setStatus(err.message || 'Role assignment failed.', true);
+      } finally {
+        assignBtn.disabled = false;
+      }
+    });
+  }
+
   function initSignOut() {
     const signOutBtn = document.getElementById('signOutBtn');
     if (!signOutBtn) return;
@@ -1301,13 +1380,13 @@
   }
 
   /* ─── FACTORY SEEDING ON LOAD ────────────────── */
-  function ensureSeededDatabase() {
+  async function ensureSeededDatabase() {
     try {
-      if (!localStorage.getItem('community_problems')) {
-        localStorage.setItem('community_problems', JSON.stringify(defaultProblems));
+      if (window.TWS?.loadProblemsAsync) {
+        await window.TWS.loadProblemsAsync(defaultProblems);
       }
-      if (!localStorage.getItem('community_solvers')) {
-        localStorage.setItem('community_solvers', JSON.stringify(defaultSolvers));
+      if (window.TWS?.loadMovementMembersAsync) {
+        await window.TWS.loadMovementMembersAsync(defaultSolvers);
       }
     } catch (err) {
       console.error('Failed to seed database:', err);
@@ -1315,11 +1394,11 @@
   }
 
   /* ─── INIT ─────────────────────────────────── */
-  function init() {
+  async function init() {
     gsap.registerPlugin(ScrollTrigger);
 
     checkSession();
-    ensureSeededDatabase();
+    await ensureSeededDatabase();
     initPillarCanvas();
     calculateSystemStats();
     initTabNavigation();
@@ -1328,7 +1407,8 @@
     loadVerificationQueue();
     loadSolversLedger();
     initSolverActions();
-    initSettingsForm();
+    await initSettingsForm();
+    initRoleAssignment();
     initLogsControls();
     initSignOut();
 

@@ -3,71 +3,59 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Community Portal - Together We Solve</title>
-    <link rel="stylesheet" href="css/login.css" />
+    <title>Members - Together We Solve</title>
+    <link rel="stylesheet" href="css/members.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap"
       rel="stylesheet" />
   </head>
-  <body class="login-body">
-
-    <!-- NAV -->
+  <body>
     <nav class="nav" id="nav">
       <div class="nav-inner">
         <a href="index.html" class="nav-logo">Together We Solve</a>
         <div class="nav-links">
-          <a href="members.html" class="nav-link">Members</a>
+          <a href="members.html" class="nav-link active">Members</a>
           <a href="leaderboard.html" class="nav-link">Leaderboard</a>
           <a href="hall-of-fame.html" class="nav-link">Hall of Fame</a>
           <a href="impact-archive.html" class="nav-link">Impact Archive</a>
+          <a href="core-team.html" class="nav-link">Core Team</a>
           <a href="post-problem.html" class="nav-link">Post a Problem</a>
-          <a href="login.html" class="nav-link active">Login</a>
-          <a href="signup.html" class="nav-link">Sign Up</a>
         </div>
-        <a href="https://chat.whatsapp.com/E2X7hTCxEZjB4MczNIeHFG" target="_blank" rel="noopener" class="nav-cta">Join The Movement <span class="nav-cta-arrow">&nearr;</span></a>
+        <a href="post-problem.html" class="nav-cta">Share a Problem <span class="nav-cta-arrow">&nearr;</span></a>
       </div>
     </nav>
 
-    <!-- LOGIN WRAPPER -->
-    <main class="login-wrapper">
-      <canvas class="login-canvas" id="loginCanvas"></canvas>
-      
-      <div class="login-card-container">
-        <div class="login-card">
-          <div class="login-header">
-            <div class="login-accent-line"></div>
-            <p class="label">Community Entrance</p>
-            <h1 class="login-title">Enter the<br />Cooperative</h1>
-            <p class="login-subtitle">Connect with the community, track your impact, or review pending frictions.</p>
+    <header class="members-hero">
+      <canvas class="members-canvas" id="membersCanvas"></canvas>
+      <div class="container hero-content">
+        <div class="hero-eyebrow">
+          <span class="hero-eyebrow-text">Movement Directory</span>
+          <div class="hero-eyebrow-line"></div>
+        </div>
+        <h1 class="hero-headline">Members</h1>
+        <p class="hero-tagline">Every profile is a public record of curiosity, contribution, and care.</p>
+        <p class="hero-body">Explore the people helping Together We Solve grow. Each member card links to a public contributor profile.</p>
+      </div>
+    </header>
+
+    <section class="section members-section">
+      <div class="container">
+        <div class="members-header">
+          <div>
+            <p class="label">All Members</p>
+            <h2 class="section-headline">The people moving the work forward.</h2>
           </div>
-
-          <form id="loginForm" class="login-form">
-            <div class="input-group">
-              <label for="email" class="input-label">Email</label>
-              <input type="email" id="email" placeholder="you@example.com" autocomplete="email" required />
-            </div>
-
-            <div class="input-group">
-              <label for="password" class="input-label">Password</label>
-              <input type="password" id="password" placeholder="Password" autocomplete="current-password" required />
-            </div>
-
-            <div class="login-actions">
-              <p class="login-error" id="loginError" role="alert" aria-live="polite"></p>
-              <button type="submit" class="btn btn-primary btn-full" id="loginSubmitBtn">Sign In <span class="btn-arrow">&nearr;</span></button>
-            </div>
-          </form>
-
-          <div class="login-footer">
-            <p>New here? <a href="signup.html" style="color: var(--accent-moss); font-weight: 600;">Create your member account</a>.</p>
+          <div class="members-controls">
+            <input type="text" id="memberSearch" placeholder="Search members by name, role, or expertise..." />
           </div>
         </div>
-      </div>
-    </main>
 
-    <!-- FOOTER -->
+        <div class="members-grid" id="membersGrid"></div>
+      </div>
+    </section>
+
     <footer class="footer">
       <div class="footer-inner">
         <div class="footer-top">
@@ -90,11 +78,10 @@
       </div>
     </footer>
 
-    <!-- SCRIPTS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
     <script src="https://unpkg.com/lenis@1.1.13/dist/lenis.min.js"></script>
     <script src="js/utils.js?v=2"></script>
-    <script type="module" src="js/login.js?v=2"></script>
+    <script src="js/members.js"></script>
   </body>
 </html>

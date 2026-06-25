@@ -5,6 +5,7 @@
 
 (function () {
   'use strict';
+  const esc = window.TWS.escapeHTML;
 
   let currentUserSession = null;
   let currentUserProfile = null;
@@ -18,7 +19,7 @@
   ];
 
   /* ─── SESSION LOAD & VALIDATION ──────────────── */
-  function loadSession() {
+  async function loadSession() {
     try {
       const session = JSON.parse(sessionStorage.getItem('portal_session'));
       if (!session) {
@@ -28,24 +29,29 @@
       currentUserSession = session;
 
       // Fetch corresponding profile from solvers registry
-      const solvers = JSON.parse(localStorage.getItem('community_solvers')) || defaultSolvers;
-      let profile = solvers.find(s => s.name === currentUserSession.username);
+      const solvers = await window.TWS.loadMovementMembersAsync(defaultSolvers);
+      let profile = solvers.find((solver) => (
+        solver.uid === currentUserSession.uid ||
+        solver.email === currentUserSession.email ||
+        solver.username === currentUserSession.username
+      )) || window.TWS.ensureSolverProfile(currentUserSession);
 
       if (!profile) {
         // Create a default profile if newly logged in and no profile exists
-        const initials = currentUserSession.username.split(' ').map(n => n.charAt(0)).join('').toUpperCase().substring(0, 2) || 'US';
+        const displayName = currentUserSession.displayName || currentUserSession.username || currentUserSession.email || 'Together We Solve Member';
+        const initials = displayName.split(' ').map(n => n.charAt(0)).join('').toUpperCase().substring(0, 2) || 'US';
         profile = {
           id: 'sol_' + Date.now(),
-          name: currentUserSession.username,
-          role: currentUserSession.role === 'Admin' ? 'The Clarity Weaver' : 'The Pioneer',
+          name: displayName,
+          username: window.TWS.toUsername(currentUserSession.username || displayName),
+          email: currentUserSession.email || '',
+          role: currentUserSession.role || 'Member',
           specialty: 'General Help & Mentorship',
           points: 0,
           solved: 0,
           initials: initials,
           badges: ['First Spark']
         };
-        solvers.push(profile);
-        localStorage.setItem('community_solvers', JSON.stringify(solvers));
       }
 
       currentUserProfile = profile;
@@ -60,13 +66,13 @@
 
     // Populate inputs
     const nameInput = document.getElementById('displayName');
-    const roleInput = document.getElementById('displayRole');
+    const usernameInput = document.getElementById('displayUsername');
     const specInput = document.getElementById('displaySpecialty');
     const initialsInput = document.getElementById('avatarInitials');
     const previewCircle = document.getElementById('avatarPreview');
 
     if (nameInput) nameInput.value = currentUserProfile.name;
-    if (roleInput) roleInput.value = currentUserProfile.role;
+    if (usernameInput) usernameInput.value = currentUserProfile.username || window.TWS.toUsername(currentUserProfile.name);
     if (specInput) specInput.value = currentUserProfile.specialty;
     if (initialsInput) initialsInput.value = currentUserProfile.initials;
     
@@ -116,7 +122,7 @@
         const icon = badgeIconMap[badge] || '🏅';
         const bubble = document.createElement('div');
         bubble.className = 'compact-badge-bubble';
-        bubble.innerHTML = `<span class="badge-bubble-icon">${icon}</span> ${badge}`;
+        bubble.innerHTML = `<span class="badge-bubble-icon">${esc(icon)}</span> ${esc(badge)}`;
         rack.appendChild(bubble);
       });
     }
@@ -127,22 +133,33 @@
     const form = document.getElementById('identityForm');
     if (!form) return;
 
-    form.addEventListener('submit', (e) => {
+    form.addEventListener('submit', async (e) => {
       e.preventDefault();
 
       const name = document.getElementById('displayName').value.trim();
-      const role = document.getElementById('displayRole').value.trim();
+      const username = window.TWS.toUsername(document.getElementById('displayUsername').value);
       const specialty = document.getElementById('displaySpecialty').value.trim();
       const initials = document.getElementById('avatarInitials').value.toUpperCase().substring(0, 2).trim();
 
-      if (name.length < 3 || role.length < 4) {
-        alert('Validation Error: Please write a valid full name (min 3 chars) and profile tagline (min 4 chars).');
+      if (name.length < 3 || username.length < 3) {
+        alert('Validation Error: Please write a valid full name and username with at least 3 characters.');
+        return;
+      }
+
+      if (!/^[a-z0-9_]{3,30}$/.test(username)) {
+        alert('Validation Error: Usernames can only use lowercase letters, numbers, and underscores.');
         return;
       }
 
       try {
-        const solvers = JSON.parse(localStorage.getItem('community_solvers')) || defaultSolvers;
+        const solvers = await window.TWS.loadMovementMembersAsync(defaultSolvers);
         const previousName = currentUserProfile.name;
+        const usernameTaken = solvers.some(s => s.id !== currentUserProfile.id && window.TWS.toUsername(s.username || s.name) === username);
+
+        if (usernameTaken) {
+          alert('That username is already taken. Please choose another one.');
+          return;
+        }
 
         // Update solver profile in local storage registry
         const updatedSolvers = solvers.map(s => {
@@ -150,7 +167,7 @@
             return {
               ...s,
               name: name,
-              role: role,
+              username: username,
               specialty: specialty,
               initials: initials
             };
@@ -158,26 +175,34 @@
           return s;
         });
 
-        localStorage.setItem('community_solvers', JSON.stringify(updatedSolvers));
+        if (currentUserSession.uid && window.TWS.saveUserProfile) {
+          await window.TWS.saveUserProfile(currentUserSession.uid, {
+            email: currentUserSession.email || '',
+            displayName: name,
+            username,
+            role: currentUserSession.role || currentUserProfile.role || 'Member',
+            specialty,
+            initials,
+            stats: {
+              totalImpactPoints: currentUserProfile.points || 0,
+              problemsSolved: currentUserProfile.solved || 0
+            }
+          });
+        }
 
-        // Sync active session username if changed
-        currentUserSession.username = name;
+        // Sync active session identity if changed
+        currentUserSession.displayName = name;
+        currentUserSession.username = username;
         sessionStorage.setItem('portal_session', JSON.stringify(currentUserSession));
 
         // Update active profile references
         currentUserProfile.name = name;
-        currentUserProfile.role = role;
+        currentUserProfile.username = username;
         currentUserProfile.specialty = specialty;
         currentUserProfile.initials = initials;
 
         // Write to system activity logs
-        const logs = JSON.parse(localStorage.getItem('admin_system_logs')) || [];
-        logs.unshift({
-          timestamp: new Date().toLocaleTimeString('en-US', { hour12: false }) + ' ' + new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-          type: 'LEDGER',
-          message: `User "${previousName}" updated their identity profile (New name: "${name}", initials: "${initials}").`
-        });
-        localStorage.setItem('admin_system_logs', JSON.stringify(logs));
+        await window.TWS.logSystemActivity('LEDGER', `User "${previousName}" updated their identity profile (New name: "${name}", username: "@${username}", initials: "${initials}").`);
 
         // GSAP success alert animation
         gsap.fromTo('#btnSaveIdentity', 
@@ -194,7 +219,7 @@
   }
 
   /* ─── POPULATE MY VOICED FRICTIONS ──────────── */
-  function loadMyFrictionsTracker() {
+  async function loadMyFrictionsTracker() {
     const tableBody = document.getElementById('trackerTableBody');
     const emptyState = document.getElementById('trackerEmptyState');
 
@@ -202,11 +227,17 @@
     tableBody.innerHTML = '';
 
     try {
-      const allProblems = JSON.parse(localStorage.getItem('community_problems')) || [];
+      const allProblems = await window.TWS.loadProblemsAsync([]);
       
       // Filter problems voiced by the active user
       // Match by prob.solver which acts as the owner's username
-      const myFrictions = allProblems.filter(p => p.solver === currentUserProfile.name);
+      const myFrictions = allProblems.filter(p => (
+        p.ownerUid === currentUserSession.uid ||
+        p.solver === currentUserProfile.name ||
+        p.solver === currentUserProfile.username ||
+        p.ownerUsername === currentUserProfile.username ||
+        window.TWS.toUsername(p.solver) === currentUserProfile.username
+      ));
 
       if (myFrictions.length > 0) {
         if (emptyState) emptyState.style.display = 'none';
@@ -243,14 +274,14 @@
 
           // Action column buttons
           let actionHtml = `<span style="opacity: 0.5; font-size: 12px;">No actions</span>`;
-          if (prob.status === 'Pending Owner Closure') {
+          if (prob.status === 'Pending Owner Closure' || (prob.status === 'Open' && prob.contributors && prob.contributors.length > 0 && !prob.solvedBy)) {
             actionHtml = `<button type="button" class="btn btn-outline btn-sm btn-verify-solver" style="padding: 6px 14px; font-size: 11px;">Review & Close</button>`;
           }
 
           row.innerHTML = `
-            <td style="opacity: 0.65; white-space: nowrap;">${prob.date}</td>
-            <td style="font-family: var(--font-display); font-size: 15px; color: var(--accent-moss);">${prob.title}</td>
-            <td><span class="status-badge" style="font-size: 9px; padding: 2px 8px; border: 1px solid var(--border-light); background: rgba(28,30,29,0.02);">${prob.category}</span></td>
+            <td style="opacity: 0.65; white-space: nowrap;">${esc(prob.date)}</td>
+            <td style="font-family: var(--font-display); font-size: 15px; color: var(--accent-moss);">${esc(prob.title)}</td>
+            <td><span class="status-badge" style="font-size: 9px; padding: 2px 8px; border: 1px solid var(--border-light); background: rgba(28,30,29,0.02);">${esc(prob.category)}</span></td>
             <td>${attemptsTxt}</td>
             <td><span class="status-badge ${badgeClass}">${displayStatus === 'Pending Owner Closure' ? 'Pending Review' : displayStatus}</span></td>
             <td style="text-align: right; white-space: nowrap;">${actionHtml}</td>
@@ -350,7 +381,7 @@
 
     // Handle Solution Approval (Owner Close)
     if (form) {
-      form.addEventListener('submit', (e) => {
+      form.addEventListener('submit', async (e) => {
         e.preventDefault();
         if (!activeVerificationProblemId) return;
 
@@ -368,31 +399,17 @@
         }
 
         try {
-          const problems = JSON.parse(localStorage.getItem('community_problems')) || [];
-          
-          const updatedProblems = problems.map(p => {
-            if (p.id === activeVerificationProblemId) {
-              return {
-                ...p,
-                status: 'Closed by Owner', // Owner closes problem, moves to Admin final audit
-                solvedBy: winner,
-                complexity: complexity,
-                ownerReview: reviewText
-              };
-            }
-            return p;
+          const problems = await window.TWS.loadProblemsAsync([]);
+          await window.TWS.updateProblem(activeVerificationProblemId, {
+            status: 'Closed by Owner',
+            solvedBy: winner,
+            complexity: complexity,
+            ownerReview: reviewText
           });
-
-          localStorage.setItem('community_problems', JSON.stringify(updatedProblems));
 
           // Log action
-          const logs = JSON.parse(localStorage.getItem('admin_system_logs')) || [];
-          logs.unshift({
-            timestamp: new Date().toLocaleTimeString('en-US', { hour12: false }) + ' ' + new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-            type: 'AUDIT',
-            message: `Owner "${currentUserProfile.name}" closed friction "${problems.find(p => p.id === activeVerificationProblemId).title}". Marked solved by "${winner}" (${complexity} complexity).`
-          });
-          localStorage.setItem('admin_system_logs', JSON.stringify(logs));
+          const problemTitle = problems.find(p => p.id === activeVerificationProblemId)?.title || activeVerificationProblemId;
+          window.TWS.logSystemActivity('AUDIT', `Owner "${currentUserProfile.name}" closed friction "${problemTitle}". Marked solved by "${winner}" (${complexity} complexity).`);
 
           alert('Challenge successfully closed and submitted to council for final point distribution audits!');
           closeModal();
@@ -405,7 +422,7 @@
 
     // Handle Solution Rejection (Send back to loop)
     if (rejectBtn) {
-      rejectBtn.addEventListener('click', () => {
+      rejectBtn.addEventListener('click', async () => {
         if (!activeVerificationProblemId) return;
 
         const reviewText = document.getElementById('verifyReviewText').value.trim();
@@ -416,29 +433,15 @@
 
         if (confirm('Are you sure you want to send this solution back for revision? It will re-open the challenge to the solver.')) {
           try {
-            const problems = JSON.parse(localStorage.getItem('community_problems')) || [];
-            
-            const updatedProblems = problems.map(p => {
-              if (p.id === activeVerificationProblemId) {
-                return {
-                  ...p,
-                  status: 'Open', // Revert back to open in-progress challenge
-                  ownerReview: 'Revision Request: ' + reviewText
-                };
-              }
-              return p;
+            const problems = await window.TWS.loadProblemsAsync([]);
+            await window.TWS.updateProblem(activeVerificationProblemId, {
+              status: 'Open',
+              ownerReview: 'Revision Request: ' + reviewText
             });
-
-            localStorage.setItem('community_problems', JSON.stringify(updatedProblems));
 
             // Log action
-            const logs = JSON.parse(localStorage.getItem('admin_system_logs')) || [];
-            logs.unshift({
-              timestamp: new Date().toLocaleTimeString('en-US', { hour12: false }) + ' ' + new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-              type: 'AUDIT',
-              message: `Owner "${currentUserProfile.name}" rejected solution draft for "${problems.find(p => p.id === activeVerificationProblemId).title}" and requested revisions.`
-            });
-            localStorage.setItem('admin_system_logs', JSON.stringify(logs));
+            const problemTitle = problems.find(p => p.id === activeVerificationProblemId)?.title || activeVerificationProblemId;
+            window.TWS.logSystemActivity('AUDIT', `Owner "${currentUserProfile.name}" rejected solution draft for "${problemTitle}" and requested revisions.`);
 
             alert('Solution draft rejected. Solvers have been notified to revise their implementation.');
             closeModal();
@@ -477,8 +480,8 @@
   }
 
   /* ─── INIT ─────────────────────────────────── */
-  function init() {
-    loadSession();
+  async function init() {
+    await loadSession();
     renderProfileDetails();
     initIdentityForm();
     loadMyFrictionsTracker();

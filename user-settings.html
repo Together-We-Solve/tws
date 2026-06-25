@@ -18,11 +18,13 @@
       <div class="nav-inner">
         <a href="index.html" class="nav-logo">Together We Solve</a>
         <div class="nav-links">
+          <a href="members.html" class="nav-link">Members</a>
           <a href="leaderboard.html" class="nav-link">Leaderboard</a>
           <a href="hall-of-fame.html" class="nav-link">Hall of Fame</a>
           <a href="impact-archive.html" class="nav-link">Impact Archive</a>
+          <a href="core-team.html" class="nav-link">Core Team</a>
           <a href="post-problem.html" class="nav-link">Post a Problem</a>
-          <a href="user-dashboard.html" class="nav-link" id="navDashboardLink">My Profile</a>
+          <a href="user-profile.html" class="nav-link" id="navDashboardLink">My Profile</a>
           <a href="user-settings.html" class="nav-link active" id="navSettingsLink">Settings</a>
         </div>
         <button class="nav-cta" id="signOutBtn">Sign Out <span class="nav-cta-arrow">↗</span></button>
@@ -60,8 +62,8 @@
                 </div>
 
                 <div class="form-field-group">
-                  <label for="displayRole" class="form-label">Profile Role Tagline</label>
-                  <input type="text" id="displayRole" class="form-input" placeholder="e.g. The Bridge Builder" required />
+                  <label for="displayUsername" class="form-label">Username</label>
+                  <input type="text" id="displayUsername" class="form-input" placeholder="e.g. elena_rostova" required />
                 </div>
 
                 <div class="form-field-group">
@@ -103,7 +105,7 @@
                 <span class="cred-stat-value" id="credSolved">0 Solved</span>
               </div>
               <div class="cred-stat-row">
-                <span class="cred-stat-label">Rank Status</span>
+                <span class="cred-stat-label">Rank</span>
                 <span class="cred-stat-value" id="credRank">Level I</span>
               </div>
             </div>
@@ -116,7 +118,7 @@
             </div>
 
             <div class="profile-link-wrap" style="margin-top: 24px;">
-              <a href="user-dashboard.html" class="btn btn-outline btn-sm btn-full" style="display: block; text-align: center;">View My Public Profile ↗</a>
+              <a href="user-profile.html" class="btn btn-outline btn-sm btn-full" style="display: block; text-align: center;">View My Public Profile ↗</a>
             </div>
           </div>
 
@@ -139,7 +141,7 @@
                 <th>Challenge Title</th>
                 <th>Category</th>
                 <th>Assigned Attempts</th>
-                <th>Auditing Status</th>
+                <th>Audit</th>
                 <th style="text-align: right;">Action</th>
               </tr>
             </thead>
@@ -239,6 +241,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
     <script src="https://unpkg.com/lenis@1.1.13/dist/lenis.min.js"></script>
+    <script src="js/utils.js?v=2"></script>
     <script src="js/user-settings.js"></script>
   </body>
 </html>

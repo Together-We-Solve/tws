@@ -113,6 +113,21 @@ body::after {
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.02);
 }
 
+.nav:not(.scrolled) .nav-logo,
+.nav:not(.scrolled) .nav-link {
+  color: var(--bg-warm);
+}
+
+.nav:not(.scrolled) .nav-link:hover,
+.nav:not(.scrolled) .nav-link.active {
+  color: var(--bg-warm);
+}
+
+.nav:not(.scrolled) .nav-cta {
+  background: var(--bg-warm);
+  color: var(--accent-moss);
+}
+
 .nav-inner {
   width: 100%;
   max-width: 1400px;

@@ -5,6 +5,7 @@
 
 (function () {
   'use strict';
+  const esc = window.TWS.escapeHTML;
 
   // Default seed database if empty
   const defaultSolvers = [
@@ -168,14 +169,14 @@
   }
 
   /* ─── DYNAMIC LEADERBOARD GENERATION ───────── */
-  function loadLeaderboardData() {
+  async function loadLeaderboardData() {
     const podiumGrid = document.querySelector('.podium-grid');
     const ledgerTableBody = document.querySelector('#ledgerTable tbody');
 
     if (!podiumGrid || !ledgerTableBody) return;
 
     try {
-      const solvers = JSON.parse(localStorage.getItem('community_solvers')) || defaultSolvers;
+      const solvers = await window.TWS.loadMovementMembersAsync(defaultSolvers);
       
       // Sort by points descending
       solvers.sort((a, b) => b.points - a.points);
@@ -199,7 +200,7 @@
         const rankClass = rankClasses[orderIdx];
         const rankNum = rankLabels[orderIdx];
         const quote = defaultQuotes[solverIndex] || "\"Vulnerability is the core of cooperative growth.\"";
-        const urlName = solver.name.replace(/ /g, '_');
+        const profileHref = window.TWS.profileUrl(solver.username || solver.name);
 
         // Gold highlighting for Rank 1
         const goldClass = rankNum === 1 ? 'gold' : '';
@@ -212,11 +213,11 @@
         card.innerHTML = `
           <div class="podium-badge">${rankNum}</div>
           <div class="avatar-wrap">
-            <div class="avatar-initials">${solver.initials}</div>
+            <div class="avatar-initials">${esc(solver.initials)}</div>
           </div>
-          <h3 class="podium-name">${solver.name}</h3>
-          <span class="podium-title">${solver.role}</span>
-          <div class="podium-specialty">${solver.specialty}</div>
+          <h3 class="podium-name">${esc(solver.name)}</h3>
+          <span class="podium-title">${esc(solver.role)}</span>
+          <div class="podium-specialty">${esc(solver.specialty)}</div>
           <div class="podium-metrics">
             <div class="metric-item">
               <span class="metric-val">${solver.points.toLocaleString()}</span>
@@ -228,14 +229,14 @@
             </div>
           </div>
           <div class="podium-badges">
-            ${solver.badges.map(b => `<span class="badge-tag ${goldClass}">${b}</span>`).join('')}
+            ${solver.badges.map(b => `<span class="badge-tag ${goldClass}">${esc(b)}</span>`).join('') || '<span class="badge-tag">Member</span>'}
           </div>
           <p class="podium-quote">${quote}</p>
         `;
 
         // Redirect card click to public profile
         card.addEventListener('click', () => {
-          window.location.href = `user-dashboard.html?username=${urlName}`;
+          window.location.href = profileHref;
         });
 
         podiumGrid.appendChild(card);
@@ -247,7 +248,7 @@
       for (let i = 3; i < solvers.length; i++) {
         const solver = solvers[i];
         const rankStr = (i + 1) < 10 ? `0${i + 1}` : `${i + 1}`;
-        const urlName = solver.name.replace(/ /g, '_');
+        const profileHref = window.TWS.profileUrl(solver.username || solver.name);
 
         const row = document.createElement('tr');
         row.className = 'ledger-row';
@@ -257,18 +258,18 @@
           <td class="col-rank"><span class="rank-number">${rankStr}</span></td>
           <td class="col-solver">
             <div class="solver-profile" style="cursor: pointer;">
-              <div class="solver-avatar">${solver.initials}</div>
+              <div class="solver-avatar">${esc(solver.initials)}</div>
               <div class="solver-info">
-                <span class="solver-name">${solver.name}</span>
-                <span class="solver-sub">${solver.role}</span>
+                <span class="solver-name">${esc(solver.name)}</span>
+                <span class="solver-sub">${esc(solver.role)}</span>
               </div>
             </div>
           </td>
-          <td class="col-specialty"><span class="specialty-lbl">${solver.specialty}</span></td>
+          <td class="col-specialty"><span class="specialty-lbl">${esc(solver.specialty)}</span></td>
           <td class="col-solved"><span class="solved-count">${solver.solved} challenges</span></td>
           <td class="col-badges">
             <div class="badges-row">
-              ${solver.badges.map(b => `<span class="mini-badge">${b}</span>`).join('')}
+              ${solver.badges.map(b => `<span class="mini-badge">${esc(b)}</span>`).join('') || '<span class="mini-badge">Member</span>'}
             </div>
           </td>
           <td class="col-impact"><span class="impact-val">${solver.points.toLocaleString()} XP</span></td>
@@ -276,7 +277,7 @@
 
         // Redirect row profile click to public profile
         row.querySelector('.solver-profile').addEventListener('click', () => {
-          window.location.href = `user-dashboard.html?username=${urlName}`;
+          window.location.href = profileHref;
         });
 
         ledgerTableBody.appendChild(row);
@@ -403,11 +404,11 @@
   }
 
   /* ─── INIT ─────────────────────────────────── */
-  function init() {
+  async function init() {
     gsap.registerPlugin(ScrollTrigger);
 
     initLeaderboardCanvas();
-    loadLeaderboardData();
+    await loadLeaderboardData();
     animateHero();
     initScrollTriggers();
     initFiltering();

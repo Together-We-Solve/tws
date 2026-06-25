@@ -25,8 +25,9 @@
           <a href="#journey" class="nav-link scroll-link">How It Works</a>
           <a href="#values" class="nav-link scroll-link">Values</a>
           <a href="#vision" class="nav-link scroll-link">Vision</a>
+          <a href="core-team.html" class="nav-link">Core Team</a>
         </div>
-        <a href="https://chat.whatsapp.com/E2X7hTCxEZjB4MczNIeHFG" target="_blank" rel="noopener" class="nav-cta">Join The Movement <span class="nav-cta-arrow">↗</span></a>
+        <a href="signup.html" class="nav-cta">Join The Community <span class="nav-cta-arrow">↗</span></a>
       </div>
     </nav>
 
@@ -41,7 +42,7 @@
         <p class="hero-tagline split-text">No problem too small.<br />No challenge too big.</p>
         <p class="hero-body split-text">A movement built on the belief that knowledge shared, support offered, and solutions discovered together can create meaningful change.</p>
         <div class="hero-actions">
-          <a href="https://chat.whatsapp.com/E2X7hTCxEZjB4MczNIeHFG" target="_blank" rel="noopener" class="btn btn-primary">Join The Movement <span class="btn-arrow">↗</span></a>
+          <a href="signup.html" class="btn btn-primary">Join The Community <span class="btn-arrow">↗</span></a>
           <a href="#reality" class="btn btn-outline scroll-link">Learn Why <span class="btn-arrow-down">↓</span></a>
         </div>
       </div>
@@ -273,10 +274,8 @@
         </div>
         <p class="join-kicker reveal-text">Moves us forward.</p>
         <div class="join-actions">
-          <a href="https://chat.whatsapp.com/E2X7hTCxEZjB4MczNIeHFG" target="_blank" rel="noopener"
-            class="btn btn-primary btn-large">Join The Movement</a>
-          <a href="https://chat.whatsapp.com/E2X7hTCxEZjB4MczNIeHFG" target="_blank" rel="noopener"
-            class="btn btn-outline">Enter The Community →</a>
+          <a href="signup.html" class="btn btn-primary btn-large">Join The Community</a>
+          <a href="login.html" class="btn btn-outline">Enter The Community →</a>
         </div>
       </div>
     </section>
@@ -294,13 +293,13 @@
             <a href="#why">Why We Exist</a>
             <a href="#belief">Our Belief</a>
             <a href="#vision">The Vision</a>
+            <a href="core-team.html">Core Team</a>
           </nav>
         </div>
         <div class="footer-bottom">
           <p class="footer-copy">A movement built on the belief that people can solve more together than they ever could
             alone.</p>
-          <a href="https://chat.whatsapp.com/E2X7hTCxEZjB4MczNIeHFG" target="_blank" rel="noopener"
-            class="btn btn-ghost btn-sm">Join The Movement</a>
+          <a href="signup.html" class="btn btn-ghost btn-sm">Join The Community</a>
         </div>
       </div>
     </footer>
@@ -309,6 +308,11 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
     <script src="https://unpkg.com/lenis@1.1.13/dist/lenis.min.js"></script>
     <script src="https://unpkg.com/split-type@0.3.4/umd/index.min.js"></script>
+    <script>
+      if (sessionStorage.getItem('portal_session')) {
+        window.location.href = 'home.html';
+      }
+    </script>
     <script src="js/script.js"></script>
   </body>
 

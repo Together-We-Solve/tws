@@ -1,12 +1,15 @@
-/* ============================================
-   TOGETHER WE SOLVE — js/login.js
-   Interactive Constellations & Portal Login
-   ============================================ */
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js';
+import { getAuth, signInWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js';
+import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
+import { firebaseConfig, fixedRoles, accessCollections } from './firebase-config.js';
 
 (function () {
   'use strict';
 
-  /* ─── LENIS SMOOTH SCROLL ──────────────────── */
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
   const lenis = new Lenis({
     lerp: 0.08,
     smoothWheel: true,
@@ -21,112 +24,74 @@
 
   gsap.ticker.lagSmoothing(0);
 
-  /* ─── NAV SCROLL STATE ─────────────────────── */
   const nav = document.getElementById('nav');
   if (nav) {
     ScrollTrigger.create({
       start: 'top -80',
       onUpdate: (self) => {
-        if (self.scroll() > 80) {
-          nav.classList.add('scrolled');
-        } else {
-          nav.classList.remove('scrolled');
-        }
+        nav.classList.toggle('scrolled', self.scroll() > 80);
       }
     });
   }
 
-  /* ─── CONSTELLATION CANVAS BACKDROP ────────── */
   function initLoginCanvas() {
     const canvas = document.getElementById('loginCanvas');
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
-    let W, H;
+    let W = 0;
+    let H = 0;
     let particles = [];
     const maxParticles = 50;
-    
-    // Interactive states when typing
     let focusState = false;
     let speedMultiplier = 1;
-    let attractionRadius = 150;
+    const attractionRadius = 150;
 
     function resize() {
       W = canvas.width = canvas.offsetWidth;
       H = canvas.height = canvas.offsetHeight;
-      initParticles();
-    }
-
-    class StarNode {
-      constructor() {
-        this.reset();
-        this.x = Math.random() * W;
-        this.y = Math.random() * H;
-      }
-
-      reset() {
-        this.x = Math.random() * W;
-        this.y = H + 15;
-        this.radius = Math.random() * 2 + 0.5;
-        this.speedY = Math.random() * 0.3 + 0.1;
-        this.speedX = (Math.random() - 0.5) * 0.2;
-        this.color = Math.random() > 0.45 
-          ? 'rgba(35, 56, 43, 0.15)'   // Moss green
-          : 'rgba(200, 125, 85, 0.12)'; // Clay
-      }
-
-      update() {
-        // Apply upward drift
-        this.y -= this.speedY * speedMultiplier;
-        this.x += this.speedX * speedMultiplier;
-
-        // Bounce horizontally
-        if (this.x < 0 || this.x > W) this.speedX = -this.speedX;
-
-        // Draw node
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-        ctx.fillStyle = this.color;
-        ctx.fill();
-
-        // Recycle if drifts off top
-        if (this.y < -10) {
-          this.reset();
-        }
-      }
-    }
-
-    function initParticles() {
-      particles = [];
-      for (let i = 0; i < maxParticles; i++) {
-        particles.push(new StarNode());
-      }
+      particles = Array.from({ length: maxParticles }, () => ({
+        x: Math.random() * W,
+        y: Math.random() * H,
+        radius: Math.random() * 2 + 0.5,
+        speedY: Math.random() * 0.3 + 0.1,
+        speedX: (Math.random() - 0.5) * 0.2,
+        color: Math.random() > 0.45 ? 'rgba(35, 56, 43, 0.15)' : 'rgba(200, 125, 85, 0.12)'
+      }));
     }
 
     function draw() {
       ctx.clearRect(0, 0, W, H);
 
-      // Update & draw star nodes
-      particles.forEach(p => p.update());
+      particles.forEach((p) => {
+        p.y -= p.speedY * speedMultiplier;
+        p.x += p.speedX * speedMultiplier;
+        if (p.x < 0 || p.x > W) p.speedX = -p.speedX;
+        if (p.y < -10) {
+          p.x = Math.random() * W;
+          p.y = H + 15;
+        }
 
-      // Draw connections
-      for (let i = 0; i < particles.length; i++) {
-        for (let j = i + 1; j < particles.length; j++) {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.fillStyle = p.color;
+        ctx.fill();
+      });
+
+      for (let i = 0; i < particles.length; i += 1) {
+        for (let j = i + 1; j < particles.length; j += 1) {
           const p1 = particles[i];
           const p2 = particles[j];
           const dx = p1.x - p2.x;
           const dy = p1.y - p2.y;
           const dist = Math.sqrt(dx * dx + dy * dy);
-
-          // Draw links if within distance (expand radius on focus)
           const maxDist = focusState ? attractionRadius * 1.4 : attractionRadius;
+
           if (dist < maxDist) {
             const opacity = (1 - (dist / maxDist)) * 0.12;
             ctx.beginPath();
             ctx.moveTo(p1.x, p1.y);
             ctx.lineTo(p2.x, p2.y);
-            ctx.strokeStyle = i % 2 === 0
-              ? `rgba(200, 125, 85, ${opacity})`
-              : `rgba(35, 56, 43, ${opacity})`;
+            ctx.strokeStyle = i % 2 === 0 ? `rgba(200, 125, 85, ${opacity})` : `rgba(35, 56, 43, ${opacity})`;
             ctx.lineWidth = 0.6;
             ctx.stroke();
           }
@@ -136,9 +101,7 @@
       requestAnimationFrame(draw);
     }
 
-    // Connect input focus events to speed up canvas particles
-    const inputs = document.querySelectorAll('.login-form input');
-    inputs.forEach(input => {
+    document.querySelectorAll('.login-form input').forEach((input) => {
       input.addEventListener('focus', () => {
         focusState = true;
         gsap.to({ val: speedMultiplier }, {
@@ -151,7 +114,7 @@
       input.addEventListener('blur', () => {
         focusState = false;
         gsap.to({ val: speedMultiplier }, {
-          val: 1.0,
+          val: 1,
           duration: 1.2,
           onUpdate: function () { speedMultiplier = this.targets()[0].val; }
         });
@@ -160,14 +123,9 @@
 
     resize();
     draw();
-
-    window.addEventListener('resize', () => {
-      W = canvas.width = canvas.offsetWidth;
-      H = canvas.height = canvas.offsetHeight;
-    });
+    window.addEventListener('resize', resize);
   }
 
-  /* ─── ENTRANCE TIMELINE ANIMATION ──────────── */
   function animateLoginCard() {
     gsap.from('.login-card', {
       opacity: 0,
@@ -179,58 +137,133 @@
     });
   }
 
-  /* ─── FORM SUBMIT & REDIRECT STATE ─────────── */
+  function friendlyAuthError(error) {
+    const code = error?.code || '';
+    if (firebaseConfig.apiKey.startsWith('REPLACE_')) {
+      return 'Firebase is not configured yet. Update js/firebase-config.js with your project details.';
+    }
+    if (code.includes('invalid-credential') || code.includes('wrong-password') || code.includes('user-not-found')) {
+      return 'Email or password is incorrect.';
+    }
+    if (code.includes('invalid-email')) return 'Enter a valid email address.';
+    if (code.includes('too-many-requests')) return 'Too many attempts. Please wait before trying again.';
+    return 'Could not sign in. Please try again.';
+  }
+
+  function displayNameFromUser(user) {
+    if (user.displayName) return user.displayName;
+    return user.email.split('@')[0].replace(/[._-]+/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
+  }
+
+  function dashboardForAccess(role, privileges) {
+    const access = Array.isArray(privileges) ? privileges : [];
+    if (role === 'Founder' || role === 'Co-Founder' || access.includes('manage_system')) return 'admin-dashboard.html';
+    if (['Evaluator', 'Innovator'].includes(role) || access.includes('evaluate_submissions') || access.includes('award_points')) return 'evaluator-dashboard.html';
+    return 'user-profile.html';
+  }
+
+  async function loadAccessProfile(user) {
+    const uidSnapshot = await getDoc(doc(db, accessCollections.users, user.uid));
+    let data = uidSnapshot.exists() ? uidSnapshot.data() : {};
+
+    if (!uidSnapshot.exists() && user.email) {
+      const emailKey = user.email.toLowerCase();
+      const emailSnapshot = await getDoc(doc(db, accessCollections.roleAssignments, emailKey));
+      data = emailSnapshot.exists() ? emailSnapshot.data() : {};
+    }
+
+    const role = fixedRoles.includes(data.role) ? data.role : 'Member';
+    const privileges = Array.isArray(data.privileges) ? data.privileges : [];
+
+    return {
+      role,
+      privileges,
+      displayName: data.displayName || user.displayName || displayNameFromUser(user)
+    };
+  }
+
+  async function upsertUserProfile(user, accessProfile) {
+    const username = window.TWS.toUsername(accessProfile.username || accessProfile.displayName || user.email);
+    const displayName = accessProfile.displayName || displayNameFromUser(user);
+    await setDoc(doc(db, accessCollections.users, user.uid), {
+      uid: user.uid,
+      email: user.email,
+      displayName,
+      username,
+      role: accessProfile.role,
+      privileges: accessProfile.privileges,
+      joinedDate: new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
+      stats: {
+        totalImpactPoints: 0,
+        problemsSolved: 0
+      },
+      updatedAt: serverTimestamp()
+    }, { merge: true });
+    return { displayName, username };
+  }
+
   function initLoginForm() {
     const form = document.getElementById('loginForm');
+    const errorEl = document.getElementById('loginError');
+    const submitBtn = document.getElementById('loginSubmitBtn');
     if (!form) return;
 
-    form.addEventListener('submit', (e) => {
+    form.addEventListener('submit', async (e) => {
       e.preventDefault();
 
-      const username = document.getElementById('username').value.trim();
-      const role = document.querySelector('input[name="role"]:checked').value;
-
-      // Save user session in sessionStorage
-      const sessionData = {
-        username: username || 'Elena Rostova',
-        role: role,
-        loginTime: Date.now()
-      };
-
-      try {
-        sessionStorage.setItem('portal_session', JSON.stringify(sessionData));
-      } catch (err) {
-        console.error('Failed to write session data to sessionStorage:', err);
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      if (errorEl) errorEl.textContent = '';
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Signing In...';
       }
 
-      // Card exit animations before redirect
-      gsap.to('.login-card', {
-        opacity: 0,
-        y: -20,
-        scale: 0.98,
-        duration: 0.5,
-        ease: 'power2.in',
-        onComplete: () => {
-          // Redirect to appropriate dashboard
-          if (role === 'Admin') {
-            window.location.href = 'admin-dashboard.html';
-          } else {
-            window.location.href = 'user-dashboard.html';
+      try {
+        const credential = await signInWithEmailAndPassword(auth, email, password);
+        const user = credential.user;
+        const accessProfile = await loadAccessProfile(user);
+        const profileIdentity = await upsertUserProfile(user, accessProfile);
+
+        const sessionData = {
+          uid: user.uid,
+          email: user.email,
+          displayName: profileIdentity.displayName,
+          username: profileIdentity.username,
+          role: accessProfile.role,
+          privileges: accessProfile.privileges,
+          loginTime: Date.now()
+        };
+
+        sessionStorage.setItem('portal_session', JSON.stringify(sessionData));
+        window.TWS.ensureSolverProfile(sessionData, []);
+
+        gsap.to('.login-card', {
+          opacity: 0,
+          y: -20,
+          scale: 0.98,
+          duration: 0.5,
+          ease: 'power2.in',
+          onComplete: () => {
+            window.location.href = dashboardForAccess(accessProfile.role, accessProfile.privileges);
           }
+        });
+      } catch (err) {
+        if (errorEl) errorEl.textContent = friendlyAuthError(err);
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = 'Sign In <span class="btn-arrow">&nearr;</span>';
         }
-      });
+      }
     });
   }
 
-  /* ─── INIT ─────────────────────────────────── */
   function init() {
     gsap.registerPlugin(ScrollTrigger);
-
     initLoginCanvas();
     animateLoginCard();
     initLoginForm();
   }
 
   document.addEventListener('DOMContentLoaded', init);
-
 })();

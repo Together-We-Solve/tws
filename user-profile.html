@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Together We Solve Profile</title>
+    <meta name="description" content="Public contributor profile on Together We Solve." />
+    <link rel="stylesheet" href="css/user-profile.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap"
+      rel="stylesheet" />
+  </head>
+  <body class="dashboard-body">
+
+    <nav class="nav" id="nav">
+      <div class="nav-inner">
+        <a href="index.html" class="nav-logo">Together We Solve</a>
+        <div class="nav-links">
+          <a href="members.html" class="nav-link">Members</a>
+          <a href="leaderboard.html" class="nav-link">Leaderboard</a>
+          <a href="hall-of-fame.html" class="nav-link">Hall of Fame</a>
+          <a href="impact-archive.html" class="nav-link">Impact Archive</a>
+          <a href="core-team.html" class="nav-link">Core Team</a>
+          <a href="post-problem.html" class="nav-link">Post a Problem</a>
+          <a href="user-profile.html" class="nav-link active" id="navDashboardLink">Profile</a>
+          <a href="user-settings.html" class="nav-link" id="navSettingsLink">Settings</a>
+        </div>
+        <a class="nav-cta" id="profileAuthLink" href="login.html">Sign In <span class="nav-cta-arrow">&nearr;</span></a>
+      </div>
+    </nav>
+
+    <header class="dashboard-hero">
+      <div class="canvas-wrap">
+        <canvas id="sproutCanvas"></canvas>
+      </div>
+      <div class="container hero-content">
+        <div class="hero-eyebrow" style="display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 16px;">
+          <span class="hero-eyebrow-text" id="profileTypeLabel">Contributor Profile</span>
+          <div class="hero-eyebrow-line" style="flex: 1; height: 1px; background: var(--border-light);"></div>
+          <a href="user-settings.html" class="btn btn-outline btn-sm" id="btnEditProfile" style="display: none; padding: 6px 14px; font-size: 11px; margin: 0; background: transparent; border: 1px solid var(--border-light); text-decoration: none; font-family: var(--font-body); color: var(--text-charcoal); border-radius: 100px;">Edit Profile</a>
+        </div>
+
+        <div id="profileBanner" style="display: none; min-height: 180px; border-radius: 12px; background-size: cover; background-position: center; border: 1px solid var(--border-light); margin-bottom: 32px;"></div>
+        <div style="display: flex; align-items: center; gap: 24px; flex-wrap: wrap; margin-bottom: 24px;">
+          <img id="profileAvatar" alt="" style="display: none; width: 96px; height: 96px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border-light); background: var(--bg-fog);" />
+          <div id="profileAvatarFallback" style="width: 96px; height: 96px; border-radius: 50%; background: var(--bg-fog); border: 1px solid var(--border-light); display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-size: 32px; color: var(--accent-moss);">TW</div>
+        </div>
+
+        <h1 class="hero-headline" id="welcomeMessage"></h1>
+        <p class="hero-tagline" id="profileTagline"></p>
+        <p class="hero-body" id="profileBio"></p>
+        <div id="profileMeta" style="display: flex; flex-wrap: wrap; gap: 10px 18px; margin-top: 24px; font-size: 13px; color: var(--text-charcoal); opacity: 0.76;"></div>
+        <div id="profileLinks" style="display: none; flex-wrap: wrap; gap: 12px; margin-top: 26px;"></div>
+      </div>
+    </header>
+
+    <section class="section stats-section">
+      <div class="container">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <span class="stat-value" id="totalImpactPoints">0</span>
+            <span class="stat-title">Impact Points</span>
+            <p class="stat-desc">Cumulative contribution weight from solutions and ripples.</p>
+          </div>
+          <div class="stat-card">
+            <span class="stat-value" id="problemsIdentified">0</span>
+            <span class="stat-title">Problems Identified</span>
+            <p class="stat-desc">Important obstacles voiced for the community.</p>
+          </div>
+          <div class="stat-card">
+            <span class="stat-value" id="problemsSolved">0</span>
+            <span class="stat-title">Problems Solved</span>
+            <p class="stat-desc">Challenges resolved through meaningful contribution.</p>
+          </div>
+          <div class="stat-card">
+            <span class="stat-value" id="currentRank"></span>
+            <span class="stat-title">Current Rank</span>
+            <p class="stat-desc">Community level based on contribution weights.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" style="border-top: 1px solid var(--border-light); padding-top: 60px; padding-bottom: 20px;">
+      <div class="container">
+        <p class="label">Movement</p>
+        <h2 class="section-headline">Role & Contribution Summary</h2>
+        <div class="stats-grid" style="margin-top: 40px;">
+          <div class="stat-card">
+            <span class="stat-value" id="currentRole"></span>
+            <span class="stat-title">Current Role</span>
+            <p class="stat-desc">Movement responsibility and recognition level.</p>
+          </div>
+          <div class="stat-card">
+            <span class="stat-value" id="knowledgeContributions">0</span>
+            <span class="stat-title">Knowledge Contributions</span>
+            <p class="stat-desc">Guides, notes, documentation, and shared context.</p>
+          </div>
+          <div class="stat-card">
+            <span class="stat-value" id="helpfulResponses">0</span>
+            <span class="stat-title">Helpful Responses</span>
+            <p class="stat-desc">Responses marked useful by the community.</p>
+          </div>
+          <div class="stat-card">
+            <span class="stat-value" id="currentStreak">0</span>
+            <span class="stat-title">Current Streak</span>
+            <p class="stat-desc">Consecutive contribution days or weeks.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section portfolio-section" id="portfolioSection" style="border-top: 1px solid var(--border-light); padding-top: 60px; padding-bottom: 20px;">
+      <div class="container">
+        <p class="label">Recent Contributions</p>
+        <h2 class="section-headline">Recent Work & Impact</h2>
+        <div class="portfolio-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 32px; align-items: start;">
+          <div class="portfolio-column">
+            <h3 style="font-family: var(--font-display); font-size: 20px; color: var(--accent-moss); border-bottom: 1px solid var(--border-light); padding-bottom: 8px; margin-bottom: 20px; font-weight: 400;">Recent Contributions</h3>
+            <div class="portfolio-list" id="recentContributionsList"></div>
+          </div>
+          <div class="portfolio-column">
+            <h3 style="font-family: var(--font-display); font-size: 20px; color: var(--accent-moss); border-bottom: 1px solid var(--border-light); padding-bottom: 8px; margin-bottom: 20px; font-weight: 400;">Impact Timeline</h3>
+            <div class="portfolio-list" id="impactTimelineList"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section user-frictions-section" style="border-top: 1px solid var(--border-light); padding-top: 60px;">
+      <div class="container">
+        <p class="label">Areas of Contribution</p>
+        <h2 class="section-headline">Where This Member Helps</h2>
+        <p class="section-subtitle" style="margin-bottom: 40px; opacity: 0.7;">Contribution categories and their activity counts.</p>
+        <div class="user-frictions-list" id="categoriesList"></div>
+      </div>
+    </section>
+
+    <section class="section badges-section" style="border-top: 1px solid var(--border-light); padding-top: 60px;">
+      <div class="container">
+        <p class="label">Empathy Badges</p>
+        <h2 class="section-headline">Earned Honors</h2>
+        <p class="section-subtitle" style="margin-bottom: 40px; opacity: 0.7;">Medals of vulnerability, impact, and collaboration awarded by the Council.</p>
+        <div class="badges-grid" id="badgesGrid"></div>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        <div class="footer-top">
+          <div class="footer-brand">
+            <p class="footer-name">Together We Solve</p>
+            <p class="footer-tagline">No problem too small. No challenge too big.</p>
+          </div>
+          <nav class="footer-nav">
+            <a href="members.html">Members</a>
+            <a href="leaderboard.html">Leaderboard</a>
+            <a href="hall-of-fame.html">Hall of Fame</a>
+            <a href="impact-archive.html">Impact Archive</a>
+            <a href="core-team.html">Core Team</a>
+          </nav>
+        </div>
+        <div class="footer-bottom">
+          <p class="footer-copy">A movement built on the belief that people can solve more together than they ever could alone.</p>
+          <a href="post-problem.html" class="btn btn-ghost btn-sm">Share a Problem</a>
+        </div>
+      </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <script src="https://unpkg.com/lenis@1.1.13/dist/lenis.min.js"></script>
+    <script src="js/utils.js?v=2"></script>
+    <script src="js/user-profile.js"></script>
+  </body>
+</html>

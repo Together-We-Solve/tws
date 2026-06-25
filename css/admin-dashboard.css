@@ -212,6 +212,62 @@ body {
   padding-top: 24px;
 }
 
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 100px;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 500;
+  justify-content: center;
+  letter-spacing: 0.03em;
+  padding: 12px 22px;
+  text-decoration: none;
+  transition: var(--transition-smooth);
+}
+
+.btn-primary {
+  background: var(--accent-moss);
+  border: 1px solid var(--accent-moss);
+  color: var(--bg-warm);
+}
+
+.btn-primary:hover {
+  background: var(--text-charcoal);
+  border-color: var(--text-charcoal);
+  transform: translateY(-1px);
+}
+
+.btn-outline {
+  background: transparent;
+  border: 1px solid rgba(28, 30, 29, 0.16);
+  color: var(--text-charcoal);
+}
+
+.btn-outline:hover {
+  background: rgba(28, 30, 29, 0.03);
+  border-color: rgba(28, 30, 29, 0.34);
+}
+
+.sidebar-footer .btn-outline {
+  border-color: rgba(250, 246, 240, 0.18);
+  color: var(--bg-warm);
+}
+
+.sidebar-footer .btn-outline:hover {
+  background: rgba(250, 246, 240, 0.08);
+  border-color: rgba(250, 246, 240, 0.5);
+  color: var(--bg-warm);
+}
+
+.btn-sm {
+  font-size: 12px;
+  padding: 10px 18px;
+}
+
 .btn-full {
   width: 100%;
   justify-content: center;
@@ -283,6 +339,11 @@ body {
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--accent-moss);
+}
+
+.indicator-txt:empty,
+.stat-trend:empty {
+  display: none;
 }
 
 @keyframes pulseDot {
@@ -1190,4 +1251,3 @@ body {
 .complexity-indicator.low { background: rgba(35, 56, 43, 0.06); color: var(--accent-moss); }
 .complexity-indicator.medium { background: rgba(61, 90, 108, 0.08); color: var(--accent-ocean); }
 .complexity-indicator.high { background: rgba(200, 125, 85, 0.1); color: var(--accent-clay); }
-

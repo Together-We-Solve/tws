@@ -5,6 +5,7 @@
 
 (function () {
   'use strict';
+  const esc = window.TWS.escapeHTML;
 
   /* ─── LENIS SMOOTH SCROLL ──────────────────── */
   const lenis = new Lenis({
@@ -322,12 +323,12 @@
   }
 
   /* ─── LOAD CUSTOM PERSISTED PROBLEMS ────────── */
-  function loadCustomProblems() {
+  async function loadCustomProblems() {
     const timeline = document.querySelector('.archive-timeline');
     if (!timeline) return;
 
     try {
-      const customProblems = JSON.parse(localStorage.getItem('community_problems')) || [];
+      const customProblems = await window.TWS.loadProblemsAsync([]);
       
       // Iterate to prepend, showing the most recently added problem at the top
       customProblems.forEach(prob => {
@@ -357,23 +358,22 @@
         if (isSolved) {
           badgeHtml = `<span style="font-size: 10px; font-family: var(--font-body); text-transform: uppercase; letter-spacing: 0.1em; padding: 3px 10px; border-radius: 100px; background: rgba(35, 56, 43, 0.08); color: var(--accent-moss); margin-left: 8px; font-weight: 600; vertical-align: middle;">Co-Authored Solution</span>`;
           
-          const solverUrlName = prob.solvedBy.replace(/ /g, '_');
           const othersList = prob.contributors ? prob.contributors.filter(c => c !== prob.solvedBy) : [];
           let othersHtml = '';
           if (othersList.length > 0) {
-            othersHtml = ` (with participation from: ${othersList.map(c => `<a href="user-dashboard.html?username=${c.replace(/ /g, '_')}" style="color: var(--accent-ocean); font-weight: 500;">${c}</a>`).join(', ')})`;
+            othersHtml = ` (with participation from: ${othersList.map(c => `<a href="${window.TWS.profileUrl(c)}" style="color: var(--accent-ocean); font-weight: 500;">${esc(c)}</a>`).join(', ')})`;
           }
 
           solverMetaHtml = `
-            <span class="meta-field">Resolved By: <a href="user-dashboard.html?username=${solverUrlName}" style="color: var(--accent-moss); font-weight: 600; text-decoration: underline;">${prob.solvedBy}</a>${othersHtml}</span>
+            <span class="meta-field">Resolved By: <a href="${window.TWS.profileUrl(prob.solvedBy)}" style="color: var(--accent-moss); font-weight: 600; text-decoration: underline;">${esc(prob.solvedBy)}</a>${othersHtml}</span>
           `;
 
           opportunityHtml = `
             <div class="drawer-section" style="grid-column: span 3; border-top: 1px dashed var(--border-light); padding-top: 18px; margin-top: 12px; background: rgba(35, 56, 43, 0.015); padding: 16px; border-radius: 8px;">
               <h4 style="color: var(--accent-moss); margin-bottom: 6px; text-transform: uppercase; font-size: 11px; font-weight: 600;">Verified Resolution & Owner Feedback</h4>
-              <p style="font-style: italic; opacity: 0.85;">"${prob.ownerReview || 'Challenge successfully completed and archived.'}"</p>
+              <p style="font-style: italic; opacity: 0.85;">"${esc(prob.ownerReview || 'Challenge successfully completed and archived.')}"</p>
               <div style="font-size: 11px; opacity: 0.6; margin-top: 10px; display: flex; gap: 15px;">
-                <span>Complexity: <strong>${prob.complexity}</strong></span>
+                <span>Complexity: <strong>${esc(prob.complexity)}</strong></span>
                 <span>Council Award: <strong>+${prob.winnerXP || 150} XP Solver, +${prob.attemptXP || 40} XP Attempts</strong></span>
               </div>
             </div>
@@ -395,7 +395,7 @@
           if (attemptsCount > 0) {
             contributorsAvatarsHtml = `
               <div style="margin-top: 8px; font-size: 12px; opacity: 0.7;">
-                Attempting: <strong>${prob.contributors.join(', ')}</strong>
+                Attempting: <strong>${esc(prob.contributors.join(', '))}</strong>
               </div>
             `;
           }
@@ -406,8 +406,8 @@
               <p>This challenge is currently open and being solved in external applications. You can self-assign to register your attempt, earning participation points even if someone else closes it first.</p>
               ${contributorsAvatarsHtml}
               <div style="display: flex; gap: 10px; margin-top: 8px; width: 100%;">
-                <button type="button" class="btn btn-primary btn-sm btn-attempt-challenge" data-id="${prob.id}" style="padding: 8px 16px; font-size: 12px; border-radius: 100px; border: none; cursor: pointer; background: var(--accent-moss); color: var(--bg-warm);">Claim & Attempt Challenge</button>
-                <a href="user-dashboard.html" class="btn btn-outline btn-sm" style="padding: 8px 16px; font-size: 12px; border-radius: 100px; border: 1px solid var(--border-light); color: var(--text-charcoal); text-decoration: none;">View Profiles</a>
+                <button type="button" class="btn btn-primary btn-sm btn-attempt-challenge" data-id="${esc(prob.id)}" style="padding: 8px 16px; font-size: 12px; border-radius: 100px; border: none; cursor: pointer; background: var(--accent-moss); color: var(--bg-warm);">Claim & Attempt Challenge</button>
+                <a href="user-profile.html" class="btn btn-outline btn-sm" style="padding: 8px 16px; font-size: 12px; border-radius: 100px; border: 1px solid var(--border-light); color: var(--text-charcoal); text-decoration: none;">View Profiles</a>
               </div>
             </div>
           `;
@@ -417,11 +417,11 @@
           <div class="timeline-marker"></div>
           <div class="timeline-card">
             <div class="card-header">
-              <span class="item-date">${prob.date}</span>
-              <span class="category-tag ${catClass}">${prob.category}</span>
+              <span class="item-date">${esc(prob.date)}</span>
+              <span class="category-tag ${catClass}">${esc(prob.category)}</span>
             </div>
-            <h3 class="item-title">${prob.title} ${badgeHtml}</h3>
-            <p class="item-summary">${prob.friction.substring(0, 120)}...</p>
+            <h3 class="item-title">${esc(prob.title)} ${badgeHtml}</h3>
+            <p class="item-summary">${esc(prob.friction.substring(0, 120))}...</p>
             
             <div class="item-meta">
               ${solverMetaHtml}
@@ -438,15 +438,15 @@
               <div class="drawer-content">
                 <div class="drawer-section">
                   <h4>The Friction</h4>
-                  <p>${prob.friction}</p>
+                  <p>${esc(prob.friction)}</p>
                 </div>
                 <div class="drawer-section">
                   <h4>The Search (Tried)</h4>
-                  <p>${prob.tried}</p>
+                  <p>${esc(prob.tried)}</p>
                 </div>
                 <div class="drawer-section">
                   <h4>The Ripple (Outreach)</h4>
-                  <p>${prob.ripple}</p>
+                  <p>${esc(prob.ripple)}</p>
                 </div>
                 ${opportunityHtml}
               </div>
@@ -468,11 +468,11 @@
       });
 
     } catch (err) {
-      console.error('Failed to load custom problems from localStorage:', err);
+      console.error('Failed to load problems from Firestore:', err);
     }
   }
 
-  function attemptChallenge(problemId) {
+  async function attemptChallenge(problemId) {
     try {
       const session = JSON.parse(sessionStorage.getItem('portal_session'));
       if (!session) {
@@ -481,9 +481,9 @@
         return;
       }
 
-      const username = session.username;
+      const username = session.username || window.TWS.toUsername(session.displayName || session.email);
 
-      const problems = JSON.parse(localStorage.getItem('community_problems')) || [];
+      const problems = await window.TWS.loadProblemsAsync([]);
       const problem = problems.find(p => p.id === problemId);
 
       if (!problem) return;
@@ -498,16 +498,8 @@
       }
 
       problem.contributors.push(username);
-      localStorage.setItem('community_problems', JSON.stringify(problems));
-
-      // Record system log
-      const logs = JSON.parse(localStorage.getItem('admin_system_logs')) || [];
-      logs.unshift({
-        timestamp: new Date().toLocaleTimeString('en-US', { hour12: false }) + ' ' + new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-        type: 'LEDGER',
-        message: `Contributor "${username}" self-assigned to attempt challenge "${problem.title}" externally.`
-      });
-      localStorage.setItem('admin_system_logs', JSON.stringify(logs));
+      await window.TWS.saveProblem(problem);
+      window.TWS.logSystemActivity('LEDGER', `Contributor "${username}" self-assigned to attempt challenge "${problem.title}" externally.`);
 
       alert(`Success! You have successfully registered as a contributor to attempt "${problem.title}"!\nWork on your solution externally. The problem owner will verify the winner and complexity once resolved.`);
       
@@ -518,10 +510,10 @@
   }
 
   /* ─── INIT ─────────────────────────────────── */
-  function init() {
+  async function init() {
     gsap.registerPlugin(ScrollTrigger);
 
-    loadCustomProblems();
+    await loadCustomProblems();
     initRippleCanvas();
     initAnimations();
     initAccordions();

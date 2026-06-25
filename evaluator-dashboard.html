@@ -45,17 +45,17 @@
             <span class="tab-badge" id="badgeVerificationCount">0</span>
           </button>
 
-          <button class="nav-tab-btn" data-tab="solvers">
+          <button class="nav-tab-btn founder-only" data-tab="solvers">
             <span class="tab-icon">👥</span>
             <span class="tab-label">Solvers Ledger</span>
           </button>
 
-          <button class="nav-tab-btn" data-tab="settings">
+          <button class="nav-tab-btn founder-only" data-tab="settings">
             <span class="tab-icon">⚙️</span>
             <span class="tab-label">System Settings</span>
           </button>
 
-          <button class="nav-tab-btn" data-tab="logs">
+          <button class="nav-tab-btn founder-only" data-tab="logs">
             <span class="tab-icon">📋</span>
             <span class="tab-label">System Logs</span>
           </button>
@@ -247,7 +247,7 @@
           </section>
 
           <!-- TAB 3: SOLVERS LEDGER (MANAGE LEADERBOARD VALUES) -->
-          <section class="console-tab-panel" id="panel-solvers">
+          <section class="console-tab-panel founder-only" id="panel-solvers">
             <div class="solvers-panel-layout">
               
               <!-- Left list of solvers -->
@@ -383,7 +383,7 @@
           </section>
 
           <!-- TAB 4: SYSTEM SETTINGS -->
-          <section class="console-tab-panel" id="panel-settings">
+          <section class="console-tab-panel founder-only" id="panel-settings">
             <div class="settings-layout-container">
               <div class="pane-header">
                 <h3>Global Community Parameters</h3>
@@ -435,39 +435,6 @@
                     </div>
                   </div>
 
-                  <div class="settings-card span-full founder-only" style="grid-column: span 2; border-top: 1px dashed var(--border-light); padding-top: 20px;">
-                    <h4 style="color: var(--accent-moss);">Role Assignment & Privileges</h4>
-                    <p style="font-size: 12.5px; opacity: 0.7; margin-bottom: 15px; line-height: 1.5;">
-                      Assign fixed movement roles. Privileges are generated automatically from the selected role and stored in Firestore.
-                    </p>
-                    <div class="settings-fields" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px;">
-                      <div class="editor-field-group">
-                        <label for="roleAssignEmail" class="editor-label">Member Email</label>
-                        <input type="email" id="roleAssignEmail" class="editor-input" placeholder="member@example.com" />
-                      </div>
-                      <div class="editor-field-group">
-                        <label for="roleAssignName" class="editor-label">Display Name</label>
-                        <input type="text" id="roleAssignName" class="editor-input" placeholder="Public display name" />
-                      </div>
-                      <div class="editor-field-group">
-                        <label for="roleAssignRole" class="editor-label">Movement Role</label>
-                        <select id="roleAssignRole" class="editor-input select-input">
-                          <option value="Member">Member</option>
-                          <option value="Contributor">Contributor</option>
-                          <option value="Steward">Steward</option>
-                          <option value="Evaluator">Evaluator</option>
-                          <option value="Innovator">Innovator</option>
-                          <option value="Co-Founder">Co-Founder</option>
-                          <option value="Founder">Founder</option>
-                        </select>
-                      </div>
-                    </div>
-                    <div class="database-actions" style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-top: 16px;">
-                      <button type="button" class="btn btn-primary btn-sm" id="btnAssignRole">Assign Role</button>
-                      <span id="roleAssignStatus" style="font-size: 12.5px; opacity: 0.75;"></span>
-                    </div>
-                  </div>
-
                   <div class="settings-card span-full" style="grid-column: span 2; margin-top: 10px; border-top: 1px dashed var(--border-light); padding-top: 20px;">
                     <h4 style="color: var(--accent-clay);">System Database Operations</h4>
                     <p style="font-size: 12.5px; opacity: 0.7; margin-bottom: 15px; line-height: 1.5;">
@@ -499,7 +466,7 @@
           </section>
 
           <!-- TAB 5: SYSTEM LOGS -->
-          <section class="console-tab-panel" id="panel-logs">
+          <section class="console-tab-panel founder-only" id="panel-logs">
             <div class="dense-layout-container" style="display: flex; flex-direction: column; height: 100%; padding: 32px 24px; box-sizing: border-box;">
               <div class="pane-header" style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 18px; flex-shrink: 0; margin-bottom: 16px;">
                 <div>
@@ -529,6 +496,9 @@
     <script src="https://unpkg.com/lenis@1.1.13/dist/lenis.min.js"></script>
     <script src="js/utils.js?v=2"></script>
     <script type="module" src="js/firebase-access.js"></script>
+    <script>
+      window.TWS_DASHBOARD_MODE = 'Evaluator';
+    </script>
     <script src="js/admin-dashboard.js?v=2"></script>
   </body>
 </html>

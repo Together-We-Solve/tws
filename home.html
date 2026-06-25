@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Home - Together We Solve</title>
+    <link rel="stylesheet" href="css/user-profile.css" />
+    <link rel="stylesheet" href="css/members.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <nav class="nav scrolled" id="nav">
+      <div class="nav-inner">
+        <a href="home.html" class="nav-logo">Together We Solve</a>
+        <div class="nav-links">
+          <a href="members.html" class="nav-link">Members</a>
+          <a href="leaderboard.html" class="nav-link">Leaderboard</a>
+          <a href="impact-archive.html" class="nav-link">Impact Archive</a>
+          <a href="core-team.html" class="nav-link">Core Team</a>
+          <a href="user-settings.html" class="nav-link">My Frictions</a>
+          <a href="user-profile.html" class="nav-link">My Profile</a>
+        </div>
+        <a href="post-problem.html" class="nav-cta">Share a Problem <span class="nav-cta-arrow">&nearr;</span></a>
+      </div>
+    </nav>
+
+    <main class="members-hero" style="min-height: 100vh;">
+      <canvas class="members-canvas" id="membersCanvas"></canvas>
+      <div class="container hero-content">
+        <div class="hero-eyebrow">
+          <span class="hero-eyebrow-text">Member Home</span>
+          <div class="hero-eyebrow-line"></div>
+        </div>
+        <h1 class="hero-headline" id="homeGreeting">Welcome back.</h1>
+        <p class="hero-tagline">Track your frictions, help with open problems, and follow the movement from one place.</p>
+        <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-top: 28px;">
+          <a href="user-settings.html" class="btn btn-primary">Open My Frictions</a>
+          <a href="impact-archive.html" class="btn btn-outline">Find Problems to Help</a>
+          <a href="members.html" class="btn btn-outline">Browse Members</a>
+        </div>
+      </div>
+    </main>
+
+    <section class="section members-section">
+      <div class="container">
+        <p class="label">Your Workspace</p>
+        <h2 class="section-headline">Current movement activity</h2>
+        <div class="members-grid" id="homeActivityGrid"></div>
+      </div>
+    </section>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <script src="https://unpkg.com/lenis@1.1.13/dist/lenis.min.js"></script>
+    <script src="js/utils.js?v=2"></script>
+    <script src="js/home.js"></script>
+  </body>
+</html>

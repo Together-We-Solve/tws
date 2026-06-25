@@ -6,6 +6,10 @@
 (function () {
   'use strict';
 
+  function getSession() {
+    return JSON.parse(sessionStorage.getItem('portal_session') || 'null');
+  }
+
   /* ─── LENIS SMOOTH SCROLL ──────────────────── */
   const lenis = new Lenis({
     lerp: 0.08,
@@ -362,7 +366,7 @@
   const overlay = document.getElementById('celebrationOverlay');
 
   if (form) {
-    form.addEventListener('submit', (e) => {
+    form.addEventListener('submit', async (e) => {
       e.preventDefault();
       
       // Strict final validation across all steps
@@ -384,13 +388,13 @@
         const ripple = formFields.ripple.value.trim();
 
         // Retrieve session to set author (owner)
-        let authorName = 'Elena Rostova'; // Default fallback
-        try {
-          const session = JSON.parse(sessionStorage.getItem('portal_session'));
-          if (session && session.username) {
-            authorName = session.username;
-          }
-        } catch (_) {}
+        const session = getSession();
+        if (!session) {
+          window.location.href = 'login.html';
+          return;
+        }
+        const authorName = session.displayName || session.username || session.email;
+        const authorUsername = window.TWS.toUsername(session.username || authorName);
 
         // Create a structured problem object
         const newProblem = {
@@ -402,7 +406,10 @@
           ripple: ripple,
           date: new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
           status: 'Pending Review', // Set to Pending Review for admin audit
-          solver: authorName,       // Acts as the owner/author's name
+          solver: authorUsername,
+          ownerUid: session.uid || '',
+          ownerName: authorName,
+          ownerUsername: authorUsername,
           contributors: [],
           solvedBy: '',
           complexity: '',
@@ -413,22 +420,11 @@
           views: 1
         };
 
-        // Save to localStorage to establish database-less persistence
         try {
-          const existingProblems = JSON.parse(localStorage.getItem('community_problems')) || [];
-          existingProblems.push(newProblem);
-          localStorage.setItem('community_problems', JSON.stringify(existingProblems));
-          
-          // Log to system activity logs if available
-          const logs = JSON.parse(localStorage.getItem('admin_system_logs')) || [];
-          logs.unshift({
-            timestamp: new Date().toLocaleTimeString('en-US', { hour12: false }) + ' ' + new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-            type: 'SYSTEM',
-            message: `New friction "${title}" voiced by author "${authorName}". Queued for admin review.`
-          });
-          localStorage.setItem('admin_system_logs', JSON.stringify(logs));
+          await window.TWS.saveProblem(newProblem);
+          window.TWS.logSystemActivity('SYSTEM', `New friction "${title}" voiced by author "${authorName}". Queued for admin review.`);
         } catch (err) {
-          console.error('Failed to save problem to localStorage:', err);
+          console.error('Failed to save problem to Firestore:', err);
         }
 
         // Form is complete, trigger full-screen celebration
