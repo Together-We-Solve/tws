@@ -3,6 +3,7 @@
 
   const esc = window.TWS.escapeHTML;
   const session = JSON.parse(sessionStorage.getItem('portal_session') || 'null');
+  const communityInviteUrl = 'https://chat.whatsapp.com/E2X7hTCxEZjB4MczNIeHFG';
 
   if (!session) {
     window.location.href = 'index.html';
@@ -16,37 +17,84 @@
     const grid = document.getElementById('homeActivityGrid');
     if (!grid) return;
 
-    const problems = await window.TWS.loadProblemsAsync([]);
+    const [problems, members] = await Promise.all([
+      window.TWS.loadProblemsAsync([]),
+      window.TWS.loadMovementMembersAsync([])
+    ]);
+    const profile = members.find((member) => member.uid === session.uid || member.email === session.email || member.username === session.username)
+      || window.TWS.ensureSolverProfile(session);
+    const points = Number(profile?.points || profile?.stats?.totalImpactPoints || 0);
     const mine = problems.filter((problem) => (
       problem.ownerUid === session.uid ||
       problem.ownerUsername === session.username ||
       window.TWS.toUsername(problem.solver) === session.username
     ));
-    const open = problems.filter((problem) => ['Open', 'Pending Owner Closure'].includes(problem.status)).slice(0, 3);
+    const solvedMine = mine.filter((problem) => problem.status === 'Solved').length;
+    const dashboards = window.TWS.dashboardsForSession(session);
 
     const cards = [
       {
-        title: 'My Frictions',
-        body: `${mine.length} problem${mine.length === 1 ? '' : 's'} connected to your account.`,
-        href: 'user-settings.html',
-        meta: 'Review owner actions'
+        title: `${points.toLocaleString()} pts`,
+        body: 'Total impact points credited to your member profile.',
+        href: `user-profile.html?username=${encodeURIComponent(profile?.username || session.username || '')}`,
+        meta: 'Impact score'
       },
       {
-        title: 'Open Problems',
-        body: `${open.length} current problem${open.length === 1 ? '' : 's'} ready for community help.`,
+        title: `${mine.length} friction${mine.length === 1 ? '' : 's'}`,
+        body: 'Problems connected to your account as owner or solver.',
+        href: 'my-frictions.html',
+        meta: 'Your frictions'
+      },
+      {
+        title: `${solvedMine} solved`,
+        body: 'Your frictions that have reached solved status.',
         href: 'impact-archive.html',
-        meta: 'Join a solution'
+        meta: 'Resolved work'
       },
       {
-        title: 'Public Profile',
-        body: 'Keep your username, profile, and contribution identity up to date.',
-        href: `user-profile.html?username=${encodeURIComponent(session.username || '')}`,
-        meta: 'View profile'
+        title: 'Profile Settings',
+        body: 'Update your public identity, username, specialty, and avatar initials.',
+        href: 'user-settings.html',
+        meta: 'User dashboard'
+      },
+      {
+        title: 'Enter the Community',
+        body: 'Join the WhatsApp community for member discussions and coordination.',
+        href: communityInviteUrl,
+        meta: 'WhatsApp discussions',
+        external: true
       }
     ];
 
+    if (dashboards.includes('evaluator')) {
+      cards.splice(1, 0, {
+        title: 'Evaluator Dashboard',
+        body: 'Verify friction posts, review solved submissions, remove participants, and finalize points.',
+        href: 'evaluator-dashboard.html',
+        meta: 'Evaluator access'
+      });
+    }
+
+    if (dashboards.includes('superadmin')) {
+      cards.splice(1, 0, {
+        title: 'Superadmin Dashboard',
+        body: 'Assign roles, manage community access, and grant dashboard permissions.',
+        href: 'admin-dashboard.html',
+        meta: 'Founder access'
+      });
+    }
+
+    if (dashboards.includes('supportingPartner')) {
+      cards.splice(1, 0, {
+        title: 'Partner Dashboard',
+        body: 'Edit only your supporting partner listing.',
+        href: 'supporting-partner-dashboard.html',
+        meta: 'Partner listing'
+      });
+    }
+
     grid.innerHTML = cards.map((card) => `
-      <a class="member-card" href="${esc(card.href)}">
+      <a class="member-card" href="${esc(card.href)}" ${card.external ? 'target="_blank" rel="noopener"' : ''}>
         <h3>${esc(card.title)}</h3>
         <span class="member-role">${esc(card.meta)}</span>
         <p class="member-bio">${esc(card.body)}</p>
@@ -54,49 +102,8 @@
     `).join('');
   }
 
-  function initCanvas() {
-    const canvas = document.getElementById('membersCanvas');
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    let width = 0;
-    let height = 0;
-    let dots = [];
-
-    function resize() {
-      width = canvas.width = canvas.offsetWidth;
-      height = canvas.height = canvas.offsetHeight;
-      dots = Array.from({ length: 42 }, () => ({
-        x: Math.random() * width,
-        y: Math.random() * height,
-        vx: (Math.random() - 0.5) * 0.18,
-        vy: (Math.random() - 0.5) * 0.18,
-        r: Math.random() * 1.8 + 0.8
-      }));
-    }
-
-    function draw() {
-      ctx.clearRect(0, 0, width, height);
-      dots.forEach((dot) => {
-        dot.x += dot.vx;
-        dot.y += dot.vy;
-        if (dot.x < 0 || dot.x > width) dot.vx *= -1;
-        if (dot.y < 0 || dot.y > height) dot.vy *= -1;
-        ctx.beginPath();
-        ctx.arc(dot.x, dot.y, dot.r, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(200, 125, 85, 0.5)';
-        ctx.fill();
-      });
-      requestAnimationFrame(draw);
-    }
-
-    resize();
-    draw();
-    window.addEventListener('resize', resize);
-  }
-
   document.addEventListener('DOMContentLoaded', () => {
     gsap.registerPlugin(ScrollTrigger);
-    initCanvas();
     renderActivity();
   });
 })();

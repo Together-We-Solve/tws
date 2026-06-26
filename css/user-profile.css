@@ -43,6 +43,21 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+body[data-profile-accent="clay"] {
+  --accent-moss: #8f4f32;
+  --accent-clay: #C87D55;
+}
+
+body[data-profile-accent="ocean"] {
+  --accent-moss: #294f63;
+  --accent-clay: #3D5A6C;
+}
+
+body[data-profile-accent="charcoal"] {
+  --accent-moss: #1C1E1D;
+  --accent-clay: #6f746f;
+}
+
 /* ─── Tactile Paper Texture Overlay ────────────────── */
 body::after {
   content: "";
@@ -287,6 +302,16 @@ body::after {
   overflow: hidden;
   background-color: var(--bg-warm);
   border-bottom: 1px solid var(--border-light);
+}
+
+#profileBanner {
+  width: min(100%, 760px);
+  aspect-ratio: 16 / 5;
+}
+
+#profileAvatar,
+#profileAvatarFallback {
+  box-shadow: 0 12px 28px rgba(28, 30, 29, 0.08);
 }
 
 .canvas-wrap {

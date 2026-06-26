@@ -159,17 +159,17 @@ import { firebaseConfig, fixedRoles, accessCollections } from './firebase-config
     const access = Array.isArray(privileges) ? privileges : [];
     if (role === 'Founder' || role === 'Co-Founder' || access.includes('manage_system')) return 'admin-dashboard.html';
     if (['Evaluator', 'Innovator'].includes(role) || access.includes('evaluate_submissions') || access.includes('award_points')) return 'evaluator-dashboard.html';
-    return 'user-profile.html';
+    return 'user-settings.html';
   }
 
   async function loadAccessProfile(user) {
     const uidSnapshot = await getDoc(doc(db, accessCollections.users, user.uid));
     let data = uidSnapshot.exists() ? uidSnapshot.data() : {};
 
-    if (!uidSnapshot.exists() && user.email) {
+    if (user.email) {
       const emailKey = user.email.toLowerCase();
       const emailSnapshot = await getDoc(doc(db, accessCollections.roleAssignments, emailKey));
-      data = emailSnapshot.exists() ? emailSnapshot.data() : {};
+      if (emailSnapshot.exists()) data = { ...data, ...emailSnapshot.data() };
     }
 
     const role = fixedRoles.includes(data.role) ? data.role : 'Member';
@@ -178,7 +178,9 @@ import { firebaseConfig, fixedRoles, accessCollections } from './firebase-config
     return {
       role,
       privileges,
-      displayName: data.displayName || user.displayName || displayNameFromUser(user)
+      displayName: data.displayName || user.displayName || displayNameFromUser(user),
+      isSupportingPartner: Boolean(data.isSupportingPartner || data.supportingPartner),
+      dashboardAccess: Array.isArray(data.dashboardAccess) ? data.dashboardAccess : []
     };
   }
 
@@ -191,6 +193,8 @@ import { firebaseConfig, fixedRoles, accessCollections } from './firebase-config
       displayName,
       username,
       role: accessProfile.role,
+      isSupportingPartner: accessProfile.isSupportingPartner,
+      dashboardAccess: accessProfile.dashboardAccess,
       privileges: accessProfile.privileges,
       joinedDate: new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
       stats: {
@@ -232,6 +236,8 @@ import { firebaseConfig, fixedRoles, accessCollections } from './firebase-config
           username: profileIdentity.username,
           role: accessProfile.role,
           privileges: accessProfile.privileges,
+          isSupportingPartner: accessProfile.isSupportingPartner,
+          dashboardAccess: accessProfile.dashboardAccess,
           loginTime: Date.now()
         };
 

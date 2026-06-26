@@ -160,10 +160,20 @@
       name: displayName,
       username,
       avatar: raw.avatar || raw.profilePicture || '',
+      profilePicture: raw.profilePicture || raw.avatar || '',
       banner: raw.banner || '',
       role: raw.role || 'Member',
+      isSupportingPartner: Boolean(raw.isSupportingPartner || raw.supportingPartner),
+      dashboardAccess: Array.isArray(raw.dashboardAccess) ? raw.dashboardAccess : [],
       specialty: raw.specialty || raw.country || '',
       bio: raw.bio || '',
+      country: raw.country || '',
+      website: raw.website || '',
+      linkedin: raw.linkedin || '',
+      github: raw.github || '',
+      portfolio: raw.portfolio || '',
+      profileAccent: raw.profileAccent || 'moss',
+      availability: raw.availability || '',
       points: totalImpactPoints,
       solved: problemsSolved,
       initials: raw.initials || initialsFromName(displayName),
@@ -173,6 +183,7 @@
   }
 
   function normalizeProblem(raw) {
+    const contributorReviews = Array.isArray(raw.contributorReviews) ? raw.contributorReviews : [];
     return {
       ...raw,
       id: raw.id || `prob_${Date.now()}`,
@@ -188,6 +199,9 @@
       ownerName: raw.ownerName || raw.solver || '',
       ownerUid: raw.ownerUid || '',
       contributors: Array.isArray(raw.contributors) ? raw.contributors : [],
+      contributorReviews,
+      suggestedRemovals: Array.isArray(raw.suggestedRemovals) ? raw.suggestedRemovals : [],
+      evaluatorAwards: Array.isArray(raw.evaluatorAwards) ? raw.evaluatorAwards : [],
       solvedBy: raw.solvedBy || '',
       complexity: raw.complexity || '',
       ownerReview: raw.ownerReview || '',
@@ -308,6 +322,17 @@
     writeLocalStore({ users: memory.users });
   }
 
+  async function usernameAvailable(username, currentUserId = '') {
+    const normalized = toUsername(username);
+    const current = String(currentUserId || '').toLowerCase();
+    const users = await loadMovementMembersAsync([]);
+    return !users.some((user) => {
+      const userName = toUsername(user.username || user.displayName);
+      const ids = [user.id, user.uid, user.email].map((value) => String(value || '').toLowerCase());
+      return userName === normalized && !ids.includes(current);
+    });
+  }
+
   async function deleteUserProfile(userId) {
     try {
       const { configModule } = await getFirebaseDataApiSafe();
@@ -333,6 +358,17 @@
     memory.partners = partners.length ? partners : defaultPartners;
     writeLocalStore({ partners: memory.partners });
     return memory.partners;
+  }
+
+  async function savePartnerProfile(partnerId, data) {
+    try {
+      const { configModule } = await getFirebaseDataApiSafe();
+      await saveDocument(configModule.accessCollections.partners, partnerId, data);
+    } catch (err) {
+      console.warn('Saved partner locally because Firebase write failed.', err);
+    }
+    memory.partners = replaceById(memory.partners.length ? memory.partners : readLocalStore().partners, { id: partnerId, ...data });
+    writeLocalStore({ partners: memory.partners });
   }
 
   async function loadSettings(defaultSettings = {}) {
@@ -385,9 +421,34 @@
 
   function dashboardForSession(session) {
     const privileges = Array.isArray(session?.privileges) ? session.privileges : [];
-    if (['Founder', 'Co-Founder'].includes(session?.role) || privileges.includes('manage_system')) return 'admin-dashboard.html';
-    if (['Evaluator', 'Innovator'].includes(session?.role) || privileges.includes('evaluate_submissions') || privileges.includes('award_points')) return 'evaluator-dashboard.html';
-    return '';
+    const explicit = Array.isArray(session?.dashboardAccess) ? session.dashboardAccess : [];
+    if (['Founder', 'Co-Founder'].includes(session?.role) || privileges.includes('manage_system') || explicit.includes('superadmin')) return 'admin-dashboard.html';
+    if (['Evaluator', 'Innovator'].includes(session?.role) || privileges.includes('evaluate_submissions') || privileges.includes('award_points') || explicit.includes('evaluator')) return 'evaluator-dashboard.html';
+    if (session?.isSupportingPartner || explicit.includes('supportingPartner')) return 'supporting-partner-dashboard.html';
+    return 'user-settings.html';
+  }
+
+  function dashboardsForSession(session) {
+    const privileges = Array.isArray(session?.privileges) ? session.privileges : [];
+    const explicit = Array.isArray(session?.dashboardAccess) ? session.dashboardAccess : [];
+    const dashboards = new Set(['user']);
+    if (['Founder', 'Co-Founder'].includes(session?.role) || privileges.includes('manage_system') || explicit.includes('superadmin')) {
+      dashboards.add('superadmin');
+      dashboards.add('evaluator');
+      dashboards.add('supportingPartner');
+    }
+    if (['Evaluator', 'Innovator'].includes(session?.role) || privileges.includes('evaluate_submissions') || explicit.includes('evaluator')) dashboards.add('evaluator');
+    if (session?.isSupportingPartner || explicit.includes('supportingPartner')) dashboards.add('supportingPartner');
+    return Array.from(dashboards);
+  }
+
+  function memberPrefix(points) {
+    const score = Number(points) || 0;
+    if (score >= 10000) return 'Contributor';
+    if (score >= 5000) return 'Pro';
+    if (score >= 1500) return 'Regular';
+    if (score >= 250) return 'Rising';
+    return 'Newbie';
   }
 
   function enhanceNavigation() {
@@ -400,15 +461,11 @@
 
     const desiredLinks = [
       ['home.html', 'Home'],
+      ['open-frictions.html', 'Open Frictions'],
       ['members.html', 'Members'],
-      ['leaderboard.html', 'Leaderboard'],
       ['impact-archive.html', 'Impact Archive'],
-      ['core-team.html', 'Core Team'],
-      ['user-settings.html', 'My Frictions'],
-      [`user-profile.html?username=${encodeURIComponent(session.username || '')}`, 'My Profile']
+      ['core-team.html', 'Partners']
     ];
-    const dashboard = dashboardForSession(session);
-    if (dashboard) desiredLinks.push([dashboard, dashboard === 'admin-dashboard.html' ? 'Founder' : 'Evaluator']);
     const current = window.location.pathname.split('/').pop() || 'index.html';
     navLinks.innerHTML = desiredLinks.map(([href, label]) => {
       const active = href.split('?')[0] === current ? ' active' : '';
@@ -450,14 +507,18 @@
     updateProblem,
     deleteProblem,
     saveUserProfile,
+    usernameAvailable,
     deleteUserProfile,
     loadPartnersAsync,
+    savePartnerProfile,
     loadSettings,
     saveSettings,
     logSystemActivity,
     loadSystemLogs,
     clearSystemLogs,
     dashboardForSession,
+    dashboardsForSession,
+    memberPrefix,
     enhanceNavigation,
     ensureSolverProfile
   };

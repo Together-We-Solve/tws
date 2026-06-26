@@ -332,8 +332,8 @@
       
       // Iterate to prepend, showing the most recently added problem at the top
       customProblems.forEach(prob => {
-        // Skip private drafts or pending reviews
-        if (prob.status === 'Pending Review' || prob.status === 'Pending Owner Closure' || prob.status === 'Closed by Owner') {
+        // Impact Archive is only for evaluator-finalized solved frictions.
+        if (prob.status !== 'Solved') {
           return;
         }
 

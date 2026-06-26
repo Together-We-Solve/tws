@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Profile Settings — Together We Solve</title>
     <link rel="stylesheet" href="css/user-settings.css" />
+    <link rel="stylesheet" href="css/ui-polish.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -18,14 +19,11 @@
       <div class="nav-inner">
         <a href="index.html" class="nav-logo">Together We Solve</a>
         <div class="nav-links">
+          <a href="home.html" class="nav-link">Home</a>
+          <a href="open-frictions.html" class="nav-link">Open Frictions</a>
           <a href="members.html" class="nav-link">Members</a>
-          <a href="leaderboard.html" class="nav-link">Leaderboard</a>
-          <a href="hall-of-fame.html" class="nav-link">Hall of Fame</a>
           <a href="impact-archive.html" class="nav-link">Impact Archive</a>
-          <a href="core-team.html" class="nav-link">Core Team</a>
-          <a href="post-problem.html" class="nav-link">Post a Problem</a>
-          <a href="user-profile.html" class="nav-link" id="navDashboardLink">My Profile</a>
-          <a href="user-settings.html" class="nav-link active" id="navSettingsLink">Settings</a>
+          <a href="core-team.html" class="nav-link">Partners</a>
         </div>
         <button class="nav-cta" id="signOutBtn">Sign Out <span class="nav-cta-arrow">↗</span></button>
       </div>
@@ -38,8 +36,8 @@
           <span class="hero-eyebrow-text">Private Workspace</span>
           <div class="hero-eyebrow-line"></div>
         </div>
-        <h1 class="hero-headline">Workspace & Settings</h1>
-        <p class="hero-tagline">Manage your public identity, view achievements, and review attempts on your voiced frictions.</p>
+        <h1 class="hero-headline">Profile Settings</h1>
+        <p class="hero-tagline">Manage your public identity and contribution details.</p>
       </div>
     </header>
 
@@ -71,6 +69,65 @@
                   <input type="text" id="displaySpecialty" class="form-input" placeholder="e.g. Technical Systems & Language" required />
                 </div>
 
+                <div class="form-field-group span-full">
+                  <label for="profileBioInput" class="form-label">Public Bio</label>
+                  <textarea id="profileBioInput" class="form-textarea" placeholder="Share what you care about, how you help, and what people can ask you about."></textarea>
+                </div>
+
+                <div class="form-field-group">
+                  <label for="profilePictureUrl" class="form-label">Profile Picture URL</label>
+                  <input type="url" id="profilePictureUrl" class="form-input" placeholder="https://example.com/photo.jpg" />
+                  <input type="file" id="profilePictureFile" class="form-input" accept="image/*" />
+                  <p class="field-help">Paste an image URL or upload a small image from this device.</p>
+                </div>
+
+                <div class="form-field-group">
+                  <label for="profileBannerUrl" class="form-label">Banner Image URL</label>
+                  <input type="url" id="profileBannerUrl" class="form-input" placeholder="https://example.com/banner.jpg" />
+                  <input type="file" id="profileBannerFile" class="form-input" accept="image/*" />
+                  <p class="field-help">Wide images work best for public profile banners.</p>
+                </div>
+
+                <div class="form-field-group">
+                  <label for="profileCountry" class="form-label">Location</label>
+                  <input type="text" id="profileCountry" class="form-input" placeholder="City, Country" />
+                </div>
+
+                <div class="form-field-group">
+                  <label for="profileWebsite" class="form-label">Website</label>
+                  <input type="url" id="profileWebsite" class="form-input" placeholder="https://your-site.com" />
+                </div>
+
+                <div class="form-field-group">
+                  <label for="profileLinkedin" class="form-label">LinkedIn</label>
+                  <input type="url" id="profileLinkedin" class="form-input" placeholder="https://linkedin.com/in/you" />
+                </div>
+
+                <div class="form-field-group">
+                  <label for="profileGithub" class="form-label">GitHub</label>
+                  <input type="url" id="profileGithub" class="form-input" placeholder="https://github.com/you" />
+                </div>
+
+                <div class="form-field-group">
+                  <label for="profileAccent" class="form-label">Profile Accent</label>
+                  <select id="profileAccent" class="form-input select-input">
+                    <option value="moss">Moss</option>
+                    <option value="clay">Clay</option>
+                    <option value="ocean">Ocean</option>
+                    <option value="charcoal">Charcoal</option>
+                  </select>
+                </div>
+
+                <div class="form-field-group">
+                  <label for="profileAvailability" class="form-label">Availability</label>
+                  <select id="profileAvailability" class="form-input select-input">
+                    <option value="">Not shown</option>
+                    <option value="Open to help">Open to help</option>
+                    <option value="Available for mentoring">Available for mentoring</option>
+                    <option value="Focused on current frictions">Focused on current frictions</option>
+                  </select>
+                </div>
+
                 <div class="form-field-group-inline">
                   <div class="form-field-group" style="flex: 1;">
                     <label for="avatarInitials" class="form-label">Avatar Initials</label>
@@ -86,6 +143,32 @@
 
               <div class="form-action-footer">
                 <button type="submit" class="btn btn-primary" id="btnSaveIdentity">Save Identity Details</button>
+              </div>
+            </form>
+          </div>
+
+          <div class="settings-card card-form">
+            <h2 class="card-title">Change Password</h2>
+            <p class="card-subtitle">Update the password for the email account you use to sign in.</p>
+
+            <form id="passwordForm" class="settings-form">
+              <div class="form-fields-grid">
+                <div class="form-field-group">
+                  <label for="currentPassword" class="form-label">Current Password</label>
+                  <input type="password" id="currentPassword" class="form-input" autocomplete="current-password" required />
+                </div>
+                <div class="form-field-group">
+                  <label for="newPassword" class="form-label">New Password</label>
+                  <input type="password" id="newPassword" class="form-input" autocomplete="new-password" minlength="6" required />
+                </div>
+                <div class="form-field-group">
+                  <label for="confirmNewPassword" class="form-label">Confirm New Password</label>
+                  <input type="password" id="confirmNewPassword" class="form-input" autocomplete="new-password" minlength="6" required />
+                </div>
+              </div>
+              <p class="field-help" id="passwordStatus" role="status" aria-live="polite"></p>
+              <div class="form-action-footer">
+                <button type="submit" class="btn btn-primary" id="btnChangePassword">Change Password</button>
               </div>
             </form>
           </div>
@@ -118,104 +201,14 @@
             </div>
 
             <div class="profile-link-wrap" style="margin-top: 24px;">
-              <a href="user-profile.html" class="btn btn-outline btn-sm btn-full" style="display: block; text-align: center;">View My Public Profile ↗</a>
+              <a href="user-profile.html" class="btn btn-outline btn-sm btn-full" style="display: block; text-align: center;">View My Public Profile</a>
+              <a href="my-frictions.html" class="btn btn-outline btn-sm btn-full" style="display: block; text-align: center; margin-top: 10px;">Manage My Frictions</a>
             </div>
           </div>
 
         </div>
       </div>
     </section>
-
-    <!-- MY VOICED FRICTIONS TRACKER -->
-    <section class="section frictions-tracker-section">
-      <div class="container">
-        <p class="label">Frictions Ledger</p>
-        <h2 class="section-headline">My Voiced Frictions</h2>
-        <p class="section-subtitle">Track the lifecycle of the obstacles you have shared and verify community solutions.</p>
-
-        <div class="tracker-table-container">
-          <table class="tracker-table">
-            <thead>
-              <tr>
-                <th>Date Voiced</th>
-                <th>Challenge Title</th>
-                <th>Category</th>
-                <th>Assigned Attempts</th>
-                <th>Audit</th>
-                <th style="text-align: right;">Action</th>
-              </tr>
-            </thead>
-            <tbody id="trackerTableBody">
-              <!-- Dynamic table rows go here -->
-            </tbody>
-          </table>
-
-          <!-- Empty state placeholder -->
-          <div class="tracker-empty-placeholder" id="trackerEmptyState" style="display: none;">
-            <span class="placeholder-icon">🌱</span>
-            <h3>No Voiced Frictions Yet</h3>
-            <p>You haven't shared any frictions with the community. Voicing your obstacles is the first step toward collaborative change.</p>
-            <a href="post-problem.html" class="btn btn-primary btn-sm" style="margin-top: 15px;">Voice Your Friction <span class="btn-arrow">↗</span></a>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- OWNER VERIFICATION & CLOSURE MODAL -->
-    <div class="modal-overlay" id="verificationModal" style="display: none;">
-      <div class="modal-card">
-        <button class="modal-close-btn" id="btnCloseModal">✕</button>
-        
-        <div class="modal-header">
-          <span class="modal-eyebrow">Council Resolution Audit</span>
-          <h3 class="modal-title" id="modalProblemTitle">SMS Agricultural Pest Alert Gateway</h3>
-          <p class="modal-subtitle">Review community attempts, select the primary solver, and verify the complexity to close this challenge.</p>
-        </div>
-
-        <form id="verificationForm" class="modal-form">
-          <div class="form-fields-grid">
-            
-            <!-- Select Winner Dropdown -->
-            <div class="form-field-group span-full">
-              <label for="verifySelectWinner" class="form-label">Who solved this challenge? (Primary Solver)</label>
-              <select id="verifySelectWinner" class="form-input select-input" required>
-                <!-- Contributors list dynamically injected here -->
-              </select>
-              <p class="field-help">Choose the contributor whose external solution successfully resolved your friction. They will receive the primary XP bounty.</p>
-            </div>
-
-            <!-- Complexity Select -->
-            <div class="form-field-group span-full">
-              <label for="verifyComplexity" class="form-label">Solution Complexity Level</label>
-              <select id="verifyComplexity" class="form-input select-input" required>
-                <option value="Low">Low Complexity (Winner: +100 XP, attempts: +40 XP)</option>
-                <option value="Medium" selected>Medium Complexity (Winner: +200 XP, attempts: +40 XP)</option>
-                <option value="High">High Complexity (Winner: +400 XP, attempts: +40 XP)</option>
-              </select>
-              <p class="field-help">Select the complexity of the solution. This determines the XP points distributed to the winner upon final council audit.</p>
-            </div>
-
-            <!-- Review Textarea -->
-            <div class="form-field-group span-full">
-              <label for="verifyReviewText" class="form-label">Your Resolution Review & Feedback</label>
-              <textarea id="verifyReviewText" class="form-textarea" placeholder="Explain how their solution worked for you, its effectiveness, and any feedback... (minimum 15 characters)" required></textarea>
-              <p class="field-help">Your review will be co-authored alongside the solution and archived in the public timeline for anyone to read.</p>
-            </div>
-
-          </div>
-
-          <div class="modal-action-footer">
-            <div class="action-left">
-              <button type="button" class="btn btn-outline btn-sm btn-danger" id="btnRejectSolution">Send Back for Revision</button>
-            </div>
-            <div class="action-right">
-              <button type="submit" class="btn btn-primary btn-sm" id="btnApproveClose">Resolve & Close Challenge</button>
-            </div>
-          </div>
-        </form>
-      </div>
-    </div>
-
     <!-- FOOTER -->
     <footer class="footer">
       <div class="footer-inner">
@@ -243,5 +236,6 @@
     <script src="https://unpkg.com/lenis@1.1.13/dist/lenis.min.js"></script>
     <script src="js/utils.js?v=2"></script>
     <script src="js/user-settings.js"></script>
+    <script type="module" src="js/password-settings.js"></script>
   </body>
 </html>

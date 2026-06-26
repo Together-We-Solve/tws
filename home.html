@@ -6,6 +6,7 @@
     <title>Home - Together We Solve</title>
     <link rel="stylesheet" href="css/user-profile.css" />
     <link rel="stylesheet" href="css/members.css" />
+    <link rel="stylesheet" href="css/ui-polish.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet" />
@@ -15,38 +16,59 @@
       <div class="nav-inner">
         <a href="home.html" class="nav-logo">Together We Solve</a>
         <div class="nav-links">
+          <a href="home.html" class="nav-link active">Home</a>
+          <a href="open-frictions.html" class="nav-link">Open Frictions</a>
           <a href="members.html" class="nav-link">Members</a>
-          <a href="leaderboard.html" class="nav-link">Leaderboard</a>
           <a href="impact-archive.html" class="nav-link">Impact Archive</a>
-          <a href="core-team.html" class="nav-link">Core Team</a>
-          <a href="user-settings.html" class="nav-link">My Frictions</a>
-          <a href="user-profile.html" class="nav-link">My Profile</a>
+          <a href="core-team.html" class="nav-link">Partners</a>
         </div>
         <a href="post-problem.html" class="nav-cta">Share a Problem <span class="nav-cta-arrow">&nearr;</span></a>
       </div>
     </nav>
 
-    <main class="members-hero" style="min-height: 100vh;">
-      <canvas class="members-canvas" id="membersCanvas"></canvas>
-      <div class="container hero-content">
-        <div class="hero-eyebrow">
-          <span class="hero-eyebrow-text">Member Home</span>
-          <div class="hero-eyebrow-line"></div>
+    <main class="home-dashboard">
+      <div class="container">
+        <div class="home-topline">
+          <div>
+            <p class="label">Member Home</p>
+            <h1 class="home-title" id="homeGreeting">Welcome back.</h1>
+            <p class="home-subtitle">Your dashboard for frictions, public pages, and role-based tools.</p>
+          </div>
+          <div class="home-actions">
+            <a href="post-problem.html" class="btn btn-primary">Share a Problem</a>
+            <a href="open-frictions.html" class="btn btn-outline">Open Frictions</a>
+          </div>
         </div>
-        <h1 class="hero-headline" id="homeGreeting">Welcome back.</h1>
-        <p class="hero-tagline">Track your frictions, help with open problems, and follow the movement from one place.</p>
-        <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-top: 28px;">
-          <a href="user-settings.html" class="btn btn-primary">Open My Frictions</a>
-          <a href="impact-archive.html" class="btn btn-outline">Find Problems to Help</a>
-          <a href="members.html" class="btn btn-outline">Browse Members</a>
+
+        <div class="home-summary-grid">
+          <a href="my-frictions.html" class="home-summary-card">
+            <span class="summary-label">Your Work</span>
+            <strong>My Frictions</strong>
+            <span>Review and close posts you created.</span>
+          </a>
+          <a href="open-frictions.html" class="home-summary-card">
+            <span class="summary-label">Community</span>
+            <strong>Help With Frictions</strong>
+            <span>Register as a participant on open posts.</span>
+          </a>
+          <a href="user-settings.html" class="home-summary-card">
+            <span class="summary-label">Profile</span>
+            <strong>Settings</strong>
+            <span>Update your public identity and profile credentials.</span>
+          </a>
         </div>
       </div>
     </main>
 
-    <section class="section members-section">
+    <section class="home-workspace-section">
       <div class="container">
-        <p class="label">Your Workspace</p>
-        <h2 class="section-headline">Current movement activity</h2>
+        <div class="home-section-header">
+          <div>
+            <p class="label">Workspace</p>
+            <h2 class="home-section-title">Your stats and dashboards</h2>
+          </div>
+          <p>Home shows your current contribution stats and only the role-specific dashboards your account can access.</p>
+        </div>
         <div class="members-grid" id="homeActivityGrid"></div>
       </div>
     </section>

@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>My Frictions - Together We Solve</title>
+    <link rel="stylesheet" href="css/user-settings.css" />
+    <link rel="stylesheet" href="css/ui-polish.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet" />
+  </head>
+  <body class="settings-body">
+    <nav class="nav" id="nav">
+      <div class="nav-inner">
+        <a href="home.html" class="nav-logo">Together We Solve</a>
+        <div class="nav-links">
+          <a href="home.html" class="nav-link">Home</a>
+          <a href="open-frictions.html" class="nav-link">Open Frictions</a>
+          <a href="members.html" class="nav-link">Members</a>
+          <a href="impact-archive.html" class="nav-link">Impact Archive</a>
+          <a href="core-team.html" class="nav-link">Partners</a>
+        </div>
+        <button class="nav-cta" id="signOutBtn">Sign Out</button>
+      </div>
+    </nav>
+
+    <header class="settings-hero">
+      <div class="container hero-content">
+        <div class="hero-eyebrow">
+          <span class="hero-eyebrow-text">Private Workspace</span>
+          <div class="hero-eyebrow-line"></div>
+        </div>
+        <h1 class="hero-headline">My Frictions</h1>
+        <p class="hero-tagline">Track the obstacles you have shared and send solved work to evaluators for final review.</p>
+      </div>
+    </header>
+
+    <section class="section frictions-tracker-section">
+      <div class="container">
+        <p class="label">Frictions Ledger</p>
+        <h2 class="section-headline">My Voiced Frictions</h2>
+        <p class="section-subtitle">Review open posts, participant attempts, and owner verification actions.</p>
+
+        <div class="tracker-table-container">
+          <table class="tracker-table">
+            <thead>
+              <tr>
+                <th>Date Voiced</th>
+                <th>Challenge Title</th>
+                <th>Category</th>
+                <th>Assigned Attempts</th>
+                <th>Audit</th>
+                <th style="text-align: right;">Action</th>
+              </tr>
+            </thead>
+            <tbody id="trackerTableBody"></tbody>
+          </table>
+
+          <div class="tracker-empty-placeholder" id="trackerEmptyState" style="display: none;">
+            <h3>No Voiced Frictions Yet</h3>
+            <p>You haven't shared any frictions with the community.</p>
+            <a href="post-problem.html" class="btn btn-primary btn-sm" style="margin-top: 15px;">Voice Your Friction</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="modal-overlay" id="verificationModal" style="display: none;">
+      <div class="modal-card">
+        <button class="modal-close-btn" id="btnCloseModal">x</button>
+        <div class="modal-header">
+          <span class="modal-eyebrow">Resolution Audit</span>
+          <h3 class="modal-title" id="modalProblemTitle">Friction Review</h3>
+          <p class="modal-subtitle">Tell evaluators who participated and how much each person contributed. They make the final point decision.</p>
+        </div>
+        <form id="verificationForm" class="modal-form"></form>
+      </div>
+    </div>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        <div class="footer-top">
+          <div class="footer-brand">
+            <p class="footer-name">Together We Solve</p>
+            <p class="footer-tagline">No problem too small. No challenge too big.</p>
+          </div>
+          <nav class="footer-nav">
+            <a href="user-settings.html">Profile Settings</a>
+            <a href="members.html">Members</a>
+            <a href="impact-archive.html">Impact Archive</a>
+          </nav>
+        </div>
+      </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <script src="https://unpkg.com/lenis@1.1.13/dist/lenis.min.js"></script>
+    <script src="js/utils.js?v=2"></script>
+    <script src="js/my-frictions.js"></script>
+  </body>
+</html>

@@ -69,9 +69,13 @@ import { firebaseConfig, accessCollections } from './firebase-config.js';
   }
 
   async function usernameExists(username) {
-    const userQuery = query(collection(db, accessCollections.users), where('username', '==', username));
-    const snapshot = await getDocs(userQuery);
-    return !snapshot.empty;
+    try {
+      const userQuery = query(collection(db, accessCollections.users), where('username', '==', username));
+      const snapshot = await getDocs(userQuery);
+      return !snapshot.empty;
+    } catch (error) {
+      return !(await window.TWS.usernameAvailable(username));
+    }
   }
 
   function initSignupForm() {
@@ -136,6 +140,7 @@ import { firebaseConfig, accessCollections } from './firebase-config.js';
           privileges: [],
           loginTime: Date.now()
         }));
+        sessionStorage.setItem('community_invite_ready', 'true');
 
         window.location.href = 'home.html';
       } catch (error) {

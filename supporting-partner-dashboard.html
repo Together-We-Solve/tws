@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Supporting Partner Dashboard - Together We Solve</title>
+    <link rel="stylesheet" href="css/user-settings.css" />
+    <link rel="stylesheet" href="css/ui-polish.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet" />
+  </head>
+  <body class="settings-body">
+    <nav class="nav" id="nav">
+      <div class="nav-inner">
+        <a href="index.html" class="nav-logo">Together We Solve</a>
+        <div class="nav-links">
+          <a href="home.html" class="nav-link">Home</a>
+          <a href="core-team.html" class="nav-link">Partners</a>
+        </div>
+        <button class="nav-cta" id="signOutBtn">Sign Out <span class="nav-cta-arrow">&nearr;</span></button>
+      </div>
+    </nav>
+
+    <header class="settings-hero">
+      <div class="container hero-content">
+        <div class="hero-eyebrow"><span class="hero-eyebrow-text">Supporting Partner Dashboard</span><div class="hero-eyebrow-line"></div></div>
+        <h1 class="hero-headline">Partner profile</h1>
+        <p class="hero-tagline">Customize how your organization appears in the supporting partners section.</p>
+      </div>
+    </header>
+
+    <section class="section config-section">
+      <div class="container">
+        <div class="settings-card card-form">
+          <h2 class="card-title">Supporting Partner Listing</h2>
+          <p class="card-subtitle">These details are separate from your member role and public member profile.</p>
+          <form id="partnerForm" class="settings-form">
+            <div class="form-fields-grid">
+              <div class="form-field-group"><label class="form-label" for="partnerName">Partner Name</label><input class="form-input" id="partnerName" required /></div>
+              <div class="form-field-group"><label class="form-label" for="partnerWebsite">Website</label><input class="form-input" id="partnerWebsite" type="url" placeholder="https://example.org" /></div>
+              <div class="form-field-group"><label class="form-label" for="partnerLogo">Logo URL</label><input class="form-input" id="partnerLogo" placeholder="https://..." /></div>
+              <div class="form-field-group"><label class="form-label" for="partnerFocus">Support Focus</label><input class="form-input" id="partnerFocus" placeholder="Mentorship, tools, funding, research..." /></div>
+              <div class="form-field-group span-full"><label class="form-label" for="partnerBio">Public Description</label><textarea class="form-textarea" id="partnerBio" required></textarea></div>
+            </div>
+            <div class="form-action-footer"><button class="btn btn-primary" type="submit">Save Partner Profile</button></div>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <script src="js/utils.js?v=2"></script>
+    <script src="js/supporting-partner-dashboard.js"></script>
+  </body>
+</html>

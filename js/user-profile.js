@@ -75,6 +75,8 @@
       avatar: raw.avatar || '',
       banner: raw.banner || '',
       bio: raw.bio || '',
+      profileAccent: raw.profileAccent || 'moss',
+      availability: raw.availability || '',
       role,
       joinedDate: raw.joinedDate || '',
       country: raw.country || '',
@@ -166,6 +168,8 @@
       avatar: solver.avatar || '',
       banner: solver.banner || '',
       bio: solver.bio || '',
+      profileAccent: solver.profileAccent || 'moss',
+      availability: solver.availability || '',
       role: fixedRoles.includes(solver.role) ? solver.role : 'Contributor',
       joinedDate: solver.joinedDate || '',
       country: solver.country || '',
@@ -257,6 +261,7 @@
     setText('profileTagline', `@${user.username} • ${user.role} • ${user.stats.currentRank}`);
     setText('profileBio', user.bio || 'No bio provided.');
     setText('profileTypeLabel', `${user.role} Profile`);
+    document.body.dataset.profileAccent = user.profileAccent || 'moss';
 
     const avatar = document.getElementById('profileAvatar');
     const fallback = document.getElementById('profileAvatarFallback');
@@ -276,6 +281,7 @@
     }
 
     const metaItems = [
+      user.availability ? `Status: ${user.availability}` : '',
       user.country ? `Country: ${user.country}` : '',
       user.joinedDate ? `Joined: ${user.joinedDate}` : '',
       `Streak: ${user.stats.contributionStreak} ${user.stats.contributionStreak === 1 ? 'day' : 'days'}`

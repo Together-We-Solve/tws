@@ -3,8 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Core Team & Supporting Partners - Together We Solve</title>
-    <link rel="stylesheet" href="css/members.css" />
+    <title>Open Frictions - Together We Solve</title>
+    <link rel="stylesheet" href="css/impact-archive.css" />
     <link rel="stylesheet" href="css/ui-polish.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -13,38 +13,32 @@
   <body>
     <nav class="nav" id="nav">
       <div class="nav-inner">
-        <a href="home.html" class="nav-logo">Together We Solve</a>
+        <a href="index.html" class="nav-logo">Together We Solve</a>
         <div class="nav-links">
           <a href="home.html" class="nav-link">Home</a>
-          <a href="open-frictions.html" class="nav-link">Open Frictions</a>
-          <a href="core-team.html" class="nav-link active">Partners</a>
+          <a href="open-frictions.html" class="nav-link active">Open Frictions</a>
+          <a href="core-team.html" class="nav-link">Partners</a>
         </div>
         <a href="post-problem.html" class="nav-cta">Share a Problem <span class="nav-cta-arrow">&nearr;</span></a>
       </div>
     </nav>
 
-    <header class="members-hero">
-      <canvas class="members-canvas" id="membersCanvas"></canvas>
+    <header class="archive-hero">
+      <canvas class="ripple-canvas" id="rippleCanvas"></canvas>
       <div class="container hero-content">
-        <div class="hero-eyebrow">
-          <span class="hero-eyebrow-text">Movement Support</span>
-          <div class="hero-eyebrow-line"></div>
-        </div>
-        <h1 class="hero-headline">Core Team & Supporting Partners</h1>
-        <p class="hero-tagline">The people and organizations helping the movement stay useful, transparent, and well-supported.</p>
-        <p class="hero-body">Supporting partner listings are maintained directly by the partners who have been granted partner dashboard access.</p>
+        <div class="hero-eyebrow"><span class="hero-eyebrow-text">Public Workbench</span><div class="hero-eyebrow-line"></div></div>
+        <h1 class="hero-headline">Open Frictions</h1>
+        <p class="hero-tagline">Verified friction posts that are ready for community participants.</p>
+        <p class="hero-body">Anyone can register as a participant. Solutions are handled outside this listing; the poster and evaluators close the loop later.</p>
       </div>
     </header>
 
-    <section class="section members-section">
+    <section class="section archive-section">
       <div class="container">
-        <div class="members-header">
-          <div>
-            <p class="label">Supporting Partners</p>
-            <h2 class="section-headline">Organizations backing the work.</h2>
-          </div>
+        <div class="archive-controls">
+          <input type="text" id="openSearch" placeholder="Search open frictions..." class="archive-search" />
         </div>
-        <div class="members-grid" id="supportingPartnersGrid"></div>
+        <div class="archive-timeline" id="openFrictionsList"></div>
       </div>
     </section>
 
@@ -52,6 +46,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
     <script src="https://unpkg.com/lenis@1.1.13/dist/lenis.min.js"></script>
     <script src="js/utils.js?v=2"></script>
-    <script src="js/core-team.js"></script>
+    <script src="js/open-frictions.js"></script>
   </body>
 </html>
