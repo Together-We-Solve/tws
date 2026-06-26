@@ -11,6 +11,12 @@
   let currentUserSession = null;
   let activeUser = null;
 
+  const defaultSolvers = [
+    { id: 'sol_1', name: 'Elena Rostova', role: 'Contributor', specialty: 'Technical Systems & Language', points: 4850, solved: 12, initials: 'ER', badges: ['Golden Heart', 'Deep Thinker'] },
+    { id: 'sol_2', name: 'Marcus Vance', role: 'Steward', specialty: 'Community & Environment', points: 4210, solved: 9, initials: 'MV', badges: ['Root Sprouter', 'Constant Beacon'] },
+    { id: 'sol_3', name: 'Aiko Tanaka', role: 'Contributor', specialty: 'Educational Mentorship', points: 3950, solved: 8, initials: 'AT', badges: ['Sudden Light', 'Dignity Guard'] }
+  ];
+
   const lenis = new Lenis({
     lerp: 0.08,
     smoothWheel: true,
@@ -103,9 +109,25 @@
   }
 
   function legacyUserToProfile(solver, problems) {
-    const userProblems = problems.filter((problem) => problem.solver === solver.name);
-    const solved = problems.filter((problem) => problem.status === 'Solved' && problem.solvedBy === solver.name);
-    const attempts = problems.filter((problem) => problem.contributors && problem.contributors.includes(solver.name));
+    const identityMatches = (value) => {
+      const normalized = window.TWS.toUsername(value);
+      return normalized && [
+        solver.name,
+        solver.displayName,
+        solver.username,
+        solver.id,
+        solver.uid
+      ].some((candidate) => candidate && window.TWS.toUsername(candidate) === normalized);
+    };
+
+    const userProblems = problems.filter((problem) => (
+      identityMatches(problem.solver) ||
+      identityMatches(problem.ownerUsername) ||
+      identityMatches(problem.ownerName) ||
+      (solver.uid && problem.ownerUid === solver.uid)
+    ));
+    const solved = problems.filter((problem) => problem.status === 'Solved' && identityMatches(problem.solvedBy));
+    const attempts = problems.filter((problem) => Array.isArray(problem.contributors) && problem.contributors.some(identityMatches));
     const categories = {};
 
     [...userProblems, ...solved, ...attempts].forEach((problem) => {
@@ -183,8 +205,15 @@
   async function loadProfileData() {
     currentUserSession = JSON.parse(sessionStorage.getItem('portal_session') || 'null');
     const route = getRouteIdentifier();
-    const members = await window.TWS.loadMovementMembersAsync([]);
-    const problems = await window.TWS.loadProblemsAsync([]);
+    let members = [];
+    let problems = [];
+    try {
+      members = await window.TWS.loadMovementMembersAsync(defaultSolvers);
+      problems = await window.TWS.loadProblemsAsync([]);
+    } catch (err) {
+      console.warn('Profile data loader fell back to bundled profile seeds.', err);
+      members = defaultSolvers.map(window.TWS.normalizeMember);
+    }
     const users = members.map(normalizeUser);
     const solvers = members;
 
@@ -204,6 +233,13 @@
     if (!activeUser && currentUserSession && !route.id && !route.username) {
       const profile = window.TWS.ensureSolverProfile(currentUserSession, solvers);
       activeUser = legacyUserToProfile(profile, problems);
+    }
+
+    if (!activeUser && route.username) {
+      const fallbackSolver = defaultSolvers
+        .map(window.TWS.normalizeMember)
+        .find((item) => window.TWS.toUsername(item.username || item.name) === route.username);
+      if (fallbackSolver) activeUser = legacyUserToProfile(fallbackSolver, problems);
     }
   }
 

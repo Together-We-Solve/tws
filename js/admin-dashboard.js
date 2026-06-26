@@ -43,6 +43,17 @@
     });
   }
 
+  function solverMatchesName(solver, name) {
+    const normalized = window.TWS.toUsername(name);
+    return [
+      solver.name,
+      solver.displayName,
+      solver.username,
+      solver.id,
+      solver.uid
+    ].some((value) => value && window.TWS.toUsername(value) === normalized);
+  }
+
   // Default Solvers Directory to seed Firestore if empty
   const defaultSolvers = [
     { id: 'sol_1', name: 'Elena Rostova', role: 'The Bridge Builder', specialty: 'Technical Systems & Language', points: 4850, solved: 12, initials: 'ER', badges: ['Golden Heart', 'Deep Thinker'] },
@@ -787,18 +798,18 @@
       // Award XP in Solvers ledger
       const updatedSolvers = solvers.map(s => {
         // Winner gets high points and solved count +1
-        if (s.name === winnerName) {
+        if (solverMatchesName(s, winnerName)) {
           return {
             ...s,
-            points: s.points + winnerXP,
-            solved: s.solved + 1
+            points: Number(s.points || s.stats?.totalImpactPoints || 0) + winnerXP,
+            solved: Number(s.solved || s.stats?.problemsSolved || 0) + 1
           };
         }
         // Attempted contributors get flat participation points
-        if (attemptsList.includes(s.name)) {
+        if (attemptsList.some((name) => solverMatchesName(s, name))) {
           return {
             ...s,
-            points: s.points + attemptXP
+            points: Number(s.points || s.stats?.totalImpactPoints || 0) + attemptXP
           };
         }
         return s;
@@ -1165,6 +1176,7 @@
             const updatedSolvers = solvers.filter(s => s.id !== activeSolverId);
 
             window.TWS.memory.users = updatedSolvers;
+            if (window.TWS.deleteUserProfile) await window.TWS.deleteUserProfile(activeSolverId);
             logSystemActivity('LEDGER', `De-registered contributor "${targetSolver ? targetSolver.name : activeSolverId}" from the ledger.`);
             alert('Contributor de-registered from the registry.');
 

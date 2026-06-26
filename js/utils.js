@@ -9,6 +9,35 @@
     settings: null
   };
 
+  const STORAGE_KEY = 'tws_local_data_v1';
+
+  function readLocalStore() {
+    try {
+      const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+      return {
+        users: Array.isArray(parsed.users) ? parsed.users : [],
+        problems: Array.isArray(parsed.problems) ? parsed.problems : [],
+        partners: Array.isArray(parsed.partners) ? parsed.partners : [],
+        logs: Array.isArray(parsed.logs) ? parsed.logs : [],
+        settings: parsed.settings || null
+      };
+    } catch (_) {
+      return { users: [], problems: [], partners: [], logs: [], settings: null };
+    }
+  }
+
+  function writeLocalStore(patch) {
+    const next = { ...readLocalStore(), ...patch };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+    return next;
+  }
+
+  function replaceById(list, item) {
+    const id = item.id || item.uid;
+    const filtered = list.filter((entry) => (entry.id || entry.uid) !== id);
+    return filtered.concat(item);
+  }
+
   function escapeHTML(value) {
     return String(value ?? '').replace(/[&<>"']/g, (char) => ({
       '&': '&amp;',
@@ -60,14 +89,36 @@
     return firebaseDataPromise;
   }
 
+  function withTimeout(promise, ms, label) {
+    return Promise.race([
+      promise,
+      new Promise((_, reject) => {
+        setTimeout(() => reject(new Error(`${label} timed out`)), ms);
+      })
+    ]);
+  }
+
+  async function getFirebaseDataApiSafe() {
+    return withTimeout(getFirebaseDataApi(), 2500, 'Firebase connection');
+  }
+
   async function fetchCollection(collectionName) {
-    const { db, firestoreModule } = await getFirebaseDataApi();
+    const { db, firestoreModule } = await getFirebaseDataApiSafe();
     const snapshot = await firestoreModule.getDocs(firestoreModule.collection(db, collectionName));
     return snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
   }
 
+  async function fetchCollectionSafe(collectionName, fallback = []) {
+    try {
+      return await fetchCollection(collectionName);
+    } catch (err) {
+      console.warn(`Using local ${collectionName} data because Firebase is unavailable.`, err);
+      return fallback;
+    }
+  }
+
   async function saveDocument(collectionName, id, data, merge = true) {
-    const { db, firestoreModule } = await getFirebaseDataApi();
+    const { db, firestoreModule } = await getFirebaseDataApiSafe();
     await firestoreModule.setDoc(firestoreModule.doc(db, collectionName, id), {
       ...data,
       updatedAt: firestoreModule.serverTimestamp()
@@ -76,12 +127,12 @@
   }
 
   async function deleteDocument(collectionName, id) {
-    const { db, firestoreModule } = await getFirebaseDataApi();
+    const { db, firestoreModule } = await getFirebaseDataApiSafe();
     await firestoreModule.deleteDoc(firestoreModule.doc(db, collectionName, id));
   }
 
   async function fetchDocument(collectionName, id) {
-    const { db, firestoreModule } = await getFirebaseDataApi();
+    const { db, firestoreModule } = await getFirebaseDataApiSafe();
     const snap = await firestoreModule.getDoc(firestoreModule.doc(db, collectionName, id));
     return snap.exists() ? { id: snap.id, ...snap.data() } : null;
   }
@@ -152,9 +203,19 @@
   }
 
   async function loadMovementMembersAsync(defaultMembers = []) {
-    const { configModule } = await getFirebaseDataApi();
-    const firestoreUsers = await fetchCollection(configModule.accessCollections.users);
-    const roleAssignments = await fetchCollection(configModule.accessCollections.roleAssignments).catch(() => []);
+    const local = readLocalStore();
+    let configModule = null;
+    try {
+      ({ configModule } = await getFirebaseDataApiSafe());
+    } catch (err) {
+      console.warn('Firebase member API unavailable; loading local members.', err);
+      memory.users = memory.users.length ? memory.users : local.users.length ? local.users : defaultMembers;
+      writeLocalStore({ users: memory.users });
+      return loadMovementMembers(defaultMembers);
+    }
+
+    const firestoreUsers = await fetchCollectionSafe(configModule.accessCollections.users, local.users);
+    const roleAssignments = await fetchCollectionSafe(configModule.accessCollections.roleAssignments, []);
     const roleByEmail = new Map(roleAssignments.map((item) => [String(item.id || item.email || '').toLowerCase(), item]));
     const mergedUsers = firestoreUsers.map((user) => {
       const roleDoc = roleByEmail.get(String(user.email || '').toLowerCase());
@@ -177,66 +238,131 @@
       }
     });
 
-    memory.users = mergedUsers;
+    memory.users = mergedUsers.length ? mergedUsers : local.users.length ? local.users : defaultMembers;
+    writeLocalStore({ users: memory.users });
     return loadMovementMembers(defaultMembers);
   }
 
   async function loadProblemsAsync(defaultProblems = []) {
-    const { configModule } = await getFirebaseDataApi();
-    const problems = (await fetchCollection(configModule.accessCollections.problems)).map(normalizeProblem);
+    const local = readLocalStore();
+    let problems = [];
+    try {
+      const { configModule } = await getFirebaseDataApiSafe();
+      problems = (await fetchCollectionSafe(configModule.accessCollections.problems, local.problems)).map(normalizeProblem);
+    } catch (err) {
+      console.warn('Firebase problem API unavailable; loading local problems.', err);
+      problems = local.problems.map(normalizeProblem);
+    }
     memory.problems = problems.length ? problems : defaultProblems.map(normalizeProblem);
+    writeLocalStore({ problems: memory.problems });
     return memory.problems;
   }
 
   async function saveProblem(problem) {
-    const { configModule } = await getFirebaseDataApi();
     const normalized = normalizeProblem(problem);
-    await saveDocument(configModule.accessCollections.problems, normalized.id, normalized);
-    memory.problems = memory.problems.filter((item) => item.id !== normalized.id).concat(normalized);
+    try {
+      const { configModule } = await getFirebaseDataApiSafe();
+      await saveDocument(configModule.accessCollections.problems, normalized.id, normalized);
+    } catch (err) {
+      console.warn('Saved problem locally because Firebase write failed.', err);
+    }
+    memory.problems = replaceById(memory.problems.length ? memory.problems : readLocalStore().problems, normalized);
+    writeLocalStore({ problems: memory.problems });
     return normalized;
   }
 
   async function updateProblem(problemId, patch) {
-    const { configModule } = await getFirebaseDataApi();
+    let remoteProblem = null;
+    try {
+      const { configModule } = await getFirebaseDataApiSafe();
+      remoteProblem = await fetchDocument(configModule.accessCollections.problems, problemId);
+    } catch (err) {
+      console.warn('Loaded problem update target locally because Firebase read failed.', err);
+    }
     const current = memory.problems.find((item) => item.id === problemId)
-      || await fetchDocument(configModule.accessCollections.problems, problemId)
+      || readLocalStore().problems.find((item) => item.id === problemId)
+      || remoteProblem
       || { id: problemId };
     return saveProblem({ ...current, ...patch, id: problemId });
   }
 
   async function deleteProblem(problemId) {
-    const { configModule } = await getFirebaseDataApi();
-    await deleteDocument(configModule.accessCollections.problems, problemId);
+    try {
+      const { configModule } = await getFirebaseDataApiSafe();
+      await deleteDocument(configModule.accessCollections.problems, problemId);
+    } catch (err) {
+      console.warn('Deleted problem locally because Firebase delete failed.', err);
+    }
     memory.problems = memory.problems.filter((item) => item.id !== problemId);
+    writeLocalStore({ problems: memory.problems });
   }
 
   async function saveUserProfile(userId, data) {
-    const { configModule } = await getFirebaseDataApi();
-    await saveDocument(configModule.accessCollections.users, userId, data);
-    memory.users = memory.users.filter((item) => item.id !== userId && item.uid !== userId).concat({ id: userId, uid: userId, ...data });
+    try {
+      const { configModule } = await getFirebaseDataApiSafe();
+      await saveDocument(configModule.accessCollections.users, userId, data);
+    } catch (err) {
+      console.warn('Saved user locally because Firebase write failed.', err);
+    }
+    memory.users = replaceById(memory.users.length ? memory.users : readLocalStore().users, { id: userId, uid: userId, ...data });
+    writeLocalStore({ users: memory.users });
+  }
+
+  async function deleteUserProfile(userId) {
+    try {
+      const { configModule } = await getFirebaseDataApiSafe();
+      await deleteDocument(configModule.accessCollections.users, userId);
+    } catch (err) {
+      console.warn('Deleted user locally because Firebase delete failed.', err);
+    }
+    memory.users = (memory.users.length ? memory.users : readLocalStore().users)
+      .filter((item) => item.id !== userId && item.uid !== userId);
+    writeLocalStore({ users: memory.users });
   }
 
   async function loadPartnersAsync(defaultPartners = []) {
-    const { configModule } = await getFirebaseDataApi();
-    const partners = await fetchCollection(configModule.accessCollections.partners);
+    const local = readLocalStore();
+    let partners = [];
+    try {
+      const { configModule } = await getFirebaseDataApiSafe();
+      partners = await fetchCollectionSafe(configModule.accessCollections.partners, local.partners);
+    } catch (err) {
+      console.warn('Firebase partner API unavailable; loading local partners.', err);
+      partners = local.partners;
+    }
     memory.partners = partners.length ? partners : defaultPartners;
+    writeLocalStore({ partners: memory.partners });
     return memory.partners;
   }
 
   async function loadSettings(defaultSettings = {}) {
-    const { configModule } = await getFirebaseDataApi();
-    const settings = await fetchDocument(configModule.accessCollections.settings, 'global');
+    const local = readLocalStore();
+    let settings = null;
+    try {
+      const { configModule } = await getFirebaseDataApiSafe();
+      settings = await fetchDocument(configModule.accessCollections.settings, 'global');
+    } catch (err) {
+      console.warn('Firebase settings API unavailable; loading local settings.', err);
+      settings = local.settings;
+    }
     memory.settings = settings || defaultSettings;
+    writeLocalStore({ settings: memory.settings });
     return memory.settings;
   }
 
   async function saveSettings(settings) {
-    const { configModule } = await getFirebaseDataApi();
-    await saveDocument(configModule.accessCollections.settings, 'global', settings);
+    try {
+      const { configModule } = await getFirebaseDataApiSafe();
+      await saveDocument(configModule.accessCollections.settings, 'global', settings);
+    } catch (err) {
+      console.warn('Saved settings locally because Firebase write failed.', err);
+    }
     memory.settings = settings;
+    writeLocalStore({ settings });
   }
 
   function logSystemActivity(type, message) {
+    if (!memory.logs.length) memory.logs = readLocalStore().logs;
     const payload = {
       id: `log_${Date.now()}`,
       timestamp: new Date().toLocaleTimeString('en-US', { hour12: false }) + ' ' + new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
@@ -244,14 +370,17 @@
       message
     };
     memory.logs.unshift(payload);
+    writeLocalStore({ logs: memory.logs });
   }
 
   function loadSystemLogs() {
+    if (!memory.logs.length) memory.logs = readLocalStore().logs;
     return memory.logs;
   }
 
   function clearSystemLogs() {
     memory.logs = [];
+    writeLocalStore({ logs: [] });
   }
 
   function dashboardForSession(session) {
@@ -321,6 +450,7 @@
     updateProblem,
     deleteProblem,
     saveUserProfile,
+    deleteUserProfile,
     loadPartnersAsync,
     loadSettings,
     saveSettings,
