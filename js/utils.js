@@ -2228,150 +2228,176 @@
 
   function renderAvatarSVG(config) {
     const skinColorMap = {
-      'skin-peach': '#ffdbac',
-      'skin-tan': '#f1c27d',
-      'skin-olive': '#e0ac69',
-      'skin-bronze': '#c68642',
-      'skin-dark': '#8d5524',
-      'skin-cyan': '#06b6d4',
-      'skin-obsidian': '#1e293b',
-      'skin-gold': '#fbbf24'
+      'skin-peach': 'url(#grad-skin-peach)',
+      'skin-tan': 'url(#grad-skin-tan)',
+      'skin-olive': 'url(#grad-skin-olive)',
+      'skin-bronze': 'url(#grad-skin-bronze)',
+      'skin-dark': 'url(#grad-skin-dark)',
+      'skin-cyan': 'url(#grad-skin-cyan)',
+      'skin-obsidian': 'url(#grad-skin-obsidian)',
+      'skin-gold': 'url(#grad-skin-gold)'
     };
     const hairColorMap = {
-      'hair-black': '#1a1a1a',
-      'hair-brown': '#624a3e',
-      'hair-blonde': '#fcd34d',
-      'hair-red': '#ef4444',
-      'hair-silver': '#cbd5e1',
-      'hair-green': '#22c55e',
+      'hair-black': 'url(#grad-hair-black)',
+      'hair-brown': 'url(#grad-hair-brown)',
+      'hair-blonde': 'url(#grad-hair-blonde)',
+      'hair-red': 'url(#grad-hair-red)',
+      'hair-silver': 'url(#grad-hair-silver)',
+      'hair-green': 'url(#grad-hair-green)',
       'hair-rainbow': 'url(#rainbow-hair)'
     };
     const eyeColorMap = {
-      'eye-brown': '#451a03',
-      'eye-blue': '#2563eb',
-      'eye-green': '#16a34a',
-      'eye-purple': '#8b5cf6'
+      'eye-brown': 'url(#grad-eye-brown)',
+      'eye-blue': 'url(#grad-eye-blue)',
+      'eye-green': 'url(#grad-eye-green)',
+      'eye-purple': 'url(#grad-eye-purple)'
     };
     const clothingColorMap = {
-      'clothing-gray': '#6b7280',
-      'clothing-moss': '#3d5a45',
-      'clothing-clay': '#b85c37',
-      'clothing-ocean': '#2c5e7a',
-      'clothing-royal': '#4338ca',
+      'clothing-gray': '#4b5563',
+      'clothing-moss': '#23382b',
+      'clothing-clay': '#c87d55',
+      'clothing-ocean': '#3d5a6c',
+      'clothing-royal': '#312e81',
       'clothing-orange': '#ea580c'
     };
     const bgColorMap = {
-      'color-gray': '#4b5563',
-      'color-teal': '#0d9488',
-      'color-clay': '#c2410c',
-      'color-violet': '#7c3aed',
-      'color-gold': '#d97706',
-      'color-slate': '#334155',
-      'color-blue': '#2563eb',
-      'color-green': '#16a34a',
-      'color-rose': '#e11d48'
+      'color-gray': '#1e293b',
+      'color-teal': '#0f766e',
+      'color-clay': '#9a3412',
+      'color-violet': '#581c87',
+      'color-gold': '#78350f',
+      'color-slate': '#0f172a',
+      'color-blue': '#1e3a8a',
+      'color-green': '#064e3b',
+      'color-rose': '#881337'
     };
     const skinTone = config.skinTone || 'skin-peach';
-    const skinColor = skinColorMap[skinTone] || '#ffdbac';
-    const neckColor = skinColor === '#ffdbac' ? '#e8c49a' : (skinColor === '#fbbf24' ? '#d97706' : 'rgba(0,0,0,0.15)');
-    const hairColor = hairColorMap[config.hairColor] || '#1a1a1a';
-    const eyeColor = eyeColorMap[config.eyeColor] || '#451a03';
-    const clothingColor = clothingColorMap[config.clothingColor] || '#6b7280';
-    const bgColor = bgColorMap[config.backgroundColor] || '#4b5563';
+    const skinColor = skinColorMap[skinTone] || 'url(#grad-skin-peach)';
+    const neckColor = 'url(#grad-neck-shadow)';
+    const hairColor = hairColorMap[config.hairColor] || 'url(#grad-hair-black)';
+    const eyeColor = eyeColorMap[config.eyeColor] || 'url(#grad-eye-brown)';
+    const clothingColor = clothingColorMap[config.clothingColor] || '#4b5563';
+    const bgColor = bgColorMap[config.backgroundColor] || '#1e293b';
+
     let svg = `<svg viewBox="0 0 200 200" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">`;
     svg += `<defs>`;
-    svg += `<linearGradient id="rainbow-hair" x1="0%" y1="0%" x2="100%" y2="100%">`;
-    svg += `<stop offset="0%" stop-color="#ff0000"/><stop offset="20%" stop-color="#ff7f00"/><stop offset="40%" stop-color="#ffff00"/><stop offset="60%" stop-color="#00ff00"/><stop offset="80%" stop-color="#0000ff"/><stop offset="100%" stop-color="#8b00ff"/>`;
-    svg += `</linearGradient>`;
-    svg += `<radialGradient id="bg-radial-grad" cx="50%" cy="50%" r="50%">`;
-    svg += `<stop offset="0%" stop-color="#ffffff" stop-opacity="0.3"/><stop offset="100%" stop-color="#000000" stop-opacity="0.2"/>`;
-    svg += `</radialGradient>`;
-    svg += `<pattern id="grid-pattern" width="20" height="20" patternUnits="userSpaceOnUse">`;
-    svg += `<path d="M 20 0 L 0 0 0 20" fill="none" stroke="#ffffff" stroke-width="0.5" opacity="0.15"/>`;
-    svg += `</pattern>`;
+    
+    svg += `<linearGradient id="grad-skin-peach" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#fff5eb"/><stop offset="40%" stop-color="#ffd8b3"/><stop offset="100%" stop-color="#f2b280"/></linearGradient>`;
+    svg += `<linearGradient id="grad-skin-tan" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ffe3cc"/><stop offset="50%" stop-color="#e0a96d"/><stop offset="100%" stop-color="#bc7c41"/></linearGradient>`;
+    svg += `<linearGradient id="grad-skin-olive" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#fdf4e7"/><stop offset="50%" stop-color="#d4b285"/><stop offset="100%" stop-color="#a47b4c"/></linearGradient>`;
+    svg += `<linearGradient id="grad-skin-bronze" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ecd6c3"/><stop offset="50%" stop-color="#ba825a"/><stop offset="100%" stop-color="#7c4e2b"/></linearGradient>`;
+    svg += `<linearGradient id="grad-skin-dark" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#9a7257"/><stop offset="50%" stop-color="#6b462b"/><stop offset="100%" stop-color="#3d220f"/></linearGradient>`;
+    svg += `<linearGradient id="grad-skin-cyan" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#e0f7fa"/><stop offset="50%" stop-color="#00bcd4"/><stop offset="100%" stop-color="#006064"/></linearGradient>`;
+    svg += `<linearGradient id="grad-skin-obsidian" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#475569"/><stop offset="50%" stop-color="#1e293b"/><stop offset="100%" stop-color="#0f172a"/></linearGradient>`;
+    svg += `<linearGradient id="grad-skin-gold" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#fef08a"/><stop offset="30%" stop-color="#eab308"/><stop offset="70%" stop-color="#ca8a04"/><stop offset="100%" stop-color="#854d0e"/></linearGradient>`;
+    
+    svg += `<linearGradient id="grad-hair-black" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#454545"/><stop offset="100%" stop-color="#0f0f0f"/></linearGradient>`;
+    svg += `<linearGradient id="grad-hair-brown" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#8c6239"/><stop offset="100%" stop-color="#4a311b"/></linearGradient>`;
+    svg += `<linearGradient id="grad-hair-blonde" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#fef08a"/><stop offset="100%" stop-color="#ca8a04"/></linearGradient>`;
+    svg += `<linearGradient id="grad-hair-red" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#f87171"/><stop offset="100%" stop-color="#991b1b"/></linearGradient>`;
+    svg += `<linearGradient id="grad-hair-silver" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#f1f5f9"/><stop offset="100%" stop-color="#94a3b8"/></linearGradient>`;
+    svg += `<linearGradient id="grad-hair-green" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#4ade80"/><stop offset="100%" stop-color="#166534"/></linearGradient>`;
+    
+    svg += `<linearGradient id="grad-eye-brown" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#b45309"/><stop offset="100%" stop-color="#451a03"/></linearGradient>`;
+    svg += `<linearGradient id="grad-eye-blue" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#60a5fa"/><stop offset="100%" stop-color="#1d4ed8"/></linearGradient>`;
+    svg += `<linearGradient id="grad-eye-green" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#34d399"/><stop offset="100%" stop-color="#065f46"/></linearGradient>`;
+    svg += `<linearGradient id="grad-eye-purple" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#c084fc"/><stop offset="100%" stop-color="#6b21a8"/></linearGradient>`;
+
+    svg += `<linearGradient id="rainbow-hair" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ef4444"/><stop offset="20%" stop-color="#f97316"/><stop offset="40%" stop-color="#eab308"/><stop offset="60%" stop-color="#22c55e"/><stop offset="80%" stop-color="#3b82f6"/><stop offset="100%" stop-color="#a855f7"/></linearGradient>`;
+    svg += `<linearGradient id="grad-neck-shadow" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="rgba(0,0,0,0.25)"/><stop offset="100%" stop-color="rgba(0,0,0,0)"/></linearGradient>`;
+    svg += `<linearGradient id="grad-cyborg-plating" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#cbd5e1"/><stop offset="50%" stop-color="#64748b"/><stop offset="100%" stop-color="#334155"/></linearGradient>`;
+    
+    svg += `<radialGradient id="bg-radial-grad" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#ffffff" stop-opacity="0.25"/><stop offset="100%" stop-color="#000000" stop-opacity="0.4"/></radialGradient>`;
+    svg += `<pattern id="grid-pattern" width="16" height="16" patternUnits="userSpaceOnUse"><path d="M 16 0 L 0 0 0 16" fill="none" stroke="#ffffff" stroke-width="0.5" opacity="0.12"/></pattern>`;
+    svg += `<pattern id="matrix-pattern" width="20" height="20" patternUnits="userSpaceOnUse"><text x="2" y="12" fill="#22c55e" font-family="monospace" font-size="8" opacity="0.25">0</text><text x="12" y="18" fill="#22c55e" font-family="monospace" font-size="8" opacity="0.2">1</text></pattern>`;
     svg += `</defs>`;
+
     const bgMap = {
       'bg-solid': `<rect width="200" height="200" fill="${bgColor}" />`,
       'bg-radial': `<rect width="200" height="200" fill="${bgColor}" /><rect width="200" height="200" fill="url(#bg-radial-grad)" />`,
       'bg-grid': `<rect width="200" height="200" fill="${bgColor}" /><rect width="200" height="200" fill="url(#grid-pattern)" />`,
-      'bg-starfield': `<rect width="200" height="200" fill="${bgColor}" /><g fill="#ffffff" opacity="0.8"><circle cx="20" cy="30" r="1.5"/><circle cx="160" cy="40" r="1"/><circle cx="100" cy="20" r="1.2"/><circle cx="45" cy="90" r="1.5"/><circle cx="180" cy="120" r="1"/><circle cx="30" cy="150" r="1.2"/><circle cx="150" cy="160" r="1.5"/></g>`,
-      'bg-matrix': `<rect width="200" height="200" fill="#020617" /><g fill="#22c55e" font-family="monospace" font-size="10" opacity="0.3"><text x="10" y="20">0</text><text x="30" y="40">1</text><text x="50" y="30">0</text><text x="70" y="50">1</text><text x="90" y="20">0</text><text x="110" y="60">1</text></g>`
+      'bg-starfield': `<rect width="200" height="200" fill="${bgColor}" /><g fill="#ffffff"><circle cx="25" cy="35" r="1.5" opacity="0.8"/><circle cx="170" cy="45" r="1.2" opacity="0.9"/><circle cx="100" cy="25" r="1" opacity="0.7"/><circle cx="45" cy="95" r="1.8" opacity="0.8"/><circle cx="185" cy="125" r="1.2" opacity="0.6"/><circle cx="35" cy="155" r="1.5" opacity="0.9"/><circle cx="155" cy="165" r="2" opacity="0.8"/></g>`,
+      'bg-matrix': `<rect width="200" height="200" fill="#020617" /><rect width="200" height="200" fill="url(#matrix-pattern)" />`
     };
     svg += bgMap[config.background] || `<rect width="200" height="200" fill="${bgColor}" />`;
+
     const bpMap = {
-      'canvas-straps': `<path d="M55 135 L60 170 M145 135 L140 170" stroke="#78350f" stroke-width="6" stroke-linecap="round" />`,
-      'angel-wings': `<path d="M50 110 C20 70, 0 100, 20 140 C35 155, 60 145, 60 145 M150 110 C180 70, 200 100, 180 140 C165 155, 140 145, 140 145" fill="#f8fafc" stroke="#e2e8f0" stroke-width="2" />`,
-      'jetpack-boosters': `<rect x="35" y="110" width="20" height="60" rx="5" fill="#64748b" /><rect x="145" y="110" width="20" height="60" rx="5" fill="#64748b" /><path d="M45 170 L40 190 L50 190 Z" fill="#f97316" /><path d="M155 170 L150 190 L160 190 Z" fill="#f97316" />`
+      'canvas-straps': `<path d="M55 135 L60 175 M145 135 L140 175" stroke="#451a03" stroke-width="7" stroke-linecap="round" /><path d="M55 135 L60 175 M145 135 L140 175" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-dasharray="3 3" />`,
+      'angel-wings': `<path d="M60 140 C45 110, 5 70, 20 50 C35 30, 65 60, 60 110 C58 120, 60 140, 60 140" fill="#ffffff" stroke="#e2e8f0" stroke-width="2" /><path d="M140 140 C155 110, 195 70, 180 50 C165 30, 135 60, 140 110 C142 120, 140 140, 140 140" fill="#ffffff" stroke="#e2e8f0" stroke-width="2" /><path d="M60 140 C50 120, 20 90, 30 75" fill="none" stroke="#e2e8f0" stroke-width="1.5" /><path d="M140 140 C150 120, 180 90, 170 75" fill="none" stroke="#e2e8f0" stroke-width="1.5" />`,
+      'jetpack-boosters': `<rect x="30" y="110" width="22" height="65" rx="6" fill="#475569" stroke="#334155" stroke-width="2" /><rect x="148" y="110" width="22" height="65" rx="6" fill="#475569" stroke="#334155" stroke-width="2" /><path d="M41 175 L36 195 L46 195 Z" fill="#ea580c" /><path d="M41 175 L38 188 L44 188 Z" fill="#facc15" /><path d="M159 175 L154 195 L164 195 Z" fill="#ea580c" /><path d="M159 175 L156 188 L162 188 Z" fill="#facc15" />`
     };
     svg += bpMap[config.backpack] || '';
-    svg += `<rect x="90" y="110" width="20" height="30" fill="${skinColor}" /><rect x="90" y="110" width="20" height="15" fill="#000000" opacity="0.15" />`;
+
+    svg += `<rect x="90" y="110" width="20" height="30" fill="${skinColor}" />`;
+    svg += `<rect x="90" y="110" width="20" height="15" fill="url(#grad-neck-shadow)" />`;
+
     const faceMap = {
-      'face-round': `<ellipse cx="100" cy="85" rx="35" ry="38" fill="${skinColor}" />`,
-      'face-oval': `<ellipse cx="100" cy="85" rx="32" ry="42" fill="${skinColor}" />`,
-      'face-square': `<rect x="68" y="47" width="64" height="74" rx="14" fill="${skinColor}" />`,
-      'face-heart': `<path d="M100 125 C68 102 60 70 70 56 C80 42 95 50 100 62 C105 50 120 42 130 56 C140 70 132 102 100 125 Z" fill="${skinColor}" />`,
-      'face-chiseled': `<path d="M100 127 L68 90 L68 60 C68 45, 132 45, 132 60 L132 90 Z" fill="${skinColor}" />`,
-      'face-cyborg': `<ellipse cx="100" cy="85" rx="35" ry="38" fill="#94a3b8" /><rect x="100" y="47" width="35" height="76" fill="#64748b" opacity="0.3" /><path d="M100 55 L133 80 L100 105 Z" fill="#ef4444" opacity="0.15" />`
+      'face-round': `<ellipse cx="100" cy="85" rx="36" ry="39" fill="${skinColor}" /><ellipse cx="100" cy="95" rx="30" ry="12" fill="url(#grad-neck-shadow)" opacity="0.3"/>`,
+      'face-oval': `<ellipse cx="100" cy="85" rx="33" ry="43" fill="${skinColor}" /><ellipse cx="100" cy="98" rx="27" ry="12" fill="url(#grad-neck-shadow)" opacity="0.3"/>`,
+      'face-square': `<rect x="66" y="46" width="68" height="76" rx="16" fill="${skinColor}" /><rect x="72" y="98" width="56" height="18" fill="url(#grad-neck-shadow)" opacity="0.3"/>`,
+      'face-heart': `<path d="M100 126 C66 103 58 71 68 56 C78 41 95 49 100 61 C105 49 122 41 132 56 C142 71 134 103 100 126 Z" fill="${skinColor}" />`,
+      'face-chiseled': `<path d="M100 128 L66 90 L66 58 C66 43, 134 43, 134 58 L134 90 Z" fill="${skinColor}" /><path d="M100 128 L66 90 L100 85 Z" fill="url(#grad-neck-shadow)" opacity="0.15"/>`,
+      'face-cyborg': `<ellipse cx="100" cy="85" rx="36" ry="39" fill="${skinColor}" /><path d="M100 46 C120 46, 136 63, 136 85 C136 107, 120 124, 100 124 Z" fill="url(#grad-cyborg-plating)" /><path d="M104 55 H120 V59 H104 Z" fill="#ef4444" /><path d="M110 95 H126 V99 H110 Z" fill="#ef4444" /><line x1="100" y1="46" x2="100" y2="124" stroke="#1e293b" stroke-width="1.5" />`
     };
-    svg += faceMap[config.face] || `<ellipse cx="100" cy="85" rx="35" ry="38" fill="${skinColor}" />`;
+    svg += faceMap[config.face] || `<ellipse cx="100" cy="85" rx="36" ry="39" fill="${skinColor}" />`;
+
     const clothingMap = {
-      'clothing-tshirt': `<path d="M50 135 C50 135, 60 135, 75 135 L125 135 C140 135, 150 135, 150 135 C170 145, 180 170, 180 200 L20 200 C20 170, 30 145, 50 135 Z" fill="${clothingColor}" /><path d="M85 135 A15 15 0 0 0 115 135 Z" fill="${skinColor}" />`,
-      'clothing-polo': `<path d="M50 135 C50 135, 60 135, 75 135 L125 135 C140 135, 150 135, 150 135 C170 145, 180 170, 180 200 L20 200 C20 170, 30 145, 50 135 Z" fill="${clothingColor}" /><path d="M85 135 L100 155 L115 135 Z" fill="#ffffff" /><path d="M78 135 L100 150 L100 135 Z" fill="${clothingColor}" /><path d="M122 135 L100 150 L100 135 Z" fill="${clothingColor}" />`,
-      'clothing-hoodie': `<path d="M50 135 C50 135, 60 135, 75 135 L125 135 C140 135, 150 135, 150 135 C170 145, 180 170, 180 200 L20 200 C20 170, 30 145, 50 135 Z" fill="${clothingColor}" /><path d="M70 135 Q100 160 130 135 Z" fill="#334155" /><circle cx="95" cy="165" r="2" fill="#e2e8f0" /><circle cx="105" cy="165" r="2" fill="#e2e8f0" /><path d="M95 165 L95 185 M105 165 L105 185" stroke="#e2e8f0" stroke-width="1.5" />`,
-      'clothing-suit': `<path d="M50 135 C50 135, 60 135, 75 135 L125 135 C140 135, 150 135, 150 135 C170 145, 180 170, 180 200 L20 200 C20 170, 30 145, 50 135 Z" fill="#1e293b" /><path d="M85 135 L100 170 L115 135 Z" fill="#ffffff" /><path d="M97 140 L103 140 L100 170 Z" fill="#991b1b" /><path d="M50 135 L90 180 L90 135 Z" fill="#0f172a" /><path d="M150 135 L110 180 L110 135 Z" fill="#0f172a" />`,
-      'clothing-space': `<path d="M50 135 C50 135, 60 135, 75 135 L125 135 C140 135, 150 135, 150 135 C170 145, 180 170, 180 200 L20 200 C20 170, 30 145, 50 135 Z" fill="#e2e8f0" /><rect x="80" y="145" width="40" height="30" rx="3" fill="#0284c7" /><circle cx="90" cy="160" r="4" fill="#ef4444" /><circle cx="105" cy="160" r="4" fill="#22c55e" /><path d="M50 135 L70 160 M150 135 L130 160" stroke="#94a3b8" stroke-width="4" />`
+      'clothing-tshirt': `<path d="M45 135 C45 135, 58 133, 75 133 L125 133 C142 133, 155 135, 155 135 C172 143, 182 168, 182 200 L18 200 C18 168, 28 143, 45 135 Z" fill="${clothingColor}" /><path d="M85 133 A15 15 0 0 0 115 133 Z" fill="${skinColor}" /><path d="M45 135 L60 170" stroke="rgba(0,0,0,0.15)" stroke-width="1.5" /><path d="M155 135 L140 170" stroke="rgba(0,0,0,0.15)" stroke-width="1.5" />`,
+      'clothing-polo': `<path d="M45 135 C45 135, 58 133, 75 133 L125 133 C142 133, 155 135, 155 135 C172 143, 182 168, 182 200 L18 200 C18 168, 28 143, 45 135 Z" fill="${clothingColor}" /><path d="M85 133 L100 158 L115 133 Z" fill="#ffffff" /><path d="M76 133 L100 152 L100 133 Z" fill="${clothingColor}" /><path d="M124 133 L100 152 L100 133 Z" fill="${clothingColor}" /><circle cx="100" cy="165" r="1.5" fill="#1e293b" />`,
+      'clothing-hoodie': `<path d="M45 135 C45 135, 58 133, 75 133 L125 133 C142 133, 155 135, 155 135 C172 143, 182 168, 182 200 L18 200 C18 168, 28 143, 45 135 Z" fill="${clothingColor}" /><path d="M72 133 Q100 162 128 133 Z" fill="#1e293b" /><path d="M96 160 L96 182 M104 160 L104 182" stroke="#e2e8f0" stroke-width="1.5" stroke-linecap="round" />`,
+      'clothing-suit': `<path d="M45 135 C45 135, 58 133, 75 133 L125 133 C142 133, 155 135, 155 135 C172 143, 182 168, 182 200 L18 200 C18 168, 28 143, 45 135 Z" fill="#0f172a" /><path d="M85 133 L100 172 L115 133 Z" fill="#ffffff" /><path d="M96 137 L104 137 L100 170 Z" fill="#991b1b" /><path d="M45 135 L90 185 L90 133 Z" fill="#1e293b" /><path d="M155 135 L110 185 L110 133 Z" fill="#1e293b" />`,
+      'clothing-space': `<path d="M45 135 C45 135, 58 133, 75 133 L125 133 C142 133, 155 135, 155 135 C172 143, 182 168, 182 200 L18 200 C18 168, 28 143, 45 135 Z" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2" /><rect x="76" y="145" width="48" height="32" rx="4" fill="#334155" /><circle cx="88" cy="161" r="3.5" fill="#ef4444" /><circle cx="100" cy="161" r="3.5" fill="#22c55e" /><circle cx="112" cy="161" r="3.5" fill="#3b82f6" /><path d="M45 135 L70 162 M155 135 L130 162" stroke="#e2e8f0" stroke-width="3" />`
     };
-    svg += clothingMap[config.clothing] || `<path d="M50 135 C50 135, 60 135, 75 135 L125 135 C140 135, 150 135, 150 135 C170 145, 180 170, 180 200 L20 200 C20 170, 30 145, 50 135 Z" fill="${clothingColor}" />`;
+    svg += clothingMap[config.clothing] || `<path d="M45 135 C45 135, 58 133, 75 133 L125 133 C142 133, 155 135, 155 135 C172 143, 182 168, 182 200 L18 200 C18 168, 28 143, 45 135 Z" fill="${clothingColor}" />`;
     const jacketMap = {
-      'jacket-denim': `<path d="M50 135 L70 200 L40 200 C40 170, 30 145, 50 135 Z" fill="#1d4ed8" /><path d="M150 135 L130 200 L160 200 C160 170, 170 145, 150 135 Z" fill="#1d4ed8" /><path d="M50 135 L75 165 L75 135 Z" fill="#1e40af" /><path d="M150 135 L125 165 L125 135 Z" fill="#1e40af" />`,
-      'jacket-leather': `<path d="M50 135 L70 200 L40 200 C40 170, 30 145, 50 135 Z" fill="#1e1b4b" /><path d="M150 135 L130 200 L160 200 C160 170, 170 145, 150 135 Z" fill="#1e1b4b" /><path d="M50 135 L75 165 L75 135 Z" fill="#0f0e30" /><path d="M150 135 L125 165 L125 135 Z" fill="#0f0e30" />`,
-      'jacket-cape': `<path d="M48 135 C30 145, 15 170, 15 200 L185 200 C185 170, 170 145, 152 135 Z" fill="#7f1d1d" /><circle cx="100" cy="136" r="4" fill="#fbbf24" />`
+      'jacket-denim': `<path d="M45 135 L68 200 L38 200 C38 168, 28 143, 45 135 Z" fill="#2563eb" /><path d="M155 135 L132 200 L162 200 C162 168, 172 143, 155 135 Z" fill="#2563eb" /><path d="M45 135 L72 168 L72 133 Z" fill="#1d4ed8" /><path d="M155 135 L128 168 L128 133 Z" fill="#1d4ed8" />`,
+      'jacket-leather': `<path d="M45 135 L68 200 L38 200 C38 168, 28 143, 45 135 Z" fill="#18181b" /><path d="M155 135 L132 200 L162 200 C162 168, 172 143, 155 135 Z" fill="#18181b" /><path d="M45 135 L72 168 L72 133 Z" fill="#27272a" /><path d="M155 135 L128 168 L128 133 Z" fill="#27272a" /><circle cx="55" cy="155" r="2" fill="#cbd5e1" /><circle cx="145" cy="155" r="2" fill="#cbd5e1" />`,
+      'jacket-cape': `<path d="M42 135 C25 145, 10 170, 10 200 L190 200 C190 170, 175 145, 158 135 Z" fill="#991b1b" /><path d="M42 135 C35 150, 30 180, 25 200" fill="none" stroke="#7f1d1d" stroke-width="2" /><path d="M158 135 C165 150, 170 180, 175 200" fill="none" stroke="#7f1d1d" stroke-width="2" /><circle cx="100" cy="136" r="4.5" fill="#f59e0b" />`
     };
     svg += jacketMap[config.jacket] || '';
     const eyesMap = {
-      'eyes-classic': `<circle cx="86" cy="82" r="5" fill="#ffffff" /><circle cx="114" cy="82" r="5" fill="#ffffff" /><circle cx="86" cy="82" r="2.5" fill="${eyeColor}" /><circle cx="114" cy="82" r="2.5" fill="${eyeColor}" />`,
-      'eyes-happy': `<path d="M78 85 Q86 74 94 85" stroke="#333" stroke-width="4.5" fill="none" stroke-linecap="round" /><path d="M106 85 Q114 74 122 85" stroke="#333" stroke-width="4.5" fill="none" stroke-linecap="round" />`,
-      'eyes-serious': `<path d="M78 78 L94 80" stroke="#333" stroke-width="3" stroke-linecap="round" /><path d="M122 78 L106 80" stroke="#333" stroke-width="3" stroke-linecap="round" /><circle cx="86" cy="85" r="4" fill="#ffffff" /><circle cx="114" cy="85" r="4" fill="#ffffff" /><circle cx="86" cy="85" r="2" fill="${eyeColor}" /><circle cx="114" cy="85" r="2" fill="${eyeColor}" />`,
-      'eyes-winking': `<circle cx="86" cy="82" r="5" fill="#ffffff" /><circle cx="86" cy="82" r="2.5" fill="${eyeColor}" /><path d="M106 82 Q114 88 122 82" stroke="#333" stroke-width="4.5" fill="none" stroke-linecap="round" />`,
-      'eyes-visor': `<rect x="70" y="72" width="60" height="18" rx="4" fill="#06b6d4" opacity="0.9" /><line x1="70" y1="81" x2="130" y2="81" stroke="#ffffff" stroke-width="2" opacity="0.6" />`
+      'eyes-classic': `<circle cx="85" cy="82" r="6" fill="#ffffff" stroke="#1e293b" stroke-width="1" /><circle cx="115" cy="82" r="6" fill="#ffffff" stroke="#1e293b" stroke-width="1" /><circle cx="85" cy="82" r="3.5" fill="${eyeColor}" /><circle cx="115" cy="82" r="3.5" fill="${eyeColor}" /><circle cx="83.5" cy="80.5" r="1.2" fill="#ffffff" /><circle cx="113.5" cy="80.5" r="1.2" fill="#ffffff" /><circle cx="86.5" cy="83.5" r="0.6" fill="#ffffff" /><circle cx="116.5" cy="83.5" r="0.6" fill="#ffffff" />`,
+      'eyes-happy': `<path d="M76 86 Q85 71 94 86" stroke="#1e293b" stroke-width="4.5" fill="none" stroke-linecap="round" /><path d="M106 86 Q115 71 124 86" stroke="#1e293b" stroke-width="4.5" fill="none" stroke-linecap="round" />`,
+      'eyes-serious': `<path d="M75 77 L95 80" stroke="#1e293b" stroke-width="3" stroke-linecap="round" /><path d="M125 77 L105 80" stroke="#1e293b" stroke-width="3" stroke-linecap="round" /><circle cx="85" cy="85" r="5" fill="#ffffff" stroke="#1e293b" stroke-width="1" /><circle cx="115" cy="85" r="5" fill="#ffffff" stroke="#1e293b" stroke-width="1" /><circle cx="85" cy="85" r="2.5" fill="${eyeColor}" /><circle cx="115" cy="85" r="2.5" fill="${eyeColor}" /><circle cx="83.5" cy="83.5" r="1" fill="#ffffff" /><circle cx="113.5" cy="83.5" r="1" fill="#ffffff" />`,
+      'eyes-winking': `<circle cx="85" cy="82" r="6" fill="#ffffff" stroke="#1e293b" stroke-width="1" /><circle cx="85" cy="82" r="3.5" fill="${eyeColor}" /><circle cx="83.5" cy="80.5" r="1.2" fill="#ffffff" /><path d="M106 82 Q115 90 124 82" stroke="#1e293b" stroke-width="4.5" fill="none" stroke-linecap="round" />`,
+      'eyes-visor': `<rect x="68" y="71" width="64" height="20" rx="5" fill="#00f2fe" opacity="0.95" stroke="#00c6ff" stroke-width="1" /><line x1="68" y1="81" x2="132" y2="81" stroke="#ffffff" stroke-width="2.5" opacity="0.75" />`
     };
-    svg += eyesMap[config.eyes] || `<circle cx="86" cy="82" r="5" fill="#ffffff" /><circle cx="114" cy="82" r="5" fill="#ffffff" /><circle cx="86" cy="82" r="2.5" fill="${eyeColor}" /><circle cx="114" cy="82" r="2.5" fill="${eyeColor}" />`;
+    svg += eyesMap[config.eyes] || `<circle cx="85" cy="82" r="6" fill="#ffffff" stroke="#1e293b" stroke-width="1" /><circle cx="115" cy="82" r="6" fill="#ffffff" stroke="#1e293b" stroke-width="1" /><circle cx="85" cy="82" r="3.5" fill="${eyeColor}" /><circle cx="115" cy="82" r="3.5" fill="${eyeColor}" /><circle cx="83.5" cy="80.5" r="1.2" fill="#ffffff" /><circle cx="113.5" cy="80.5" r="1.2" fill="#ffffff" />`;
     const eyebrowsMap = {
-      'eyebrows-flat': `<line x1="76" y1="71" x2="94" y2="71" stroke="#333" stroke-width="3.5" stroke-linecap="round" /><line x1="106" y1="71" x2="124" y2="71" stroke="#333" stroke-width="3.5" stroke-linecap="round" />`,
-      'eyebrows-curved': `<path d="M76 73 Q85 66 94 71" stroke="#333" stroke-width="3.5" fill="none" stroke-linecap="round" /><path d="M106 71 Q115 66 124 73" stroke="#333" stroke-width="3.5" fill="none" stroke-linecap="round" />`,
-      'eyebrows-angry': `<line x1="76" y1="67" x2="94" y2="73" stroke="#333" stroke-width="4" stroke-linecap="round" /><line x1="106" y1="73" x2="124" y2="67" stroke="#333" stroke-width="4" stroke-linecap="round" />`
+      'eyebrows-flat': `<line x1="74" y1="70" x2="94" y2="70" stroke="#1e293b" stroke-width="4" stroke-linecap="round" /><line x1="106" y1="70" x2="126" y2="70" stroke="#1e293b" stroke-width="4" stroke-linecap="round" />`,
+      'eyebrows-curved': `<path d="M74 72 Q85 64 94 70" stroke="#1e293b" stroke-width="4" fill="none" stroke-linecap="round" /><path d="M106 70 Q115 64 126 72" stroke="#1e293b" stroke-width="4" fill="none" stroke-linecap="round" />`,
+      'eyebrows-angry': `<line x1="74" y1="66" x2="94" y2="72" stroke="#1e293b" stroke-width="4.5" stroke-linecap="round" /><line x1="106" y1="72" x2="126" y2="66" stroke="#1e293b" stroke-width="4.5" stroke-linecap="round" />`
     };
     svg += eyebrowsMap[config.eyebrows] || '';
     const mouthMap = {
-      'mouth-neutral': `<line x1="92" y1="106" x2="108" y2="106" stroke="#333" stroke-width="3" stroke-linecap="round" />`,
-      'mouth-smile': `<path d="M90 102 Q100 115 110 102" stroke="#333" stroke-width="3.5" fill="none" stroke-linecap="round" />`,
-      'mouth-grin': `<path d="M88 102 Q100 118 112 102 Z" fill="#333" /><path d="M90 103 Q100 110 110 103" stroke="#ffffff" stroke-width="2.5" fill="none" />`,
-      'mouth-smirk': `<path d="M90 105 Q95 108 108 103" stroke="#333" stroke-width="3.5" fill="none" stroke-linecap="round" />`,
-      'mouth-frown': `<path d="M92 110 Q100 101 108 110" stroke="#333" stroke-width="3" fill="none" stroke-linecap="round" />`
+      'mouth-neutral': `<line x1="90" y1="107" x2="110" y2="107" stroke="#1e293b" stroke-width="3" stroke-linecap="round" />`,
+      'mouth-smile': `<path d="M88 103 Q100 118 112 103" stroke="#1e293b" stroke-width="3.5" fill="none" stroke-linecap="round" />`,
+      'mouth-grin': `<path d="M86 103 Q100 120 114 103 Z" fill="#1e293b" /><path d="M88 104 Q100 112 112 104" stroke="#ffffff" stroke-width="3" fill="none" />`,
+      'mouth-smirk': `<path d="M88 106 Q94 110 110 104" stroke="#1e293b" stroke-width="3.5" fill="none" stroke-linecap="round" />`,
+      'mouth-frown': `<path d="M90 111 Q100 100 110 111" stroke="#1e293b" stroke-width="3" fill="none" stroke-linecap="round" />`
     };
-    svg += mouthMap[config.mouth] || `<line x1="92" y1="106" x2="108" y2="106" stroke="#333" stroke-width="3" stroke-linecap="round" />`;
+    svg += mouthMap[config.mouth] || `<line x1="90" y1="107" x2="110" y2="107" stroke="#1e293b" stroke-width="3" stroke-linecap="round" />`;
     const facialHairMap = {
-      'facialHair-stubble': `<path d="M70 95 C70 120, 130 120, 130 95 C130 130, 70 130, 70 95 Z" fill="#333" opacity="0.15" />`,
-      'facialHair-mustache': `<path d="M88 102 Q100 96 112 102 C108 107, 92 107, 88 102 Z" fill="#1a1a1a" />`,
-      'facialHair-beard': `<path d="M68 85 C68 128, 132 128, 132 85 C132 140, 68 140, 68 85 Z" fill="#1a1a1a" /><path d="M88 102 Q100 96 112 102 C108 107, 92 107, 88 102 Z" fill="#000" />`
+      'facialHair-stubble': `<path d="M68 95 C68 124, 132 124, 132 95 C132 134, 68 134, 68 95 Z" fill="#1e293b" opacity="0.18" />`,
+      'facialHair-mustache': `<path d="M86 103 Q100 96 114 103 C110 109, 90 109, 86 103 Z" fill="#0f172a" />`,
+      'facialHair-beard': `<path d="M66 83 C66 128, 134 128, 134 83 C134 142, 66 142, 66 83 Z" fill="#0f172a" /><path d="M86 103 Q100 96 114 103 C110 109, 90 109, 86 103 Z" fill="#020617" />`
     };
     svg += facialHairMap[config.facialHair] || '';
     const hairMap = {
-      'hair-buzzcut': `<path d="M67 76 C65 42, 135 42, 133 76 C120 74, 80 74, 67 76 Z" fill="${hairColor}" opacity="0.75" />`,
-      'hair-sidepart': `<path d="M65 74 C60 38, 140 38, 135 74 C110 52, 90 54, 65 74 Z" fill="${hairColor}" />`,
-      'hair-spikes': `<path d="M65 72 C60 38, 140 38, 135 72 L125 45 L115 55 L100 35 L88 52 L78 40 Z" fill="${hairColor}" />`,
-      'hair-afro': `<circle cx="100" cy="65" r="42" fill="${hairColor}" /><circle cx="70" cy="75" r="18" fill="${hairColor}" /><circle cx="130" cy="75" r="18" fill="${hairColor}" />`,
-      'hair-longwaves': `<path d="M66 70 C60 35, 140 35, 134 70 C145 95, 148 130, 144 150 C130 110, 132 80, 130 75 C110 65, 90 65, 70 75 C68 80, 70 110, 56 150 C52 130, 55 95, 66 70 Z" fill="${hairColor}" />`,
-      'hair-topknot': `<path d="M65 74 C60 38, 140 38, 135 74 C110 52, 90 54, 65 74 Z" fill="${hairColor}" /><circle cx="100" cy="30" r="14" fill="${hairColor}" /><rect x="96" y="38" width="8" height="6" fill="#f59e0b" />`,
-      'hair-mohawk': `<path d="M92 40 Q100 15 108 40 L108 80 L92 80 Z" fill="${hairColor}" />`,
-      'hair-wizard': `<path d="M60 90 L100 20 L140 90 Z" fill="#312e81" /><path d="M50 90 L150 90 L140 105 L60 105 Z" fill="#1e1b4b" /><circle cx="100" cy="45" r="3" fill="#f59e0b" />`
+      'hair-buzzcut': `<path d="M65 74 C63 38, 137 38, 135 74 C120 71, 80 71, 65 74 Z" fill="${hairColor}" opacity="0.8" /><path d="M72 50 Q100 45 128 50" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="1" />`,
+      'hair-sidepart': `<path d="M63 72 C58 35, 142 35, 137 72 C110 49, 90 51, 63 72 Z" fill="${hairColor}" /><path d="M96 42 L94 70" stroke="rgba(0,0,0,0.25)" stroke-width="1.5" />`,
+      'hair-spikes': `<path d="M63 70 C58 35, 142 35, 137 70 L128 43 L116 52 L100 30 L84 50 L72 38 Z" fill="${hairColor}" /><path d="M84 50 L80 65" stroke="rgba(255,255,255,0.1)" stroke-width="1" />`,
+      'hair-afro': `<circle cx="100" cy="62" r="44" fill="${hairColor}" /><circle cx="68" cy="73" r="20" fill="${hairColor}" /><circle cx="132" cy="73" r="20" fill="${hairColor}" /><circle cx="100" cy="45" r="16" fill="rgba(255,255,255,0.06)" />`,
+      'hair-longwaves': `<path d="M64 68 C58 33, 142 33, 136 68 C148 93, 150 130, 146 155 C132 112, 134 81, 132 76 C110 65, 90 65, 68 76 C66 81, 68 112, 54 155 C50 130, 52 93, 64 68 Z" fill="${hairColor}" />`,
+      'hair-topknot': `<path d="M63 72 C58 35, 142 35, 137 72 C110 49, 90 51, 63 72 Z" fill="${hairColor}" /><circle cx="100" cy="27" r="14" fill="${hairColor}" /><rect x="95" y="35" width="10" height="7" fill="#fbbf24" rx="2" />`,
+      'hair-mohawk': `<path d="M90 38 Q100 12 110 38 L110 82 L90 82 Z" fill="${hairColor}" /><path d="M96 28 Q100 20 104 28" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="1" />`,
+      'hair-wizard': `<path d="M58 88 L100 15 L142 88 Z" fill="#312e81" stroke="#1e1b4b" stroke-width="1" /><path d="M46 88 L154 88 L142 103 L58 103 Z" fill="#1e1b4b" /><circle cx="100" cy="40" r="3.5" fill="#eab308" />`
     };
     let activeHair = config.hair || 'hair-none';
     if (memory.cosmetics) {
       const dbCosmetic = memory.cosmetics.find(c => c.id === activeHair);
       if (dbCosmetic && dbCosmetic.svgContent) {
-        let injected = dbCosmetic.svgContent.replace(/{hairColor}/g, hairColor);
-        svg += injected;
+        svg += dbCosmetic.svgContent.replace(/{hairColor}/g, hairColor);
       } else {
         svg += hairMap[activeHair] || '';
       }
@@ -2379,17 +2405,17 @@
       svg += hairMap[activeHair] || '';
     }
     const glassesMap = {
-      'glasses-round': `<circle cx="84" cy="82" r="14" fill="none" stroke="#000000" stroke-width="3" /><circle cx="116" cy="82" r="14" fill="none" stroke="#000000" stroke-width="3" /><line x1="98" y1="82" x2="102" y2="82" stroke="#000000" stroke-width="3" />`,
-      'glasses-square': `<rect x="70" y="70" width="24" height="20" rx="3" fill="none" stroke="#333" stroke-width="3" /><rect x="106" y="70" width="24" height="20" rx="3" fill="none" stroke="#333" stroke-width="3" /><line x1="94" y1="78" x2="106" y2="78" stroke="#333" stroke-width="3" />`,
-      'glasses-aviators': `<path d="M70 72 L94 76 L94 88 C94 94, 76 96, 70 88 Z" fill="rgba(30,41,59,0.7)" stroke="#d97706" stroke-width="2" /><path d="M130 72 L106 76 L106 88 C106 94, 124 96, 130 88 Z" fill="rgba(30,41,59,0.7)" stroke="#d97706" stroke-width="2" /><line x1="94" y1="75" x2="106" y2="75" stroke="#d97706" stroke-width="2.5" />`,
-      'glasses-visor': `<rect x="68" y="72" width="64" height="18" rx="2" fill="#ec4899" opacity="0.8" /><line x1="68" y1="81" x2="132" y2="81" stroke="#ffffff" stroke-width="2" />`
+      'glasses-round': `<circle cx="82" cy="82" r="15" fill="rgba(255,255,255,0.15)" stroke="#0f172a" stroke-width="3.5" /><circle cx="118" cy="82" r="15" fill="rgba(255,255,255,0.15)" stroke="#0f172a" stroke-width="3.5" /><line x1="97" y1="82" x2="103" y2="82" stroke="#0f172a" stroke-width="3.5" /><line x1="72" y1="74" x2="80" y2="80" stroke="#ffffff" stroke-width="2" opacity="0.6" /><line x1="108" y1="74" x2="116" y2="80" stroke="#ffffff" stroke-width="2" opacity="0.6" />`,
+      'glasses-square': `<rect x="68" y="69" width="26" height="22" rx="4" fill="rgba(255,255,255,0.15)" stroke="#1e293b" stroke-width="3.5" /><rect x="106" y="69" width="26" height="22" rx="4" fill="rgba(255,255,255,0.15)" stroke="#1e293b" stroke-width="3.5" /><line x1="94" y1="78" x2="106" y2="78" stroke="#1e293b" stroke-width="3.5" /><line x1="72" y1="72" x2="80" y2="80" stroke="#ffffff" stroke-width="2" opacity="0.5" />`,
+      'glasses-aviators': `<path d="M68 70 L94 75 L94 88 C94 96, 74 98, 68 88 Z" fill="rgba(15,23,42,0.75)" stroke="#fbbf24" stroke-width="2" /><path d="M132 70 L106 75 L106 88 C106 96, 126 98, 132 88 Z" fill="rgba(15,23,42,0.75)" stroke="#fbbf24" stroke-width="2" /><line x1="94" y1="74" x2="106" y2="74" stroke="#fbbf24" stroke-width="2.5" />`,
+      'glasses-visor': `<rect x="66" y="71" width="68" height="20" rx="3" fill="rgba(244,63,94,0.85)" stroke="#e11d48" stroke-width="1.5" /><line x1="66" y1="81" x2="134" y2="81" stroke="#ffffff" stroke-width="2" /><line x1="72" y1="74" x2="80" y2="80" stroke="#ffffff" stroke-width="1.5" opacity="0.6" />`
     };
     svg += glassesMap[config.glasses] || '';
     const hatMap = {
-      'hat-beanie': `<path d="M63 60 C63 35, 137 35, 137 60 Z" fill="#991b1b" /><rect x="58" y="55" width="84" height="12" rx="4" fill="#7f1d1d" /><circle cx="100" cy="30" r="6" fill="#ffffff" />`,
-      'hat-cap': `<path d="M64 60 C64 35, 136 35, 136 60 Z" fill="#0369a1" /><path d="M125 55 L175 55 C175 55, 170 65, 125 65 Z" fill="#0284c7" />`,
-      'hat-fedora': `<path d="M68 55 C70 30, 130 30, 132 55 Z" fill="#27272a" /><rect x="72" y="47" width="56" height="8" fill="#991b1b" /><ellipse cx="100" cy="55" rx="55" ry="6" fill="#18181b" />`,
-      'hat-crown': `<path d="M68 62 L80 40 L92 55 L100 35 L108 55 L120 40 L132 62 Z" fill="#fbbf24" stroke="#d97706" stroke-width="2" /><circle cx="80" cy="38" r="3" fill="#ef4444" /><circle cx="100" cy="33" r="3" fill="#3b82f6" /><circle cx="120" cy="38" r="3" fill="#10b981" />`
+      'hat-beanie': `<path d="M61 58 C61 31, 139 31, 139 58 Z" fill="#b91c1c" /><rect x="55" y="53" width="90" height="14" rx="5" fill="#991b1b" /><circle cx="100" cy="27" r="7" fill="#ffffff" /><path d="M70 45 L70 53 M100 40 L100 53 M130 45 L130 53" stroke="rgba(0,0,0,0.15)" stroke-width="1" />`,
+      'hat-cap': `<path d="M62 58 C62 31, 138 31, 138 58 Z" fill="#1d4ed8" /><path d="M125 53 L178 53 C178 53, 172 65, 125 65 Z" fill="#1e40af" /><ellipse cx="100" cy="30" rx="3" ry="1.5" fill="#f59e0b" />`,
+      'hat-fedora': `<path d="M66 53 C68 26, 132 26, 134 53 Z" fill="#18181b" /><rect x="70" y="45" width="60" height="8" fill="#b91c1c" /><ellipse cx="100" cy="53" rx="58" ry="7" fill="#09090b" /><line x1="70" y1="49" x2="130" y2="49" stroke="#ef4444" stroke-width="0.5" />`,
+      'hat-crown': `<path d="M65 60 L78 35 L92 52 L100 30 L108 52 L122 35 L135 60 Z" fill="#facc15" stroke="#ca8a04" stroke-width="2.5" /><circle cx="78" cy="33" r="3.5" fill="#ef4444" /><circle cx="100" cy="28" r="3.5" fill="#3b82f6" /><circle cx="122" cy="33" r="3.5" fill="#10b981" />`
     };
     let activeHat = config.hat || 'none';
     if (memory.cosmetics) {
@@ -2403,23 +2429,23 @@
       svg += hatMap[activeHat] || '';
     }
     const accessoriesMap = {
-      'accessories-earbuds': `<circle cx="65" cy="90" r="4" fill="#ffffff" /><circle cx="135" cy="90" r="4" fill="#ffffff" />`,
-      'accessories-scar': `<path d="M72 90 L80 102 M76 96 L82 94" stroke="#991b1b" stroke-width="2" stroke-linecap="round" />`,
-      'accessories-headphones': `<rect x="58" y="78" width="10" height="24" rx="3" fill="#1e293b" /><rect x="132" y="78" width="10" height="24" rx="3" fill="#1e293b" /><path d="M63 78 C63 35, 137 35, 137 78" fill="none" stroke="#1e293b" stroke-width="6" />`
+      'accessories-earbuds': `<path d="M65 82 C65 82, 60 84, 60 88 M140 82 C140 82, 145 84, 145 88" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" fill="none" /><circle cx="60" cy="88" r="3.5" fill="#f8fafc" /><circle cx="145" cy="88" r="3.5" fill="#f8fafc" />`,
+      'accessories-scar': `<path d="M72 88 L82 102 M76 96 L84 94" stroke="#dc2626" stroke-width="2.5" stroke-linecap="round" />`,
+      'accessories-headphones': `<rect x="56" y="75" width="12" height="26" rx="4" fill="#0f172a" stroke="#1e293b" stroke-width="1.5" /><rect x="132" y="75" width="12" height="26" rx="4" fill="#0f172a" stroke="#1e293b" stroke-width="1.5" /><path d="M62 75 C62 30, 138 30, 138 75" fill="none" stroke="#0f172a" stroke-width="6.5" />`
     };
     svg += accessoriesMap[config.accessories] || '';
     const effectMap = {
-      'effect-leaves': `<g fill="#10b981" opacity="0.6"><path d="M30 40 Q40 35 35 48 Z"/><path d="M170 60 Q160 55 165 68 Z"/><path d="M25 120 Q35 115 30 128 Z"/><path d="M175 140 Q165 135 170 148 Z"/></g>`,
-      'effect-sparkles': `<g fill="#eab308" opacity="0.85"><path d="M20 50 L23 43 L30 40 L23 37 L20 30 L17 37 L10 40 L17 43 Z"/><path d="M180 80 L182 75 L188 73 L182 71 L180 66 L178 71 L172 73 L178 75 Z"/><path d="M35 150 L37 145 L43 143 L37 141 L35 136 L33 141 L27 143 L33 145 Z"/></g>`,
-      'effect-glitch': `<g fill="#f43f5e" opacity="0.7"><rect x="15" y="45" width="20" height="4" /><rect x="165" y="95" width="20" height="4" fill="#06b6d4" /><rect x="45" y="15" width="12" height="3" /><rect x="135" y="165" width="15" height="3" fill="#eab308" /></g>`,
-      'effect-fire': `<path d="M30 180 Q10 140 35 110 Q45 135 35 180" fill="#f97316" opacity="0.4" /><path d="M170 180 Q190 140 165 110 Q155 135 165 180" fill="#f97316" opacity="0.4" />`
+      'effect-leaves': `<g fill="#34d399"><path d="M30 40 Q40 33 34 46 Z" opacity="0.6"/><path d="M170 60 Q158 53 164 66 Z" opacity="0.5"/><path d="M25 120 Q35 113 28 126 Z" opacity="0.6"/><path d="M175 140 Q163 133 169 146 Z" opacity="0.5"/></g>`,
+      'effect-sparkles': `<g fill="#facc15" opacity="0.95"><path d="M20 50 L24 43 L32 40 L24 37 L20 30 L16 37 L8 40 L16 43 Z"/><path d="M180 80 L182 75 L188 73 L182 71 L180 66 L178 71 L172 73 L178 75 Z"/><path d="M35 150 L38 144 L44 142 L38 140 L35 134 L32 140 L26 142 L32 144 Z"/></g>`,
+      'effect-glitch': `<g fill="#f43f5e" opacity="0.65"><rect x="10" y="45" width="25" height="3" /><rect x="165" y="95" width="25" height="3" fill="#06b6d4" /><rect x="40" y="20" width="15" height="2" /><rect x="145" y="160" width="20" height="2" fill="#eab308" /></g>`,
+      'effect-fire': `<path d="M32 180 Q8 135 34 105 Q44 130 32 180" fill="#ea580c" opacity="0.45" /><path d="M34 180 Q18 145 34 125" fill="#facc15" opacity="0.5" /><path d="M168 180 Q192 135 166 105 Q156 130 166 180" fill="#ea580c" opacity="0.45" /><path d="M166 180 Q182 145 166 125" fill="#facc15" opacity="0.5" />`
     };
     svg += effectMap[config.effect] || '';
     const frameMap = {
-      'frame-silver': `<circle cx="100" cy="100" r="97" fill="none" stroke="#94a3b8" stroke-width="5" />`,
-      'frame-laurel': `<circle cx="100" cy="100" r="97" fill="none" stroke="#fbbf24" stroke-width="4" /><g fill="#fbbf24"><path d="M15 100 Q5 80 15 60 A97 97 0 0 1 15 100 Z"/><path d="M185 100 Q195 80 185 60 A97 97 0 0 0 185 100 Z"/></g>`,
-      'frame-neon': `<circle cx="100" cy="100" r="97" fill="none" stroke="#06b6d4" stroke-width="5" stroke-linecap="round" stroke-dasharray="60 30" />`,
-      'frame-diamond': `<circle cx="100" cy="100" r="97" fill="none" stroke="#a855f7" stroke-width="4" /><g fill="#c084fc"><polygon points="100,2 104,8 100,14 96,8" /><polygon points="100,198 104,192 100,186 96,192" /><polygon points="2,100 8,104 14,100 8,96" /><polygon points="198,100 192,104 186,100 192,96" /></g>`
+      'frame-silver': `<circle cx="100" cy="100" r="97" fill="none" stroke="#cbd5e1" stroke-width="5" /><circle cx="100" cy="100" r="96" fill="none" stroke="#94a3b8" stroke-width="1.5" />`,
+      'frame-laurel': `<circle cx="100" cy="100" r="97" fill="none" stroke="#fbbf24" stroke-width="4" /><g fill="#fbbf24"><path d="M15 100 Q3 78 15 56 A97 97 0 0 1 15 100 Z"/><path d="M185 100 Q197 78 185 56 A97 97 0 0 0 185 100 Z"/></g>`,
+      'frame-neon': `<circle cx="100" cy="100" r="97" fill="none" stroke="#06b6d4" stroke-width="5" stroke-linecap="round" stroke-dasharray="60 30" /><circle cx="100" cy="100" r="97" fill="none" stroke="#3b82f6" stroke-width="5" stroke-linecap="round" stroke-dasharray="30 60" opacity="0.6"/>`,
+      'frame-diamond': `<circle cx="100" cy="100" r="97" fill="none" stroke="#c084fc" stroke-width="4.5" /><g fill="#a855f7"><polygon points="100,2 106,8 100,14 94,8" /><polygon points="100,198 106,192 100,186 94,192" /><polygon points="2,100 8,106 14,100 8,94" /><polygon points="198,100 192,106 186,100 192,94" /></g>`
     };
     svg += frameMap[config.frame] || '';
     svg += `</svg>`;
@@ -2463,35 +2489,35 @@
     const bannerThemes = {
       'banner-tech': {
         bg: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
-        svg: `<svg style="position:absolute;width:100%;height:100%;left:0;top:0" xmlns="http://www.w3.org/2000/svg"><pattern id="techPattern" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M0 40 L40 0 M0 0 L40 40" fill="none" stroke="#38bdf8" stroke-width="0.5" opacity="0.1"/><circle cx="20" cy="20" r="4" fill="#38bdf8" opacity="0.15"/></pattern><rect width="100%" height="100%" fill="url(#techPattern)"/></svg>`
+        svg: `<svg style="position:absolute;width:100%;height:100%;left:0;top:0" xmlns="http://www.w3.org/2000/svg"><pattern id="techPattern" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M0 40 L40 0 M0 0 L40 40" fill="none" stroke="#38bdf8" stroke-width="0.5" opacity="0.12"/><circle cx="20" cy="20" r="4" fill="#38bdf8" opacity="0.15"/></pattern><rect width="100%" height="100%" fill="url(#techPattern)"/></svg>`
       },
       'banner-nature': {
-        bg: 'linear-gradient(135deg, #065f46 0%, #047857 100%)',
-        svg: `<svg style="position:absolute;width:100%;height:100%;left:0;top:0" xmlns="http://www.w3.org/2000/svg"><g fill="#34d399" opacity="0.1"><path d="M20 40 C10 60, 40 80, 50 60 C60 40, 30 20, 20 40 Z"/><path d="M220 50 C210 70, 240 90, 250 70 C260 50, 230 30, 220 50 Z"/></g></svg>`
+        bg: 'linear-gradient(135deg, #064e3b 0%, #047857 100%)',
+        svg: `<svg style="position:absolute;width:100%;height:100%;left:0;top:0" xmlns="http://www.w3.org/2000/svg"><g fill="#10b981" opacity="0.08"><path d="M20 40 C10 60, 40 80, 50 60 C60 40, 30 20, 20 40 Z"/><path d="M220 50 C210 70, 240 90, 250 70 C260 50, 230 30, 220 50 Z"/></g></svg>`
       },
       'banner-space': {
         bg: 'radial-gradient(circle, #1e1b4b 0%, #020617 100%)',
-        svg: `<svg style="position:absolute;width:100%;height:100%;left:0;top:0" xmlns="http://www.w3.org/2000/svg"><g fill="#ffffff" opacity="0.3"><circle cx="40" cy="50" r="1.5"/><circle cx="120" cy="30" r="1"/><circle cx="280" cy="80" r="2"/><circle cx="340" cy="40" r="1"/><circle cx="460" cy="70" r="1.5"/><circle cx="580" cy="30" r="1"/></g></svg>`
+        svg: `<svg style="position:absolute;width:100%;height:100%;left:0;top:0" xmlns="http://www.w3.org/2000/svg"><g fill="#ffffff" opacity="0.45"><circle cx="40" cy="50" r="1.5"/><circle cx="120" cy="30" r="1"/><circle cx="280" cy="80" r="2"/><circle cx="340" cy="40" r="1"/><circle cx="460" cy="70" r="1.5"/><circle cx="580" cy="30" r="1"/></g></svg>`
       },
       'banner-sea': {
         bg: 'linear-gradient(135deg, #0c4a6e 0%, #0369a1 100%)',
-        svg: `<svg style="position:absolute;width:100%;height:100%;left:0;top:0" xmlns="http://www.w3.org/2000/svg"><path d="M0 60 Q150 40, 300 60 T600 60 L600 120 L0 120 Z" fill="#38bdf8" opacity="0.08"/></svg>`
+        svg: `<svg style="position:absolute;width:100%;height:100%;left:0;top:0" xmlns="http://www.w3.org/2000/svg"><path d="M0 60 Q150 35, 300 60 T600 60 L600 120 L0 120 Z" fill="#38bdf8" opacity="0.12"/></svg>`
       },
       'banner-abstract': {
-        bg: 'linear-gradient(135deg, #581c87 0%, #4338ca 100%)',
-        svg: `<svg style="position:absolute;width:100%;height:100%;left:0;top:0" xmlns="http://www.w3.org/2000/svg"><circle cx="10%" cy="50%" r="80" fill="#a855f7" opacity="0.15" filter="blur(20px)"/><circle cx="80%" cy="30%" r="100" fill="#6366f1" opacity="0.2" filter="blur(30px)"/></svg>`
+        bg: 'linear-gradient(135deg, #4c1d95 0%, #312e81 100%)',
+        svg: `<svg style="position:absolute;width:100%;height:100%;left:0;top:0" xmlns="http://www.w3.org/2000/svg"><circle cx="20%" cy="40%" r="90" fill="#a855f7" opacity="0.2" filter="blur(25px)"/><circle cx="75%" cy="30%" r="110" fill="#6366f1" opacity="0.25" filter="blur(35px)"/></svg>`
       },
       'banner-founder': {
-        bg: 'linear-gradient(135deg, #78350f 0%, #b45309 100%)',
-        svg: `<svg style="position:absolute;width:100%;height:100%;left:0;top:0" xmlns="http://www.w3.org/2000/svg"><g fill="#fbbf24" opacity="0.1"><polygon points="0,0 50,0 25,50"/><polygon points="200,0 250,0 225,50"/></g></svg>`
+        bg: 'linear-gradient(135deg, #451a03 0%, #78350f 100%)',
+        svg: `<svg style="position:absolute;width:100%;height:100%;left:0;top:0" xmlns="http://www.w3.org/2000/svg"><g fill="#fbbf24" opacity="0.12"><polygon points="0,0 60,0 30,60"/><polygon points="200,0 260,0 230,60"/></g></svg>`
       },
       'banner-referrals': {
-        bg: 'linear-gradient(135deg, #115e59 0%, #0f766e 100%)',
-        svg: `<svg style="position:absolute;width:100%;height:100%;left:0;top:0" xmlns="http://www.w3.org/2000/svg"><pattern id="refPattern" width="30" height="30" patternUnits="userSpaceOnUse"><circle cx="15" cy="15" r="3" fill="#2dd4bf" stroke="none" opacity="0.15"/></pattern><rect width="100%" height="100%" fill="url(#refPattern)"/></svg>`
+        bg: 'linear-gradient(135deg, #134e4a 0%, #0f766e 100%)',
+        svg: `<svg style="position:absolute;width:100%;height:100%;left:0;top:0" xmlns="http://www.w3.org/2000/svg"><pattern id="refPattern" width="30" height="30" patternUnits="userSpaceOnUse"><circle cx="15" cy="15" r="3" fill="#2dd4bf" stroke="none" opacity="0.2"/></pattern><rect width="100%" height="100%" fill="url(#refPattern)"/></svg>`
       },
       'banner-community': {
-        bg: 'linear-gradient(135deg, #881337 0%, #9f1239 100%)',
-        svg: `<svg style="position:absolute;width:100%;height:100%;left:0;top:0" xmlns="http://www.w3.org/2000/svg"><g stroke="#f43f5e" stroke-width="1" fill="none" opacity="0.15"><circle cx="100" cy="50" r="30"/><circle cx="130" cy="50" r="30"/><circle cx="160" cy="50" r="30"/></g></svg>`
+        bg: 'linear-gradient(135deg, #4c0519 0%, #881337 100%)',
+        svg: `<svg style="position:absolute;width:100%;height:100%;left:0;top:0" xmlns="http://www.w3.org/2000/svg"><g stroke="#f43f5e" stroke-width="1" fill="none" opacity="0.18"><circle cx="100" cy="50" r="30"/><circle cx="130" cy="50" r="30"/><circle cx="160" cy="50" r="30"/></g></svg>`
       }
     };
     const theme = bannerThemes[bannerValue] || {
