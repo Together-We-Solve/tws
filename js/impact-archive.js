@@ -1,525 +1,324 @@
-/* ============================================
-   TOGETHER WE SOLVE — impact-archive.js
-   Watercolor ripples & Timeline drawer interactions
-   ============================================ */
-
 (function () {
   'use strict';
+
   const esc = window.TWS.escapeHTML;
+  let lenis = null;
 
-  /* ─── LENIS SMOOTH SCROLL ──────────────────── */
-  const lenis = new Lenis({
-    lerp: 0.08,
-    smoothWheel: true,
-    touchMultiplier: 1.5,
-  });
-
-  lenis.on('scroll', ScrollTrigger.update);
-
-  gsap.ticker.add((time) => {
-    lenis.raf(time * 1000);
-  });
-
-  gsap.ticker.lagSmoothing(0);
-
-  /* ─── NAV SCROLL STATE ─────────────────────── */
-  const nav = document.getElementById('nav');
-  if (nav) {
-    ScrollTrigger.create({
-      start: 'top -80',
-      onUpdate: (self) => {
-        if (self.scroll() > 80) {
-          nav.classList.add('scrolled');
-        } else {
-          nav.classList.remove('scrolled');
-        }
-      }
-    });
+  function initSmoothScroll() {
+    if (!window.Lenis || !window.gsap || !window.ScrollTrigger) return;
+    lenis = new Lenis({ lerp: 0.08, smoothWheel: true, touchMultiplier: 1.5 });
+    lenis.on('scroll', ScrollTrigger.update);
+    gsap.ticker.add((time) => lenis.raf(time * 1000));
+    gsap.ticker.lagSmoothing(0);
+    const nav = document.getElementById('nav');
+    if (nav) {
+      ScrollTrigger.create({
+        start: 'top -80',
+        onUpdate: (self) => nav.classList.toggle('scrolled', self.scroll() > 80)
+      });
+    }
   }
 
-  /* ─── WATERCOLOR RIPPLE CANVAS ──────────────── */
   function initRippleCanvas() {
     const canvas = document.getElementById('rippleCanvas');
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
-    let W, H;
+    let width = 0;
+    let height = 0;
     let ripples = [];
-    
+
     function resize() {
-      W = canvas.width = canvas.offsetWidth;
-      H = canvas.height = canvas.offsetHeight;
+      width = canvas.width = canvas.offsetWidth;
+      height = canvas.height = canvas.offsetHeight;
     }
 
-    class WatercolorRipple {
-      constructor(x, y) {
-        this.x = x || Math.random() * W;
-        this.y = y || Math.random() * H;
-        this.r = 8;
-        this.maxRadius = Math.random() * 150 + 120;
-        this.speed = Math.random() * 0.9 + 0.7;
-        this.opacity = 0.5;
-        this.phase = Math.random() * Math.PI;
-        this.noiseFreq = Math.random() * 3 + 3;
-      }
-
-      update() {
-        this.r += this.speed;
-        this.phase += 0.015;
-        this.opacity = 1 - (this.r / this.maxRadius);
-      }
-
-      draw() {
-        ctx.beginPath();
-        const segments = 24;
-        
-        // Draw highly organic watercolor bleeding edge using sine noise
-        for (let i = 0; i <= segments; i++) {
-          const angle = (i / segments) * Math.PI * 2;
-          const noiseVal = Math.sin(angle * this.noiseFreq + this.phase) * (this.r * 0.07);
-          const radiusWithNoise = this.r + noiseVal;
-          const rx = this.x + Math.cos(angle) * radiusWithNoise;
-          const ry = this.y + Math.sin(angle) * radiusWithNoise;
-
-          if (i === 0) ctx.moveTo(rx, ry);
-          else ctx.lineTo(rx, ry);
-        }
-
-        ctx.closePath();
-
-        // Clay gradient rings fading outward
-        ctx.strokeStyle = `rgba(200, 125, 85, ${this.opacity * 0.25})`;
-        ctx.lineWidth = 1.4;
-        ctx.stroke();
-
-        // Muted forest green shadow ring
-        ctx.strokeStyle = `rgba(35, 56, 43, ${this.opacity * 0.1})`;
-        ctx.lineWidth = 0.6;
-        ctx.stroke();
-      }
+    function addRipple(x = Math.random() * width, y = Math.random() * height) {
+      if (ripples.length >= 6) return;
+      ripples.push({
+        x,
+        y,
+        radius: 8,
+        maxRadius: Math.random() * 150 + 120,
+        speed: Math.random() * 0.9 + 0.7,
+        phase: Math.random() * Math.PI,
+        noiseFreq: Math.random() * 3 + 3
+      });
     }
 
-    function addAutoRipple() {
-      if (ripples.length < 4) {
-        ripples.push(new WatercolorRipple());
+    function drawRipple(ripple) {
+      ripple.radius += ripple.speed;
+      ripple.phase += 0.015;
+      const opacity = Math.max(0, 1 - (ripple.radius / ripple.maxRadius));
+      ctx.beginPath();
+      for (let index = 0; index <= 24; index += 1) {
+        const angle = (index / 24) * Math.PI * 2;
+        const noise = Math.sin(angle * ripple.noiseFreq + ripple.phase) * (ripple.radius * 0.07);
+        const radius = ripple.radius + noise;
+        const x = ripple.x + Math.cos(angle) * radius;
+        const y = ripple.y + Math.sin(angle) * radius;
+        if (index === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
       }
+      ctx.closePath();
+      ctx.strokeStyle = `rgba(200, 125, 85, ${opacity * 0.25})`;
+      ctx.lineWidth = 1.4;
+      ctx.stroke();
+      ctx.strokeStyle = `rgba(35, 56, 43, ${opacity * 0.1})`;
+      ctx.lineWidth = 0.6;
+      ctx.stroke();
     }
-
-    // Organic auto-spawning representing community ripples
-    const intervalId = setInterval(addAutoRipple, 2600);
-
-    // Click/MouseMove triggers
-    canvas.addEventListener('mousemove', (e) => {
-      // Limit cursor ripples by chance to prevent canvas overcrowding
-      if (Math.random() > 0.94) {
-        const rect = canvas.getBoundingClientRect();
-        const mouseX = e.clientX - rect.left;
-        const mouseY = e.clientY - rect.top;
-        ripples.push(new WatercolorRipple(mouseX, mouseY));
-      }
-    });
-
-    canvas.addEventListener('click', (e) => {
-      const rect = canvas.getBoundingClientRect();
-      const mouseX = e.clientX - rect.left;
-      const mouseY = e.clientY - rect.top;
-      ripples.push(new WatercolorRipple(mouseX, mouseY));
-    });
 
     function draw() {
-      ctx.clearRect(0, 0, W, H);
-      ripples.forEach((r, idx) => {
-        r.update();
-        r.draw();
-        if (r.r >= r.maxRadius) {
-          ripples.splice(idx, 1);
-        }
-      });
+      ctx.clearRect(0, 0, width, height);
+      ripples.forEach(drawRipple);
+      ripples = ripples.filter((ripple) => ripple.radius < ripple.maxRadius);
       requestAnimationFrame(draw);
     }
 
     resize();
+    setInterval(() => addRipple(), 2600);
+    canvas.addEventListener('mousemove', (event) => {
+      if (Math.random() <= 0.94) return;
+      const rect = canvas.getBoundingClientRect();
+      addRipple(event.clientX - rect.left, event.clientY - rect.top);
+    });
+    canvas.addEventListener('click', (event) => {
+      const rect = canvas.getBoundingClientRect();
+      addRipple(event.clientX - rect.left, event.clientY - rect.top);
+    });
+    window.addEventListener('resize', resize);
     draw();
+  }
 
-    window.addEventListener('resize', () => {
-      W = canvas.width = canvas.offsetWidth;
-      H = canvas.height = canvas.offsetHeight;
+  function formatNumber(value) {
+    return Math.max(0, Number(value) || 0).toLocaleString();
+  }
+
+  function categoryClass(category) {
+    return {
+      Education: 'edu',
+      Technical: 'tech',
+      Environmental: 'env',
+      Community: 'comm'
+    }[category] || 'tech';
+  }
+
+  function identityKey(value) {
+    if (typeof value === 'object' && value) {
+      return window.TWS.toUsername(value.username || value.displayName || value.name || value.email || value.uid || value.id || '');
+    }
+    return window.TWS.toUsername(value);
+  }
+
+  function contributorNames(problem) {
+    return Array.from(new Set((Array.isArray(problem.contributors) ? problem.contributors : [])
+      .map((item) => typeof item === 'string' ? item : (item.displayName || item.username || item.name || ''))
+      .concat(problem.solvedBy || '')
+      .map((item) => String(item || '').trim())
+      .filter(Boolean)));
+  }
+
+  function archiveSummary(problem) {
+    return problem.archiveSummary || problem.resolution || problem.ownerReview || problem.friction || '';
+  }
+
+  function setText(id, value) {
+    const element = document.getElementById(id);
+    if (element) element.textContent = value;
+  }
+
+  function setArchiveStats(problems, members) {
+    const solved = problems.filter((problem) => problem.status === 'Solved');
+    const solverKeys = new Set();
+    solved.forEach((problem) => contributorNames(problem).forEach((name) => {
+      const key = identityKey(name);
+      if (key) solverKeys.add(key);
+    }));
+    members.forEach((member) => {
+      const solvedCount = Number(member.stats?.problemsSolved ?? member.solved) || 0;
+      const key = solvedCount > 0 ? identityKey(member) : '';
+      if (key) solverKeys.add(key);
+    });
+    setText('archiveSolvedCount', formatNumber(solved.length));
+    setText('archiveHoursSaved', formatNumber(solved.reduce((sum, problem) => sum + (Number(problem.archiveHoursSaved) || 0), 0)));
+    setText('archiveActiveSolvers', formatNumber(solverKeys.size));
+    setText('archiveRippleReach', formatNumber(solved.reduce((sum, problem) => sum + (Number(problem.archiveRippleReach) || 0), 0)));
+  }
+
+  function renderProblem(problem) {
+    const names = contributorNames(problem);
+    const solvedBy = problem.solvedBy || names[0] || '';
+    const others = names.filter((name) => name !== solvedBy);
+    const othersHtml = others.length
+      ? ` (with participation from: ${others.map((name) => `<a href="${window.TWS.profileUrl(name)}" style="color: var(--accent-ocean); font-weight: 500;">${esc(name)}</a>`).join(', ')})`
+      : '';
+    const awardParts = [];
+    if (Number(problem.winnerXP) || Number(problem.winnerEXP)) awardParts.push(`Solver: +${formatNumber(problem.winnerXP)} IP / +${formatNumber(problem.winnerEXP)} EXP`);
+    if (Number(problem.attemptXP) || Number(problem.attemptEXP)) awardParts.push(`Attempts: +${formatNumber(problem.attemptXP)} IP / +${formatNumber(problem.attemptEXP)} EXP`);
+    const summary = archiveSummary(problem);
+    const outcome = problem.archiveOutcome || problem.ownerReview || problem.resolution || 'No verified outcome note recorded.';
+    return `
+      <div class="timeline-item" data-category="${esc(problem.category || 'Community')}">
+        <div class="timeline-marker"></div>
+        <div class="timeline-card">
+          <div class="card-header">
+            <span class="item-date">${esc(problem.date || '')}</span>
+            <span class="category-tag ${categoryClass(problem.category)}">${esc(problem.category || 'Community')}</span>
+          </div>
+          <h3 class="item-title">${esc(problem.title || 'Untitled Problem')} <span class="archive-badge">Verified Solution</span></h3>
+          <p class="item-summary">${esc(summary ? `${summary.slice(0, 160)}${summary.length > 160 ? '...' : ''}` : 'No archive summary recorded.')}</p>
+          <div class="item-meta">
+            <span class="meta-field">Resolved By: ${solvedBy ? `<a href="${window.TWS.profileUrl(solvedBy)}" style="color: var(--accent-moss); font-weight: 600; text-decoration: underline;">${esc(solvedBy)}</a>${othersHtml}` : 'Not recorded'}</span>
+            <div class="ripple-score">
+              <span class="score-val">${formatNumber(problem.archiveClones)} Clones</span>
+              <span class="score-val">${formatNumber(problem.archiveViews)} Views</span>
+              <span class="score-val">${formatNumber(problem.archiveRippleReach)} Reached</span>
+            </div>
+          </div>
+          <button class="expand-btn">View Detailed Journey <span class="arrow">Down</span></button>
+          <div class="item-drawer">
+            <div class="drawer-content">
+              <div class="drawer-section">
+                <h4>The Friction</h4>
+                <p>${esc(problem.friction || 'No friction detail recorded.')}</p>
+              </div>
+              <div class="drawer-section">
+                <h4>The Search</h4>
+                <p>${esc(problem.tried || 'No search notes recorded.')}</p>
+              </div>
+              <div class="drawer-section">
+                <h4>The Ripple</h4>
+                <p>${esc(problem.ripple || 'No ripple notes recorded.')}</p>
+              </div>
+              <div class="drawer-section archive-wide">
+                <h4>Verified Outcome</h4>
+                <p>${esc(outcome)}</p>
+                <p>${esc(awardParts.length ? awardParts.join(' | ') : 'No award totals recorded.')}</p>
+                <p>${esc(Number(problem.archiveHoursSaved) ? `${formatNumber(problem.archiveHoursSaved)} hours saved recorded.` : 'No hours-saved estimate recorded.')}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function refreshLayout() {
+    if (window.ScrollTrigger) ScrollTrigger.refresh();
+    if (lenis) lenis.resize();
+  }
+
+  function initAccordions() {
+    document.querySelectorAll('.timeline-card').forEach((card) => {
+      const button = card.querySelector('.expand-btn');
+      const drawer = card.querySelector('.item-drawer');
+      const content = card.querySelector('.drawer-content');
+      if (!button || !drawer || !content || !window.gsap) return;
+      button.addEventListener('click', (event) => {
+        event.stopPropagation();
+        const expanded = card.classList.contains('expanded');
+        card.classList.toggle('expanded', !expanded);
+        gsap.to(drawer, {
+          height: expanded ? 0 : content.offsetHeight + 24,
+          duration: expanded ? 0.5 : 0.6,
+          ease: expanded ? 'power3.inOut' : 'power3.out',
+          onComplete: refreshLayout
+        });
+      });
     });
   }
 
-  /* ─── ENTRANCE ANIMATIONS ──────────────────── */
-  function initAnimations() {
-    // Hero Entrance
-    const tl = gsap.timeline({ delay: 0.2 });
-    gsap.set('.hero-eyebrow, .hero-headline, .hero-tagline, .hero-body', { y: 30, opacity: 0 });
+  function initFiltering() {
+    const searchInput = document.getElementById('archiveSearch');
+    const tagButtons = document.querySelectorAll('.tag-btn');
+    let activeFilter = 'all';
+    let searchQuery = '';
 
-    tl.to('.hero-eyebrow', { opacity: 1, y: 0, duration: 0.8, ease: 'power2.out' })
-      .to('.hero-headline', { opacity: 1, y: 0, duration: 1.0, ease: 'power3.out' }, '-=0.5')
+    function applyFilter() {
+      const items = document.querySelectorAll('.timeline-item');
+      let visibleCount = 0;
+      items.forEach((item) => {
+        const category = item.getAttribute('data-category') || '';
+        const text = item.textContent.toLowerCase();
+        const matches = (activeFilter === 'all' || category === activeFilter) && (!searchQuery || text.includes(searchQuery));
+        if (matches) visibleCount += 1;
+        item.style.display = matches ? 'block' : 'none';
+        item.style.opacity = matches ? '1' : '0';
+      });
+      const empty = document.getElementById('archiveEmptyState');
+      if (empty) empty.style.display = visibleCount ? 'none' : 'block';
+      refreshLayout();
+    }
+
+    tagButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        tagButtons.forEach((item) => item.classList.remove('active'));
+        button.classList.add('active');
+        activeFilter = button.getAttribute('data-filter') || 'all';
+        applyFilter();
+      });
+    });
+    if (searchInput) {
+      searchInput.addEventListener('input', (event) => {
+        searchQuery = event.target.value.toLowerCase().trim();
+        applyFilter();
+      });
+    }
+  }
+
+  function initAnimations() {
+    if (!window.gsap || !window.ScrollTrigger) return;
+    gsap.set('.hero-eyebrow, .hero-headline, .hero-tagline, .hero-body', { y: 30, opacity: 0 });
+    gsap.timeline({ delay: 0.2 })
+      .to('.hero-eyebrow', { opacity: 1, y: 0, duration: 0.8, ease: 'power2.out' })
+      .to('.hero-headline', { opacity: 1, y: 0, duration: 1, ease: 'power3.out' }, '-=0.5')
       .to('.hero-tagline', { opacity: 1, y: 0, duration: 0.8, ease: 'power2.out' }, '-=0.6')
       .to('.hero-body', { opacity: 1, y: 0, duration: 0.8, ease: 'power2.out' }, '-=0.5');
-
-    // Stats Cards Stagger
     gsap.set('.stat-card', { opacity: 0, y: 30 });
     ScrollTrigger.create({
       trigger: '.stats-grid',
       start: 'top 88%',
-      onEnter: () => {
-        gsap.to('.stat-card', {
-          opacity: 1,
-          y: 0,
-          duration: 1.0,
-          stagger: 0.1,
-          ease: 'power3.out'
-        });
-      },
+      onEnter: () => gsap.to('.stat-card', { opacity: 1, y: 0, duration: 1, stagger: 0.1, ease: 'power3.out' }),
       once: true
     });
-
-    // Section Labels and Headlines
-    document.querySelectorAll('.label, .section-headline').forEach(el => {
-      gsap.set(el, { opacity: 0, y: 20 });
-      ScrollTrigger.create({
-        trigger: el,
-        start: 'top 90%',
-        onEnter: () => gsap.to(el, { opacity: 1, y: 0, duration: 0.8, ease: 'power2.out' }),
-        once: true
-      });
-    });
-
-    // Timeline Items Stagger
     gsap.set('.timeline-item', { opacity: 0, x: -15 });
     ScrollTrigger.create({
       trigger: '.archive-timeline',
       start: 'top 85%',
-      onEnter: () => {
-        gsap.to('.timeline-item', {
-          opacity: 1,
-          x: 0,
-          duration: 0.9,
-          stagger: 0.12,
-          ease: 'power2.out'
-        });
-      },
+      onEnter: () => gsap.to('.timeline-item', { opacity: 1, x: 0, duration: 0.9, stagger: 0.12, ease: 'power2.out' }),
       once: true
     });
   }
 
-  /* ─── ACCORDION EXPANDABLE DRAWERS ────────── */
-  function initAccordions() {
-    const cards = document.querySelectorAll('.timeline-card');
-
-    cards.forEach(card => {
-      const btn = card.querySelector('.expand-btn');
-      const drawer = card.querySelector('.item-drawer');
-      const content = card.querySelector('.drawer-content');
-
-      if (!btn || !drawer || !content) return;
-
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const isExpanded = card.classList.contains('expanded');
-
-        if (!isExpanded) {
-          // Open drawer: measure scrollHeight of content
-          const height = content.offsetHeight + 24; // account for margins/padding
-          card.classList.add('expanded');
-          
-          gsap.to(drawer, {
-            height: height,
-            duration: 0.6,
-            ease: 'power3.out',
-            onComplete: () => {
-              // Update Lenis scroll limits since page height changed
-              ScrollTrigger.refresh();
-              lenis.resize();
-            }
-          });
-        } else {
-          // Close drawer
-          card.classList.remove('expanded');
-          
-          gsap.to(drawer, {
-            height: 0,
-            duration: 0.5,
-            ease: 'power3.inOut',
-            onComplete: () => {
-              ScrollTrigger.refresh();
-              lenis.resize();
-            }
-          });
-        }
-      });
-    });
-  }
-
-  /* ─── TIMELINE SEARCH & FILTERING ──────────── */
-  function initFiltering() {
-    const searchInput = document.getElementById('archiveSearch');
-    const tagButtons = document.querySelectorAll('.tag-btn');
-    const timelineItems = document.querySelectorAll('.timeline-item');
-
-    let activeFilter = 'all';
-    let searchQuery = '';
-
-    function filterTimeline() {
-      timelineItems.forEach(item => {
-        const category = item.getAttribute('data-category');
-        const title = item.querySelector('.item-title').textContent.toLowerCase();
-        const summary = item.querySelector('.item-summary').textContent.toLowerCase();
-        const solver = item.querySelector('.meta-field').textContent.toLowerCase();
-        
-        // Match drawer content for deep searches
-        const drawerTexts = Array.from(item.querySelectorAll('.drawer-section p, .drawer-section h4'))
-          .map(el => el.textContent.toLowerCase())
-          .join(' ');
-
-        const matchesFilter = activeFilter === 'all' || category === activeFilter;
-        const matchesSearch = title.includes(searchQuery) || 
-                            summary.includes(searchQuery) || 
-                            solver.includes(searchQuery) ||
-                            drawerTexts.includes(searchQuery);
-
-        if (matchesFilter && matchesSearch) {
-          if (item.style.display === 'none' || item.style.opacity === '0') {
-            item.style.display = 'block';
-            gsap.fromTo(item, { opacity: 0, y: 15 }, { opacity: 1, y: 0, duration: 0.4, ease: 'power2.out' });
-          }
-        } else {
-          if (item.style.display !== 'none') {
-            gsap.to(item, {
-              opacity: 0,
-              y: -10,
-              duration: 0.3,
-              ease: 'power2.in',
-              onComplete: () => {
-                item.style.display = 'none';
-              }
-            });
-          }
-        }
-      });
-
-      // Recalculate page size
-      setTimeout(() => {
-        ScrollTrigger.refresh();
-        lenis.resize();
-      }, 350);
-    }
-
-    tagButtons.forEach(btn => {
-      btn.addEventListener('click', () => {
-        tagButtons.forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        activeFilter = btn.getAttribute('data-filter');
-        filterTimeline();
-      });
-    });
-
-    if (searchInput) {
-      searchInput.addEventListener('input', (e) => {
-        searchQuery = e.target.value.toLowerCase().trim();
-        filterTimeline();
-      });
-    }
-  }
-
-  /* ─── LOAD CUSTOM PERSISTED PROBLEMS ────────── */
-  async function loadCustomProblems() {
-    const timeline = document.querySelector('.archive-timeline');
+  async function loadArchiveData() {
+    const timeline = document.getElementById('archiveTimeline');
     if (!timeline) return;
-
     try {
-      const customProblems = await window.TWS.loadProblemsAsync([]);
-      
-      // Iterate to prepend, showing the most recently added problem at the top
-      customProblems.forEach(prob => {
-        // Impact Archive is only for evaluator-finalized solved frictions.
-        if (prob.status !== 'Solved') {
-          return;
-        }
-
-        const item = document.createElement('div');
-        item.className = 'timeline-item';
-        item.setAttribute('data-category', prob.category);
-
-        const categoryClassMap = {
-          'Education': 'edu',
-          'Technical': 'tech',
-          'Environmental': 'env',
-          'Community': 'comm'
-        };
-        const catClass = categoryClassMap[prob.category] || 'tech';
-
-        const isSolved = prob.status === 'Solved';
-
-        let badgeHtml = '';
-        let solverMetaHtml = '';
-        let opportunityHtml = '';
-
-        if (isSolved) {
-          badgeHtml = `<span style="font-size: 10px; font-family: var(--font-body); text-transform: uppercase; letter-spacing: 0.1em; padding: 3px 10px; border-radius: 100px; background: rgba(35, 56, 43, 0.08); color: var(--accent-moss); margin-left: 8px; font-weight: 600; vertical-align: middle;">Co-Authored Solution</span>`;
-          
-          const othersList = prob.contributors ? prob.contributors.filter(c => c !== prob.solvedBy) : [];
-          let othersHtml = '';
-          if (othersList.length > 0) {
-            othersHtml = ` (with participation from: ${othersList.map(c => `<a href="${window.TWS.profileUrl(c)}" style="color: var(--accent-ocean); font-weight: 500;">${esc(c)}</a>`).join(', ')})`;
-          }
-
-          solverMetaHtml = `
-            <span class="meta-field">Resolved By: <a href="${window.TWS.profileUrl(prob.solvedBy)}" style="color: var(--accent-moss); font-weight: 600; text-decoration: underline;">${esc(prob.solvedBy)}</a>${othersHtml}</span>
-          `;
-
-          opportunityHtml = `
-            <div class="drawer-section" style="grid-column: span 3; border-top: 1px dashed var(--border-light); padding-top: 18px; margin-top: 12px; background: rgba(35, 56, 43, 0.015); padding: 16px; border-radius: 8px;">
-              <h4 style="color: var(--accent-moss); margin-bottom: 6px; text-transform: uppercase; font-size: 11px; font-weight: 600;">Verified Resolution & Owner Feedback</h4>
-              <p style="font-style: italic; opacity: 0.85;">"${esc(prob.ownerReview || 'Challenge successfully completed and archived.')}"</p>
-              <div style="font-size: 11px; opacity: 0.6; margin-top: 10px; display: flex; gap: 15px;">
-                <span>Complexity: <strong>${esc(prob.complexity)}</strong></span>
-                <span>Council Award: <strong>+${prob.winnerXP || window.TWS.defaultImpactRewards.verifiedSolution} IP / +${prob.winnerEXP || window.TWS.defaultExperienceRewards.verifiedSolution} EXP Solver, +${prob.attemptXP || window.TWS.defaultImpactRewards.partialSolution} IP / +${prob.attemptEXP || window.TWS.defaultExperienceRewards.partialSolution} EXP Attempts</strong></span>
-              </div>
-            </div>
-          `;
-        } else {
-          badgeHtml = `<span style="font-size: 10px; font-family: var(--font-body); text-transform: uppercase; letter-spacing: 0.1em; padding: 3px 10px; border-radius: 100px; background: rgba(200, 125, 85, 0.1); color: var(--accent-clay); margin-left: 8px; font-weight: 600; vertical-align: middle;">Open Challenge</span>`;
-          
-          const attemptsCount = prob.contributors ? prob.contributors.length : 0;
-          let attemptsInfo = 'Seeking Solver...';
-          if (attemptsCount > 0) {
-            attemptsInfo = `${attemptsCount} Solver${attemptsCount > 1 ? 's' : ''} attempting (External)`;
-          }
-
-          solverMetaHtml = `
-            <span class="meta-field">Status: <strong style="color: var(--accent-clay); font-style: italic;">${attemptsInfo}</strong></span>
-          `;
-
-          let contributorsAvatarsHtml = '';
-          if (attemptsCount > 0) {
-            contributorsAvatarsHtml = `
-              <div style="margin-top: 8px; font-size: 12px; opacity: 0.7;">
-                Attempting: <strong>${esc(prob.contributors.join(', '))}</strong>
-              </div>
-            `;
-          }
-
-          opportunityHtml = `
-            <div class="drawer-section" style="grid-column: span 3; border-top: 1px dashed var(--border-light); padding-top: 18px; margin-top: 12px; display: flex; flex-direction: column; gap: 12px; align-items: flex-start;">
-              <h4 style="color: var(--accent-clay); text-transform: uppercase; font-size: 11px; font-weight: 600;">Cooperative Bounty Opportunity</h4>
-              <p>This challenge is currently open and being solved in external applications. You can self-assign to register your attempt, earning participation points even if someone else closes it first.</p>
-              ${contributorsAvatarsHtml}
-              <div style="display: flex; gap: 10px; margin-top: 8px; width: 100%;">
-                <button type="button" class="btn btn-primary btn-sm btn-attempt-challenge" data-id="${esc(prob.id)}" style="padding: 8px 16px; font-size: 12px; border-radius: 100px; border: none; cursor: pointer; background: var(--accent-moss); color: var(--bg-warm);">Claim & Attempt Challenge</button>
-                <a href="members.html" class="btn btn-outline btn-sm" style="padding: 8px 16px; font-size: 12px; border-radius: 100px; border: 1px solid var(--border-light); color: var(--text-charcoal); text-decoration: none;">View Members</a>
-              </div>
-            </div>
-          `;
-        }
-
-        item.innerHTML = `
-          <div class="timeline-marker"></div>
-          <div class="timeline-card">
-            <div class="card-header">
-              <span class="item-date">${esc(prob.date)}</span>
-              <span class="category-tag ${catClass}">${esc(prob.category)}</span>
-            </div>
-            <h3 class="item-title">${esc(prob.title)} ${badgeHtml}</h3>
-            <p class="item-summary">${esc(prob.friction.substring(0, 120))}...</p>
-            
-            <div class="item-meta">
-              ${solverMetaHtml}
-              <div class="ripple-score">
-                <span class="score-val">✨ ${prob.clones} Clones</span>
-                <span class="score-val">👁️ ${prob.views} Views</span>
-              </div>
-            </div>
-            
-            <button class="expand-btn">View Detailed Journey <span class="arrow">↓</span></button>
-            
-            <!-- Expanding Drawer -->
-            <div class="item-drawer">
-              <div class="drawer-content">
-                <div class="drawer-section">
-                  <h4>The Friction</h4>
-                  <p>${esc(prob.friction)}</p>
-                </div>
-                <div class="drawer-section">
-                  <h4>The Search (Tried)</h4>
-                  <p>${esc(prob.tried)}</p>
-                </div>
-                <div class="drawer-section">
-                  <h4>The Ripple (Outreach)</h4>
-                  <p>${esc(prob.ripple)}</p>
-                </div>
-                ${opportunityHtml}
-              </div>
-            </div>
-          </div>
-        `;
-        
-        // Prepend to timeline to display at the top of the archive
-        timeline.insertBefore(item, timeline.firstChild);
-      });
-
-      // Attach click events for "Attempt Challenge"
-      document.querySelectorAll('.btn-attempt-challenge').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          e.stopPropagation(); // Avoid triggering accordion toggle
-          const problemId = btn.getAttribute('data-id');
-          attemptChallenge(problemId);
-        });
-      });
-
-    } catch (err) {
-      console.error('Failed to load problems from Firestore:', err);
-    }
-  }
-
-  async function attemptChallenge(problemId) {
-    try {
-      const session = JSON.parse(sessionStorage.getItem('portal_session'));
-      if (!session) {
-        alert('Authentication Error: Please sign in to the portal to claim and attempt this challenge.');
-        window.location.href = 'login.html';
-        return;
-      }
-
-      const username = session.username || window.TWS.toUsername(session.displayName || session.email);
-
       const problems = await window.TWS.loadProblemsAsync([]);
-      const problem = problems.find(p => p.id === problemId);
-
-      if (!problem) return;
-
-      if (!problem.contributors) {
-        problem.contributors = [];
-      }
-
-      if (problem.contributors.includes(username)) {
-        alert('Challenge Notification: You are already registered as an attempting contributor for this challenge!');
-        return;
-      }
-
-      problem.contributors.push(username);
-      await window.TWS.updateProblem(problemId, { contributors: problem.contributors });
-      window.TWS.logSystemActivity('LEDGER', `Contributor "${username}" self-assigned to attempt challenge "${problem.title}" externally.`);
-
-      alert(`Success! You have successfully registered as a contributor to attempt "${problem.title}"!\nWork on your solution externally. The problem owner will verify the winner and complexity once resolved.`);
-      
-      window.location.reload();
+      const members = await window.TWS.loadMovementMembersAsync([]);
+      const solved = problems
+        .filter((problem) => problem.status === 'Solved')
+        .sort((a, b) => String(b.updatedAt || b.createdAt || b.date || '').localeCompare(String(a.updatedAt || a.createdAt || a.date || '')));
+      setArchiveStats(problems, members);
+      timeline.innerHTML = solved.length
+        ? `${solved.map(renderProblem).join('')}<div class="archive-empty-state" id="archiveEmptyState" style="display:none">No archive records match this search.</div>`
+        : '<div class="archive-empty-state" id="archiveEmptyState">No solved impact records have been archived yet.</div>';
     } catch (err) {
-      console.error('Failed to attempt challenge:', err);
+      console.error('Failed to load impact archive records.', err);
+      timeline.innerHTML = '<div class="archive-empty-state" id="archiveEmptyState">Impact records could not be loaded right now.</div>';
     }
   }
 
-  /* ─── INIT ─────────────────────────────────── */
   async function init() {
-    gsap.registerPlugin(ScrollTrigger);
-
-    await loadCustomProblems();
+    if (window.gsap && window.ScrollTrigger) gsap.registerPlugin(ScrollTrigger);
+    initSmoothScroll();
+    await loadArchiveData();
     initRippleCanvas();
     initAnimations();
     initAccordions();
     initFiltering();
+    refreshLayout();
   }
 
   document.addEventListener('DOMContentLoaded', init);
-
 })();

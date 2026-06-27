@@ -106,6 +106,7 @@ service cloud.firestore {
         'impactPoints',
         'experience',
         'solved',
+        'badges',
         'stats',
         'awardHistory',
         'lastContributionAward',
@@ -115,6 +116,50 @@ service cloud.firestore {
         'lastPlatformExperienceAward',
         'updatedAt'
       ]);
+    }
+
+    function userCreateFieldsOnly() {
+      return request.resource.data.keys().hasOnly([
+        'id',
+        'uid',
+        'email',
+        'displayName',
+        'username',
+        'usernameLower',
+        'role',
+        'adminRole',
+        'privileges',
+        'dashboardAccess',
+        'isSupportingPartner',
+        'joinedDate',
+        'stats',
+        'badges',
+        'bio',
+        'specialty',
+        'initials',
+        'avatar',
+        'profilePicture',
+        'banner',
+        'country',
+        'website',
+        'linkedin',
+        'github',
+        'portfolio',
+        'profileAccent',
+        'availability',
+        'points',
+        'impactPoints',
+        'experience',
+        'solved',
+        'createdAt',
+        'updatedAt'
+      ]);
+    }
+
+    function validBadgeField() {
+      return !('badges' in request.resource.data)
+        || request.resource.data.badges == []
+        || request.resource.data.badges == ['first-step'];
     }
 
     function contributionAwardShape() {
@@ -238,19 +283,29 @@ service cloud.firestore {
     }
 
     function validSelfCreate(userId) {
-      return isSelfUser(userId)
+      return userId == request.auth.uid
+        && userCreateFieldsOnly()
+        && isSelfUser(userId)
         && request.resource.data.uid == request.auth.uid
         && request.resource.data.email == cleanEmail()
         && (!('role' in request.resource.data) || request.resource.data.role == 'Member')
+        && (!('adminRole' in request.resource.data) || request.resource.data.adminRole == '')
         && (!('privileges' in request.resource.data) || request.resource.data.privileges == [])
         && (!('dashboardAccess' in request.resource.data) || request.resource.data.dashboardAccess == [])
+        && (!('isSupportingPartner' in request.resource.data) || request.resource.data.isSupportingPartner == false)
+        && validBadgeField()
         && (!('points' in request.resource.data) || request.resource.data.points == 0)
+        && (!('impactPoints' in request.resource.data) || request.resource.data.impactPoints == 0)
+        && (!('experience' in request.resource.data) || request.resource.data.experience == 0)
         && (!('solved' in request.resource.data) || request.resource.data.solved == 0)
         && (!('stats' in request.resource.data) || (
           (!('experience' in request.resource.data.stats) || request.resource.data.stats.experience == 0) &&
           (!('impactPoints' in request.resource.data.stats) || request.resource.data.stats.impactPoints == 0) &&
           (!('totalImpactPoints' in request.resource.data.stats) || request.resource.data.stats.totalImpactPoints == 0) &&
-          (!('problemsSolved' in request.resource.data.stats) || request.resource.data.stats.problemsSolved == 0)
+          (!('problemsSolved' in request.resource.data.stats) || request.resource.data.stats.problemsSolved == 0) &&
+          (!('problemsIdentified' in request.resource.data.stats) || request.resource.data.stats.problemsIdentified == 0) &&
+          (!('helpfulResponses' in request.resource.data.stats) || request.resource.data.stats.helpfulResponses == 0) &&
+          (!('knowledgeContributions' in request.resource.data.stats) || request.resource.data.stats.knowledgeContributions == 0)
         ));
     }
 
@@ -260,11 +315,64 @@ service cloud.firestore {
 
     function validProblemCreate(problemId) {
       return signedIn()
+        && request.resource.data.keys().hasOnly([
+          'id',
+          'title',
+          'category',
+          'friction',
+          'tried',
+          'ripple',
+          'date',
+          'status',
+          'solver',
+          'ownerUid',
+          'ownerName',
+          'ownerUsername',
+          'contributors',
+          'contributorReviews',
+          'suggestedRemovals',
+          'evaluatorAwards',
+          'solvedBy',
+          'complexity',
+          'ownerReview',
+          'winnerXP',
+          'attemptXP',
+          'winnerEXP',
+          'attemptEXP',
+          'clones',
+          'views',
+          'archiveHoursSaved',
+          'archiveRippleReach',
+          'archiveClones',
+          'archiveViews',
+          'archiveSummary',
+          'archiveOutcome',
+          'archiveEditedBy',
+          'archiveEditedAt',
+          'createdAt',
+          'updatedAt'
+        ])
         && request.resource.data.ownerUid == request.auth.uid
         && request.resource.data.status == 'Pending Review'
+        && request.resource.data.contributors is list
+        && request.resource.data.contributors == []
+        && (!('contributorReviews' in request.resource.data) || request.resource.data.contributorReviews == [])
+        && (!('suggestedRemovals' in request.resource.data) || request.resource.data.suggestedRemovals == [])
         && (!('winnerXP' in request.resource.data) || request.resource.data.winnerXP == 0)
         && (!('attemptXP' in request.resource.data) || request.resource.data.attemptXP == 0)
-        && (!('evaluatorAwards' in request.resource.data));
+        && (!('winnerEXP' in request.resource.data) || request.resource.data.winnerEXP == 0)
+        && (!('attemptEXP' in request.resource.data) || request.resource.data.attemptEXP == 0)
+        && (!('clones' in request.resource.data) || request.resource.data.clones == 0)
+        && (!('views' in request.resource.data) || request.resource.data.views >= 0 && request.resource.data.views <= 1)
+        && (!('archiveHoursSaved' in request.resource.data) || request.resource.data.archiveHoursSaved == 0)
+        && (!('archiveRippleReach' in request.resource.data) || request.resource.data.archiveRippleReach == 0)
+        && (!('archiveClones' in request.resource.data) || request.resource.data.archiveClones == 0)
+        && (!('archiveViews' in request.resource.data) || request.resource.data.archiveViews >= 0 && request.resource.data.archiveViews <= 1)
+        && (!('archiveSummary' in request.resource.data) || request.resource.data.archiveSummary == '')
+        && (!('archiveOutcome' in request.resource.data) || request.resource.data.archiveOutcome == '')
+        && (!('archiveEditedBy' in request.resource.data) || request.resource.data.archiveEditedBy == '')
+        && (!('archiveEditedAt' in request.resource.data) || request.resource.data.archiveEditedAt == '')
+        && (!('evaluatorAwards' in request.resource.data) || request.resource.data.evaluatorAwards == []);
     }
 
     function participantOnlyUpdate() {
@@ -331,11 +439,38 @@ service cloud.firestore {
 
     function taskSubmissionCreateOwner() {
       return signedIn()
+        && request.resource.data.keys().hasOnly([
+          'id',
+          'taskId',
+          'taskTitle',
+          'category',
+          'memberUid',
+          'memberEmail',
+          'memberName',
+          'memberUsername',
+          'description',
+          'reflection',
+          'attachments',
+          'links',
+          'proofHash',
+          'status',
+          'expReward',
+          'impactPointReward',
+          'evaluatorComments',
+          'evaluatorUid',
+          'evaluatorName',
+          'submittedAt',
+          'reviewedAt',
+          'updatedAt',
+          'history'
+        ])
         && request.resource.data.memberUid == request.auth.uid
         && request.resource.data.memberEmail == cleanEmail()
         && request.resource.data.status == 'Pending Verification'
         && request.resource.data.taskId is string
         && request.resource.data.description is string
+        && request.resource.data.attachments is list
+        && request.resource.data.links is list
         && request.resource.data.expReward is number
         && request.resource.data.impactPointReward is number;
     }

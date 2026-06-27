@@ -24,6 +24,7 @@ The app is built with plain HTML, CSS, and browser JavaScript. It uses Firebase 
 - `user-profile.html`, `user-settings.html`: account/profile surfaces.
 - `firestore.rules`: Firestore authorization rules.
 - `js/firebase-config.js`: Firebase project config, fixed roles, and collection names.
+- `js/firebase-core.js`: shared Firebase CDN app/auth/Firestore initialization used by module scripts and shared data helpers.
 - `js/firebase-access.js`: role assignment helper exposed as `window.TWSAccess`.
 - `js/utils.js`: shared local data, Firebase access helpers, sessions, permissions, points, moderation, and common utilities.
 - `js/tasks.js`: member task browsing and proof submission flow.
@@ -114,6 +115,7 @@ When a task depends on external facts, current rules, pricing, schedules, APIs, 
 - For permissions, keep client-side checks and Firestore rules aligned.
 - Prefer real Firestore reads and writes where the app already uses them.
 - Local storage fallback code must not masquerade as production data.
+- Browser local storage fallback is development-only for `file:`, `localhost`, and `127.0.0.1`; deployed production hosts must use Firestore data, empty states, or surfaced errors.
 - Keep empty states honest and useful.
 - Keep text professional, concise, and user-facing.
 - Maintain responsive layouts for desktop and mobile.
@@ -178,6 +180,30 @@ Known community task fields:
 - `taskSubmissions`: `taskId`, `taskTitle`, `category`, `memberUid`, `memberEmail`, `memberName`, `memberUsername`, `description`, `reflection`, `attachments`, `links`, `proofHash`, `status`, `expReward`, `impactPointReward`, `evaluatorComments`, `evaluatorUid`, `evaluatorName`, `submittedAt`, `reviewedAt`, `history`
 - `taskCategories`: `name`
 - `notifications`: `userId`, `email`, `type`, `title`, `message`, `read`, `createdBy`, `createdAt`
+- `users.badges`: array of badge IDs. Badge metadata is defined in `js/utils.js` as `badgeCatalog`; use `window.TWS.normalizeBadges`, `window.TWS.resolveBadge`, and `window.TWS.badgeStorageValues` instead of hardcoding badge display details.
+- `problems` archive display fields: `archiveSummary`, `archiveOutcome`, `archiveHoursSaved`, `archiveRippleReach`, `archiveClones`, `archiveViews`, `archiveEditedBy`, `archiveEditedAt`. These are edited from the superadmin Impact Archive panel and used by `impact-archive.html`; do not hardcode public archive counts.
+
+Known automatic badge IDs:
+
+- `first-step`
+- `friction-spotter`
+- `verified-impact`
+- `task-finisher`
+- `solution-builder`
+- `impact-100`
+- `impact-500`
+- `impact-1000`
+
+Known admin-awarded badge IDs:
+
+- `golden-heart`
+- `deep-thinker`
+- `root-sprouter`
+- `constant-beacon`
+- `sudden-light`
+- `dignity-guard`
+- `mentor-signal`
+- `evidence-keeper`
 
 Known task statuses:
 

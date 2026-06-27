@@ -1,9 +1,6 @@
-import { initializeApp, getApps } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js';
-import { getFirestore, doc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
-import { firebaseConfig, fixedRoles, accessCollections } from './firebase-config.js';
-
-const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
-const db = getFirestore(app);
+import { doc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
+import { fixedRoles, accessCollections } from './firebase-config.js';
+import { db } from './firebase-core.js';
 
 const rolePrivileges = {
   Founder: ['manage_system', 'manage_roles', 'manage_community', 'manage_dashboards', 'evaluate_submissions', 'award_points', 'close_verified_problems'],

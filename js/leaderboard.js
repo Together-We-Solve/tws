@@ -8,19 +8,7 @@
   const esc = window.TWS.escapeHTML;
   let leaderboardMembers = [];
 
-  // Default seed database if empty
-  const defaultSolvers = [
-    { id: 'sol_1', name: 'Elena Rostova', role: 'The Bridge Builder', specialty: 'Technical Systems & Language', points: 4850, solved: 12, initials: 'ER', badges: ['Golden Heart', 'Deep Thinker'] },
-    { id: 'sol_2', name: 'Marcus Vance', role: 'The Catalyst', specialty: 'Community & Environment', points: 4210, solved: 9, initials: 'MV', badges: ['Root Sprouter', 'Constant Beacon'] },
-    { id: 'sol_3', name: 'Aiko Tanaka', role: 'The Oracle', specialty: 'Educational Mentorship', points: 3950, solved: 8, initials: 'AT', badges: ['Sudden Light', 'Dignity Guard'] },
-    { id: 'sol_4', name: 'David K.', role: 'The Code Pioneer', specialty: 'Web Infrastructure', points: 3520, solved: 7, initials: 'DK', badges: ['Constant Beacon'] },
-    { id: 'sol_5', name: 'Amara Diallo', role: 'The Compass', specialty: 'Healthcare Educator', points: 3240, solved: 6, initials: 'AD', badges: ['Golden Heart'] },
-    { id: 'sol_6', name: 'Siddharth Nair', role: 'The Eco Architect', specialty: 'Local Ecology', points: 3110, solved: 5, initials: 'SN', badges: ['Root Sprouter'] },
-    { id: 'sol_7', name: 'Clara Dupont', role: 'The Clarity Weaver', specialty: 'Technical Writing', points: 2890, solved: 5, initials: 'CD', badges: ['Deep Thinker'] },
-    { id: 'sol_8', name: 'Mateo Silva', role: 'The Civic Guard', specialty: 'Neighborhood Care', points: 2650, solved: 4, initials: 'MS', badges: ['Constant Beacon'] },
-    { id: 'sol_9', name: 'Zoe Chen', role: 'The Form Weaver', specialty: 'UI/UX Mentorship', points: 2420, solved: 4, initials: 'ZC', badges: ['Dignity Guard'] },
-    { id: 'sol_10', name: 'Liam O\'Connor', role: 'The Deep Miner', specialty: 'Historical Research', points: 2180, solved: 3, initials: 'LO', badges: ['Deep Thinker'] }
-  ];
+  const defaultSolvers = [];
 
   /* ─── LENIS SMOOTH SCROLL ──────────────────── */
   const lenis = new Lenis({
@@ -201,10 +189,17 @@
       solvers.forEach((solver) => {
         solver.progression = solver.progression || window.TWS.progressionFromExperience(solver.experience || solver.stats?.experience || 0);
         solver.impactPoints = window.TWS.impactPointsFromStats(solver);
+        solver.badges = window.TWS.normalizeBadges(solver.badges, solver);
       });
       const rankedSolvers = solvers
         .filter((solver) => board !== 'hall' || solver.hallOfFame)
         .sort((a, b) => boardValue(b, board) - boardValue(a, board));
+
+      if (!rankedSolvers.length) {
+        podiumGrid.innerHTML = '<div class="empty-state">No leaderboard entries yet.</div>';
+        ledgerTableBody.innerHTML = '<tr><td colspan="6">No member impact has been recorded yet.</td></tr>';
+        return;
+      }
 
       // 1. RENDER PODIUM (TOP 3)
       podiumGrid.innerHTML = '';
@@ -255,7 +250,7 @@
             </div>
           </div>
           <div class="podium-badges">
-            ${solver.badges.map(b => `<span class="badge-tag ${goldClass}">${esc(b)}</span>`).join('') || '<span class="badge-tag">Member</span>'}
+            ${solver.badges.map(b => `<span class="badge-tag ${goldClass}">${esc(window.TWS.resolveBadge(b).name)}</span>`).join('') || '<span class="badge-tag">No badges yet</span>'}
           </div>
           <p class="podium-quote">${quote}</p>
         `;
@@ -295,7 +290,7 @@
           <td class="col-solved"><span class="solved-count">${solver.solved} challenges</span></td>
           <td class="col-badges">
             <div class="badges-row">
-              ${solver.badges.map(b => `<span class="mini-badge">${esc(b)}</span>`).join('') || '<span class="mini-badge">Member</span>'}
+              ${solver.badges.map(b => `<span class="mini-badge">${esc(window.TWS.resolveBadge(b).name)}</span>`).join('') || '<span class="mini-badge">No badges yet</span>'}
             </div>
           </td>
           <td class="col-impact"><span class="impact-val">${boardValue(solver, board).toLocaleString()} ${board === 'impact' || board === 'hall' ? 'IP' : ''}</span></td>

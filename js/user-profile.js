@@ -11,11 +11,7 @@
   let currentUserSession = null;
   let activeUser = null;
 
-  const defaultSolvers = [
-    { id: 'sol_1', name: 'Elena Rostova', role: 'Contributor', specialty: 'Technical Systems & Language', points: 4850, solved: 12, initials: 'ER', badges: ['Golden Heart', 'Deep Thinker'] },
-    { id: 'sol_2', name: 'Marcus Vance', role: 'Steward', specialty: 'Community & Environment', points: 4210, solved: 9, initials: 'MV', badges: ['Root Sprouter', 'Constant Beacon'] },
-    { id: 'sol_3', name: 'Aiko Tanaka', role: 'Contributor', specialty: 'Educational Mentorship', points: 3950, solved: 8, initials: 'AT', badges: ['Sudden Light', 'Dignity Guard'] }
-  ];
+  const defaultSolvers = [];
 
   const lenis = new Lenis({
     lerp: 0.08,
@@ -104,7 +100,7 @@
         currentStreak: Number(stats.currentStreak) || 0,
         contributionStreak: Number(stats.contributionStreak || stats.currentStreak) || 0
       },
-      badges: Array.isArray(raw.badges) ? raw.badges : [],
+      badges: window.TWS.normalizeBadges(raw.badges, raw),
       timeline: Array.isArray(raw.timeline) ? raw.timeline : [],
       contributions: Array.isArray(raw.contributions) ? raw.contributions : [],
       categories: Array.isArray(raw.categories) ? raw.categories : []
@@ -198,7 +194,7 @@
         currentStreak: Number(solver.currentStreak) || 0,
         contributionStreak: Number(solver.contributionStreak) || Number(solver.currentStreak) || 0
       },
-      badges: Array.isArray(solver.badges) ? solver.badges : [],
+      badges: window.TWS.normalizeBadges(solver.badges, solver),
       timeline: Array.isArray(solver.timeline) ? solver.timeline : [],
       contributions,
       categories: Object.entries(categories).map(([name, count]) => ({ name, count }))
@@ -225,8 +221,8 @@
       members = await window.TWS.loadMovementMembersAsync(defaultSolvers);
       problems = await window.TWS.loadProblemsAsync([]);
     } catch (err) {
-      console.warn('Profile data loader fell back to bundled profile seeds.', err);
-      members = defaultSolvers.map(window.TWS.normalizeMember);
+      console.warn('Profile data loader could not load member records.', err);
+      members = [];
     }
     const users = members.map(normalizeUser);
     const solvers = members;
@@ -249,12 +245,6 @@
       activeUser = legacyUserToProfile(profile, problems);
     }
 
-    if (!activeUser && route.username) {
-      const fallbackSolver = defaultSolvers
-        .map(window.TWS.normalizeMember)
-        .find((item) => window.TWS.toUsername(item.username || item.name) === route.username);
-      if (fallbackSolver) activeUser = legacyUserToProfile(fallbackSolver, problems);
-    }
   }
 
   function setText(id, value) {
@@ -263,7 +253,7 @@
   }
 
   function renderProfileHeader(user) {
-    document.title = `${user.displayName} • Together We Solve`;
+    document.title = `${user.displayName} - Together We Solve`;
     const meta = document.querySelector('meta[name="description"]');
     if (meta) meta.setAttribute('content', user.bio || `${user.displayName}'s public contributor profile on Together We Solve.`);
 
@@ -410,7 +400,7 @@
     }
 
     grid.innerHTML = user.badges.map((badge) => {
-      const item = typeof badge === 'string' ? { name: badge } : badge;
+      const item = window.TWS.resolveBadge(badge);
       return `
         <div class="badge-card">
           <div class="badge-card-accent"></div>

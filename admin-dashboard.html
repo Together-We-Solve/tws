@@ -8,6 +8,8 @@
     <link rel="stylesheet" href="css/ui-polish.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://www.gstatic.com" crossorigin />
+    <link rel="modulepreload" href="js/firebase-core.js" />
     <link
       href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap"
       rel="stylesheet" />
@@ -27,8 +29,8 @@
         <div class="admin-profile-card">
           <div class="admin-avatar">CD</div>
           <div class="admin-profile-info">
-            <span class="profile-name">Clara Dupont</span>
-            <span class="profile-role">Principal Auditor</span>
+            <span class="profile-name">Dashboard</span>
+            <span class="profile-role">Authorized Access</span>
           </div>
         </div>
 
@@ -49,6 +51,11 @@
           <button class="nav-tab-btn founder-only" data-tab="tasks">
             <span class="tab-icon">✦</span>
             <span class="tab-label">Tasks</span>
+          </button>
+
+          <button class="nav-tab-btn founder-only" data-tab="impact">
+            <span class="tab-icon">IP</span>
+            <span class="tab-label">Impact Archive</span>
           </button>
 
           <button class="nav-tab-btn" data-tab="solvers">
@@ -178,8 +185,8 @@
                 <div class="detail-editor-form" id="detailEditorForm" style="display: none;">
                   <div class="pane-header flex-header">
                     <div>
-                      <span class="meta-label" id="detailAuthor">Voiced by: Elena Rostova</span>
-                      <span class="meta-date" id="detailDate">June 2026</span>
+                      <span class="meta-label" id="detailAuthor">Voiced by: member</span>
+                      <span class="meta-date" id="detailDate"></span>
                     </div>
                     <span class="category-tag text-uppercase" id="detailCategoryTag">Technical</span>
                   </div>
@@ -315,6 +322,63 @@
             </div>
           </section>
 
+          <section class="console-tab-panel founder-only" id="panel-impact">
+            <div class="solvers-panel-layout">
+              <div class="solvers-list-pane">
+                <div class="pane-header search-header" style="display: flex; flex-direction: column; gap: 8px;">
+                  <h3>Impact Records</h3>
+                  <input type="text" id="impactArchiveSearch" class="pane-search-input" placeholder="Search solved records..." />
+                </div>
+                <div class="solvers-compact-list" id="impactArchiveList"></div>
+              </div>
+              <div class="solver-editor-pane">
+                <div class="detail-unselected-state" id="impactArchiveUnselectedState">
+                  <span class="unselected-icon">IP</span>
+                  <h3>Select an Impact Record</h3>
+                  <p>Edit archive-only metrics shown on the public Impact Archive. Leave unknown values at zero.</p>
+                </div>
+                <div class="solver-profile-form" id="impactArchiveForm" style="display: none;">
+                  <div class="pane-header flex-header">
+                    <div>
+                      <h3 class="solver-profile-name" id="impactArchiveTitle">Impact Record</h3>
+                      <span class="solver-profile-role" id="impactArchiveMeta">Solved problem</span>
+                    </div>
+                  </div>
+                  <div class="solver-edit-grid">
+                    <div class="editor-field-group span-full">
+                      <label for="editArchiveSummary" class="editor-label">Public Summary</label>
+                      <textarea id="editArchiveSummary" class="editor-textarea"></textarea>
+                    </div>
+                    <div class="editor-field-group span-full">
+                      <label for="editArchiveOutcome" class="editor-label">Verified Outcome Note</label>
+                      <textarea id="editArchiveOutcome" class="editor-textarea"></textarea>
+                    </div>
+                    <div class="editor-field-group">
+                      <label for="editArchiveHoursSaved" class="editor-label">Hours Saved</label>
+                      <input type="number" id="editArchiveHoursSaved" class="editor-input" min="0" />
+                    </div>
+                    <div class="editor-field-group">
+                      <label for="editArchiveRippleReach" class="editor-label">Ripple Outreach</label>
+                      <input type="number" id="editArchiveRippleReach" class="editor-input" min="0" />
+                    </div>
+                    <div class="editor-field-group">
+                      <label for="editArchiveClones" class="editor-label">Clones</label>
+                      <input type="number" id="editArchiveClones" class="editor-input" min="0" />
+                    </div>
+                    <div class="editor-field-group">
+                      <label for="editArchiveViews" class="editor-label">Views</label>
+                      <input type="number" id="editArchiveViews" class="editor-input" min="0" />
+                    </div>
+                  </div>
+                  <div class="editor-action-footer justify-end" style="display: flex; gap: 10px; width: 100%;">
+                    <a class="btn btn-outline btn-sm" href="impact-archive.html" target="_blank" rel="noopener">Open Archive</a>
+                    <button type="button" class="btn btn-primary btn-sm" id="btnSaveImpactArchive">Save Archive Record</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
           <!-- TAB 3: SOLVERS LEDGER (MANAGE LEADERBOARD VALUES) -->
           <section class="console-tab-panel" id="panel-solvers">
             <div class="solvers-panel-layout">
@@ -330,7 +394,6 @@
                       <option value="points-asc">IP (Low to High)</option>
                       <option value="name-asc">Name (A to Z)</option>
                     </select>
-                    <button type="button" class="btn btn-primary btn-sm" id="btnRecruitSolver" style="padding: 6px 12px; font-size: 11px; white-space: nowrap; background: var(--accent-moss); color: var(--bg-warm);">+ Recruit</button>
                   </div>
                 </div>
                 
@@ -353,7 +416,7 @@
                 <div class="solver-profile-form" id="solverProfileForm" style="display: none;">
                   <div class="pane-header flex-header">
                     <div>
-                      <h3 class="solver-profile-name" id="profileName">Elena Rostova</h3>
+                      <h3 class="solver-profile-name" id="profileName">Member Profile</h3>
                       <span class="solver-profile-role" id="profileRole">The Bridge Builder</span>
                     </div>
                     <div class="profile-badge-circle" id="profileInitials">ER</div>
@@ -611,27 +674,6 @@
                     <div class="database-actions" style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-top: 16px;">
                       <button type="button" class="btn btn-primary btn-sm" id="btnAssignRole">Assign Role</button>
                       <span id="roleAssignStatus" style="font-size: 12.5px; opacity: 0.75;"></span>
-                    </div>
-                  </div>
-
-                  <div class="settings-card span-full" style="grid-column: span 2; margin-top: 10px; border-top: 1px dashed var(--border-light); padding-top: 20px;">
-                    <h4 style="color: var(--accent-clay);">System Database Operations</h4>
-                    <p style="font-size: 12.5px; opacity: 0.7; margin-bottom: 15px; line-height: 1.5;">
-                      Perform administrative backup, restore, or system wipe operations. All data is persisted client-side in your browser's local storage.
-                    </p>
-                    <div class="database-actions" style="display: flex; gap: 12px; flex-wrap: wrap;">
-                      <button type="button" class="btn btn-outline btn-sm" id="btnExportDB" style="display: flex; align-items: center; gap: 6px; padding: 10px 16px;">
-                        <span>📥</span> Export DB Backup (.json)
-                      </button>
-                      
-                      <label class="btn btn-outline btn-sm" style="display: flex; align-items: center; gap: 6px; cursor: pointer; margin: 0; padding: 10px 16px;">
-                        <span>📤</span> Import DB Backup
-                        <input type="file" id="importDBFile" accept=".json" style="display: none;" />
-                      </label>
-
-                      <button type="button" class="btn btn-outline btn-sm" id="btnResetDB" style="color: #c85555; border-color: rgba(200, 85, 85, 0.25); display: flex; align-items: center; gap: 6px; padding: 10px 16px; background: transparent;">
-                        <span>🔄</span> Reset to Defaults
-                      </button>
                     </div>
                   </div>
 

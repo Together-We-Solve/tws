@@ -1,12 +1,8 @@
-import { initializeApp, getApps } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js';
-import { getAuth, EmailAuthProvider, onAuthStateChanged, reauthenticateWithCredential, updatePassword } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js';
-import { firebaseConfig } from './firebase-config.js';
+import { EmailAuthProvider, onAuthStateChanged, reauthenticateWithCredential, updatePassword } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js';
+import { auth } from './firebase-core.js';
 
 (function () {
   'use strict';
-
-  const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
-  const auth = getAuth(app);
 
   function setStatus(message, isError = false) {
     const status = document.getElementById('passwordStatus');

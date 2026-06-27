@@ -15,6 +15,20 @@
 
   const STORAGE_KEY = 'tws_local_data_v1';
 
+  function localFallbackEnabled() {
+    const host = window.location.hostname;
+    return window.location.protocol === 'file:' || host === 'localhost' || host === '127.0.0.1';
+  }
+
+  function localFallbackOrThrow(err) {
+    if (isPermissionDeniedError(err) || !localFallbackEnabled()) throw err;
+  }
+
+  function localFallbackOrEmpty(err, fallback = []) {
+    if (isPermissionDeniedError(err)) throw err;
+    return localFallbackEnabled() ? fallback : [];
+  }
+
   function readLocalStore() {
     try {
       const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
@@ -135,7 +149,6 @@
       ['privileges', current.privileges || [], next.privileges || []],
       ['dashboardAccess', current.dashboardAccess || [], next.dashboardAccess || []],
       ['isSupportingPartner', Boolean(current.isSupportingPartner), Boolean(next.isSupportingPartner)],
-      ['badges', current.badges || [], next.badges || []],
       ['stats.experience', currentStats.experience, nextStats.experience],
       ['stats.impactPoints', currentStats.impactPoints, nextStats.impactPoints],
       ['stats.totalImpactPoints', currentStats.totalImpactPoints, nextStats.totalImpactPoints],
@@ -170,7 +183,6 @@
       ['impactPoints', current.impactPoints, next.impactPoints],
       ['solved', current.solved, next.solved],
       ['experience', current.experience, next.experience],
-      ['badges', current.badges || [], next.badges || []],
       ['stats.experience', currentStats.experience, nextStats.experience],
       ['stats.impactPoints', currentStats.impactPoints, nextStats.impactPoints],
       ['stats.totalImpactPoints', currentStats.totalImpactPoints, nextStats.totalImpactPoints],
@@ -191,7 +203,6 @@
       ['points', current.points, next.points],
       ['impactPoints', current.impactPoints, next.impactPoints],
       ['solved', current.solved, next.solved],
-      ['badges', current.badges || [], next.badges || []],
       ['stats.impactPoints', currentStats.impactPoints, nextStats.impactPoints],
       ['stats.totalImpactPoints', currentStats.totalImpactPoints, nextStats.totalImpactPoints],
       ['stats.problemsSolved', currentStats.problemsSolved, nextStats.problemsSolved],
@@ -310,6 +321,80 @@
     organizingInitiative: 100
   };
 
+  const badgeCatalog = [
+    { id: 'first-step', name: 'First Step', icon: '01', level: 'Automatic', description: 'Earned when a member creates a Together We Solve account.', source: 'automatic' },
+    { id: 'friction-spotter', name: 'Friction Spotter', icon: 'FS', level: 'Automatic', description: 'Earned after posting a first problem for review.', source: 'automatic' },
+    { id: 'verified-impact', name: 'Verified Impact', icon: 'VI', level: 'Automatic', description: 'Earned after receiving verified Impact Points from a contribution.', source: 'automatic' },
+    { id: 'task-finisher', name: 'Task Finisher', icon: 'TF', level: 'Automatic', description: 'Earned when an evaluator approves a first community task submission.', source: 'automatic' },
+    { id: 'solution-builder', name: 'Solution Builder', icon: 'SB', level: 'Automatic', description: 'Earned after a first verified solved contribution.', source: 'automatic' },
+    { id: 'impact-100', name: 'Impact 100', icon: '100', level: 'Automatic', description: 'Earned by reaching 100 verified Impact Points.', source: 'automatic' },
+    { id: 'impact-500', name: 'Impact 500', icon: '500', level: 'Automatic', description: 'Earned by reaching 500 verified Impact Points.', source: 'automatic' },
+    { id: 'impact-1000', name: 'Impact 1000', icon: '1K', level: 'Automatic', description: 'Earned by reaching 1,000 verified Impact Points.', source: 'automatic' },
+    { id: 'golden-heart', name: 'Golden Heart', icon: 'GH', level: 'Admin Award', description: 'Awarded by admins for sustained care, generosity, and community-first conduct.', source: 'admin' },
+    { id: 'deep-thinker', name: 'Deep Thinker', icon: 'DT', level: 'Admin Award', description: 'Awarded by admins for unusually thoughtful analysis or problem framing.', source: 'admin' },
+    { id: 'root-sprouter', name: 'Root Sprouter', icon: 'RS', level: 'Admin Award', description: 'Awarded by admins for helping ideas grow into practical action.', source: 'admin' },
+    { id: 'constant-beacon', name: 'Constant Beacon', icon: 'CB', level: 'Admin Award', description: 'Awarded by admins for reliable, steady participation over time.', source: 'admin' },
+    { id: 'sudden-light', name: 'Sudden Light', icon: 'SL', level: 'Admin Award', description: 'Awarded by admins for a breakthrough insight that unlocks progress.', source: 'admin' },
+    { id: 'dignity-guard', name: 'Dignity Guard', icon: 'DG', level: 'Admin Award', description: 'Awarded by admins for protecting respectful, humane collaboration.', source: 'admin' },
+    { id: 'mentor-signal', name: 'Mentor Signal', icon: 'MS', level: 'Admin Award', description: 'Awarded by admins for guiding other members with patience and clarity.', source: 'admin' },
+    { id: 'evidence-keeper', name: 'Evidence Keeper', icon: 'EK', level: 'Admin Award', description: 'Awarded by admins for careful verification, research, or documentation.', source: 'admin' }
+  ];
+
+  const badgeById = new Map(badgeCatalog.map((badge) => [badge.id, badge]));
+  const badgeIdByName = new Map(badgeCatalog.map((badge) => [badge.name.toLowerCase(), badge.id]));
+
+  function badgeId(value) {
+    const raw = typeof value === 'string' ? value : (value?.id || value?.name || '');
+    const clean = String(raw || '').trim();
+    if (!clean) return '';
+    const lower = clean.toLowerCase();
+    return badgeById.has(clean) ? clean : (badgeIdByName.get(lower) || toUsername(clean).replace(/_/g, '-'));
+  }
+
+  function resolveBadge(value) {
+    if (typeof value === 'object' && value) {
+      const id = badgeId(value);
+      return { ...(badgeById.get(id) || {}), ...value, id, name: value.name || badgeById.get(id)?.name || id };
+    }
+    const id = badgeId(value);
+    const known = badgeById.get(id);
+    return known ? { ...known } : { id, name: String(value || id), icon: '**', level: 'Community Badge', description: 'Awarded for meaningful cooperative participation.', source: 'legacy' };
+  }
+
+  function automaticBadgeIdsFor(raw = {}) {
+    const stats = raw.stats || {};
+    const points = impactPointsFromStats(raw);
+    const solved = Number(stats.problemsSolved ?? raw.solved) || 0;
+    const posted = Number(stats.problemsIdentified ?? raw.problemsPosted) || 0;
+    const completedTasks = Number(stats.communityTasksCompleted) || 0;
+    const ids = [];
+    if (raw.uid || raw.email || raw.createdAt || raw.joinedDate) ids.push('first-step');
+    if (posted > 0) ids.push('friction-spotter');
+    if (points > 0) ids.push('verified-impact');
+    if (completedTasks > 0) ids.push('task-finisher');
+    if (solved > 0) ids.push('solution-builder');
+    if (points >= 100) ids.push('impact-100');
+    if (points >= 500) ids.push('impact-500');
+    if (points >= 1000) ids.push('impact-1000');
+    return ids;
+  }
+
+  function normalizeBadges(badges = [], raw = {}) {
+    const ids = new Set();
+    const normalized = [];
+    [...(Array.isArray(badges) ? badges : []), ...automaticBadgeIdsFor(raw)].forEach((badge) => {
+      const item = resolveBadge(badge);
+      if (!item.id || ids.has(item.id)) return;
+      ids.add(item.id);
+      normalized.push(item);
+    });
+    return normalized;
+  }
+
+  function badgeStorageValues(badges = [], raw = {}) {
+    return normalizeBadges(badges, raw).map((badge) => badge.id);
+  }
+
   function levelRequirement(level) {
     return Math.round(100 * Math.pow(1.38, Math.max(0, Number(level) - 1)));
   }
@@ -381,12 +466,10 @@
     if (!firebaseDataPromise) {
       firebaseDataPromise = Promise.all([
         import('./firebase-config.js'),
-        import('https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js'),
+        import('./firebase-core.js'),
         import('https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js')
-      ]).then(([configModule, appModule, firestoreModule]) => {
-        const app = appModule.getApps().length ? appModule.getApps()[0] : appModule.initializeApp(configModule.firebaseConfig);
-        const db = firestoreModule.getFirestore(app);
-        return { db, configModule, firestoreModule };
+      ]).then(([configModule, coreModule, firestoreModule]) => {
+        return { db: coreModule.db, configModule, firestoreModule };
       });
     }
     return firebaseDataPromise;
@@ -415,9 +498,9 @@
     try {
       return await fetchCollection(collectionName);
     } catch (err) {
-      if (isPermissionDeniedError(err)) throw err;
-      console.warn(`Using local ${collectionName} data because Firebase is unavailable.`, err);
-      return fallback;
+      const localFallback = localFallbackOrEmpty(err, fallback);
+      if (localFallbackEnabled()) console.warn(`Using local ${collectionName} data because Firebase is unavailable.`, err);
+      return localFallback;
     }
   }
 
@@ -499,7 +582,7 @@
       points: totalImpactPoints,
       solved: problemsSolved,
       initials: raw.initials || initialsFromName(displayName),
-      badges: Array.isArray(raw.badges) ? raw.badges : [],
+      badges: normalizeBadges(raw.badges, raw),
       stats: { ...stats, experience, impactPoints: totalImpactPoints, totalImpactPoints, problemsSolved }
     };
   }
@@ -532,7 +615,15 @@
       winnerEXP: Number(raw.winnerEXP) || 0,
       attemptEXP: Number(raw.attemptEXP) || 0,
       clones: Number(raw.clones) || 0,
-      views: Number(raw.views) || 0
+      views: Number(raw.views) || 0,
+      archiveHoursSaved: Math.max(0, Number(raw.archiveHoursSaved) || 0),
+      archiveRippleReach: Math.max(0, Number(raw.archiveRippleReach) || 0),
+      archiveClones: Math.max(0, Number(raw.archiveClones ?? raw.clones) || 0),
+      archiveViews: Math.max(0, Number(raw.archiveViews ?? raw.views) || 0),
+      archiveSummary: raw.archiveSummary || '',
+      archiveOutcome: raw.archiveOutcome || '',
+      archiveEditedBy: raw.archiveEditedBy || '',
+      archiveEditedAt: raw.archiveEditedAt || ''
     };
   }
 
@@ -645,8 +736,8 @@
     try {
       ({ configModule } = await getFirebaseDataApiSafe());
     } catch (err) {
-      console.warn('Firebase member API unavailable; loading local members.', err);
-      memory.users = memory.users.length ? memory.users : local.users.length ? local.users : defaultMembers;
+      if (localFallbackEnabled()) console.warn('Firebase member API unavailable; loading local members.', err);
+      memory.users = localFallbackEnabled() ? (memory.users.length ? memory.users : local.users.length ? local.users : defaultMembers) : defaultMembers;
       writeLocalStore({ users: memory.users });
       return loadMovementMembers(defaultMembers);
     }
@@ -655,8 +746,8 @@
     try {
       firestoreUsers = await fetchCollectionSafe(configModule.accessCollections.users, local.users);
     } catch (err) {
-      console.warn('Firebase users collection is not readable for this session; loading local members.', err);
-      firestoreUsers = local.users;
+      if (localFallbackEnabled()) console.warn('Firebase users collection is not readable for this session; loading local members.', err);
+      firestoreUsers = localFallbackOrEmpty(err, local.users);
     }
     const session = getPortalSession();
     let roleAssignments = [];
@@ -689,7 +780,7 @@
       }
     });
 
-    memory.users = mergedUsers.length ? mergedUsers : local.users.length ? local.users : defaultMembers;
+    memory.users = mergedUsers.length ? mergedUsers : localFallbackEnabled() && local.users.length ? local.users : defaultMembers;
     writeLocalStore({ users: memory.users });
     return loadMovementMembers(defaultMembers);
   }
@@ -701,8 +792,8 @@
       const { configModule } = await getFirebaseDataApiSafe();
       problems = (await fetchCollectionSafe(configModule.accessCollections.problems, local.problems)).map(normalizeProblem);
     } catch (err) {
-      console.warn('Firebase problem API unavailable; loading local problems.', err);
-      problems = local.problems.map(normalizeProblem);
+      if (localFallbackEnabled()) console.warn('Firebase problem API unavailable; loading local problems.', err);
+      problems = localFallbackOrEmpty(err, local.problems).map(normalizeProblem);
     }
     memory.problems = problems.length ? problems : defaultProblems.map(normalizeProblem);
     writeLocalStore({ problems: memory.problems });
@@ -720,7 +811,7 @@
       const { configModule } = await getFirebaseDataApiSafe();
       await saveDocument(configModule.accessCollections.problems, normalized.id, normalized);
     } catch (err) {
-      if (isPermissionDeniedError(err)) throw err;
+      localFallbackOrThrow(err);
       console.warn('Saved problem locally because Firebase write failed.', err);
     }
     memory.problems = replaceById(memory.problems.length ? memory.problems : readLocalStore().problems, normalized);
@@ -770,7 +861,7 @@
       const { configModule } = await getFirebaseDataApiSafe();
       await deleteDocument(configModule.accessCollections.problems, problemId);
     } catch (err) {
-      if (isPermissionDeniedError(err)) throw err;
+      localFallbackOrThrow(err);
       console.warn('Deleted problem locally because Firebase delete failed.', err);
     }
     memory.problems = memory.problems.filter((item) => item.id !== problemId);
@@ -784,8 +875,8 @@
       const { configModule } = await getFirebaseDataApiSafe();
       categories = await fetchCollectionSafe(configModule.accessCollections.taskCategories, local.taskCategories);
     } catch (err) {
-      console.warn('Firebase task category API unavailable; loading local categories.', err);
-      categories = local.taskCategories;
+      if (localFallbackEnabled()) console.warn('Firebase task category API unavailable; loading local categories.', err);
+      categories = localFallbackOrEmpty(err, local.taskCategories);
     }
     const names = categories.map((item) => item.name || item.id || item).filter(Boolean);
     memory.taskCategories = Array.from(new Set((names.length ? names : defaultCategories).map((item) => String(item).trim()).filter(Boolean)))
@@ -805,7 +896,7 @@
       const { configModule } = await getFirebaseDataApiSafe();
       await saveDocument(configModule.accessCollections.taskCategories, id, payload);
     } catch (err) {
-      if (isPermissionDeniedError(err)) throw err;
+      localFallbackOrThrow(err);
       console.warn('Saved task category locally because Firebase write failed.', err);
     }
     memory.taskCategories = replaceById(memory.taskCategories.length ? memory.taskCategories : readLocalStore().taskCategories, payload);
@@ -820,8 +911,8 @@
       const { configModule } = await getFirebaseDataApiSafe();
       tasks = await fetchCollectionSafe(configModule.accessCollections.communityTasks, local.tasks);
     } catch (err) {
-      console.warn('Firebase community task API unavailable; loading local tasks.', err);
-      tasks = local.tasks;
+      if (localFallbackEnabled()) console.warn('Firebase community task API unavailable; loading local tasks.', err);
+      tasks = localFallbackOrEmpty(err, local.tasks);
     }
     memory.tasks = (tasks.length ? tasks : defaultTasks).map(normalizeTask);
     writeLocalStore({ tasks: memory.tasks });
@@ -840,7 +931,7 @@
       const { configModule } = await getFirebaseDataApiSafe();
       await saveDocument(configModule.accessCollections.communityTasks, normalized.id, normalized);
     } catch (err) {
-      if (isPermissionDeniedError(err)) throw err;
+      localFallbackOrThrow(err);
       console.warn('Saved community task locally because Firebase write failed.', err);
     }
     memory.tasks = replaceById(memory.tasks.length ? memory.tasks : readLocalStore().tasks, normalized);
@@ -855,7 +946,7 @@
       const { configModule } = await getFirebaseDataApiSafe();
       await deleteDocument(configModule.accessCollections.communityTasks, taskId);
     } catch (err) {
-      if (isPermissionDeniedError(err)) throw err;
+      localFallbackOrThrow(err);
       console.warn('Deleted community task locally because Firebase delete failed.', err);
     }
     memory.tasks = (memory.tasks.length ? memory.tasks : readLocalStore().tasks).filter((item) => item.id !== taskId);
@@ -882,8 +973,8 @@
         submissions = snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
       }
     } catch (err) {
-      console.warn('Firebase task submission API unavailable; loading local submissions.', err);
-      submissions = local.taskSubmissions;
+      if (localFallbackEnabled()) console.warn('Firebase task submission API unavailable; loading local submissions.', err);
+      submissions = localFallbackOrEmpty(err, local.taskSubmissions);
     }
     const visible = canEvaluate(session) || canManageSystem(session)
       ? submissions
@@ -926,7 +1017,7 @@
       const { configModule } = await getFirebaseDataApiSafe();
       await saveDocument(configModule.accessCollections.taskSubmissions, normalized.id, normalized);
     } catch (err) {
-      if (isPermissionDeniedError(err)) throw err;
+      localFallbackOrThrow(err);
       console.warn('Saved task submission locally because Firebase write failed.', err);
     }
     const stored = replaceById(allSubmissions, normalized);
@@ -973,7 +1064,7 @@
       const { configModule } = await getFirebaseDataApiSafe();
       await saveDocument(configModule.accessCollections.taskSubmissions, reviewed.id, reviewed);
     } catch (err) {
-      if (isPermissionDeniedError(err)) throw err;
+      localFallbackOrThrow(err);
       console.warn('Reviewed task submission locally because Firebase write failed.', err);
     }
     const stored = replaceById(allSubmissions, reviewed);
@@ -1009,7 +1100,7 @@
     const currentPoints = impactPointsFromStats(member);
     const currentExperience = experienceFromStats(member);
     const completedTasks = Number(member.stats?.communityTasksCompleted || 0) + 1;
-    await saveUserProfile(member.uid || member.id || member.username, {
+    const nextProfile = {
       ...member,
       taskSubmissionHistory: history.concat(submission.id),
       lastTaskAward: {
@@ -1030,7 +1121,9 @@
         totalImpactPoints: currentPoints + points,
         communityTasksCompleted: completedTasks
       }
-    });
+    };
+    nextProfile.badges = badgeStorageValues(member.badges, nextProfile);
+    await saveUserProfile(member.uid || member.id || member.username, nextProfile);
     await createNotification({
       userId: member.uid || member.id || '',
       email: member.email || submission.memberEmail || '',
@@ -1059,7 +1152,7 @@
       const { configModule } = await getFirebaseDataApiSafe();
       await saveDocument(configModule.accessCollections.notifications, id, payload);
     } catch (err) {
-      if (isPermissionDeniedError(err)) throw err;
+      localFallbackOrThrow(err);
       console.warn('Saved notification locally because Firebase write failed.', err);
     }
     const local = readLocalStore().notifications;
@@ -1088,8 +1181,8 @@
         notifications = snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
       }
     } catch (err) {
-      console.warn('Firebase notifications API unavailable; loading local notifications.', err);
-      notifications = local.notifications;
+      if (localFallbackEnabled()) console.warn('Firebase notifications API unavailable; loading local notifications.', err);
+      notifications = localFallbackOrEmpty(err, local.notifications);
     }
     memory.notifications = (notifications.length ? notifications : defaultNotifications)
       .filter((item) => canManageSystem(session) || item.userId === session?.uid || String(item.email || '').toLowerCase() === String(session?.email || '').toLowerCase());
@@ -1108,7 +1201,7 @@
     const history = Array.isArray(member.platformExperienceHistory) ? member.platformExperienceHistory : [];
     const historyKey = action;
     if (history.includes(historyKey)) return member;
-    await saveUserProfile(member.uid || member.id || member.username, {
+    const nextProfile = {
       ...member,
       platformExperienceHistory: history.concat(historyKey),
       lastPlatformExperienceAward: {
@@ -1121,7 +1214,9 @@
         ...(member.stats || {}),
         experience: currentExperience + experience
       }
-    });
+    };
+    nextProfile.badges = badgeStorageValues(member.badges, nextProfile);
+    await saveUserProfile(member.uid || member.id || member.username, nextProfile);
     await createNotification({
       userId: member.uid || member.id || '',
       email: member.email || '',
@@ -1149,6 +1244,19 @@
       !systemUserFieldsChanged(currentUser || {}, payload) &&
       platformExperienceFieldsOnly(currentUser || {}, payload)
     );
+    const rewardOrAdminBadgeUpdate = Boolean(
+      isCreate ||
+      canManageSystem(session) ||
+      canAwardPoints(session) ||
+      payload.lastContributionAward ||
+      payload.lastTaskAward ||
+      payload.lastPlatformExperienceAward
+    );
+    if (rewardOrAdminBadgeUpdate) {
+      payload.badges = badgeStorageValues(data.badges, data);
+    } else {
+      delete payload.badges;
+    }
     if (!isCreate && !ownProfile && !canManageSystem(session) && !canAwardPoints(session)) {
       throw new Error('permission-denied');
     }
@@ -1165,7 +1273,7 @@
       const { configModule } = await getFirebaseDataApiSafe();
       await saveDocument(configModule.accessCollections.users, userId, payload);
     } catch (err) {
-      if (isPermissionDeniedError(err)) throw err;
+      localFallbackOrThrow(err);
       console.warn('Saved user locally because Firebase write failed.', err);
     }
     memory.users = replaceById(memory.users.length ? memory.users : readLocalStore().users, { id: userId, uid: userId, ...payload });
@@ -1210,7 +1318,7 @@
       const { configModule } = await getFirebaseDataApiSafe();
       await deleteDocument(configModule.accessCollections.users, userId);
     } catch (err) {
-      if (isPermissionDeniedError(err)) throw err;
+      localFallbackOrThrow(err);
       console.warn('Deleted user locally because Firebase delete failed.', err);
     }
     memory.users = (memory.users.length ? memory.users : readLocalStore().users)
@@ -1225,8 +1333,8 @@
       const { configModule } = await getFirebaseDataApiSafe();
       partners = await fetchCollectionSafe(configModule.accessCollections.partners, local.partners);
     } catch (err) {
-      console.warn('Firebase partner API unavailable; loading local partners.', err);
-      partners = local.partners;
+      if (localFallbackEnabled()) console.warn('Firebase partner API unavailable; loading local partners.', err);
+      partners = localFallbackOrEmpty(err, local.partners);
     }
     memory.partners = partners.length ? partners : defaultPartners;
     writeLocalStore({ partners: memory.partners });
@@ -1243,7 +1351,7 @@
       const { configModule } = await getFirebaseDataApiSafe();
       await saveDocument(configModule.accessCollections.partners, partnerId, data);
     } catch (err) {
-      if (isPermissionDeniedError(err)) throw err;
+      localFallbackOrThrow(err);
       console.warn('Saved partner locally because Firebase write failed.', err);
     }
     memory.partners = replaceById(memory.partners.length ? memory.partners : readLocalStore().partners, { id: partnerId, ...data });
@@ -1259,7 +1367,7 @@
       const { configModule } = await getFirebaseDataApiSafe();
       await deleteDocument(configModule.accessCollections.partners, partnerId);
     } catch (err) {
-      if (isPermissionDeniedError(err)) throw err;
+      localFallbackOrThrow(err);
       console.warn('Deleted partner locally because Firebase delete failed.', err);
     }
     memory.partners = (memory.partners.length ? memory.partners : readLocalStore().partners)
@@ -1274,8 +1382,8 @@
       const { configModule } = await getFirebaseDataApiSafe();
       settings = await fetchDocument(configModule.accessCollections.settings, 'global');
     } catch (err) {
-      console.warn('Firebase settings API unavailable; loading local settings.', err);
-      settings = local.settings;
+      if (localFallbackEnabled()) console.warn('Firebase settings API unavailable; loading local settings.', err);
+      settings = localFallbackEnabled() ? local.settings : null;
     }
     memory.settings = settings || defaultSettings;
     writeLocalStore({ settings: memory.settings });
@@ -1287,6 +1395,7 @@
       const { configModule } = await getFirebaseDataApiSafe();
       await saveDocument(configModule.accessCollections.settings, 'global', settings);
     } catch (err) {
+      localFallbackOrThrow(err);
       console.warn('Saved settings locally because Firebase write failed.', err);
     }
     memory.settings = settings;
@@ -1398,6 +1507,10 @@
     administrativeRoles,
     defaultImpactRewards,
     defaultExperienceRewards,
+    badgeCatalog,
+    resolveBadge,
+    normalizeBadges,
+    badgeStorageValues,
     levelRequirement,
     progressionFromExperience,
     experienceForProgression,

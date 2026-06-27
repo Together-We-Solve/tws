@@ -303,11 +303,11 @@
   }
 
   /* ─── INIT ─────────────────────────────────── */
-  function init() {
+  async function init() {
     gsap.registerPlugin(ScrollTrigger);
 
     initGoldDustCanvas();
-    renderHallOfFame();
+    await renderHallOfFame();
     animateHero();
     initScrollTriggers();
   }

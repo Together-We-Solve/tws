@@ -3,11 +3,7 @@
 
   const esc = window.TWS.escapeHTML;
 
-  const defaultSolvers = [
-    { id: 'sol_1', name: 'Elena Rostova', role: 'Contributor', specialty: 'Technical Systems & Language', points: 4850, solved: 12, initials: 'ER', badges: ['Golden Heart', 'Deep Thinker'] },
-    { id: 'sol_2', name: 'Marcus Vance', role: 'Steward', specialty: 'Community & Environment', points: 4210, solved: 9, initials: 'MV', badges: ['Root Sprouter', 'Constant Beacon'] },
-    { id: 'sol_3', name: 'Aiko Tanaka', role: 'Contributor', specialty: 'Educational Mentorship', points: 3950, solved: 8, initials: 'AT', badges: ['Sudden Light', 'Dignity Guard'] }
-  ];
+  const defaultSolvers = [];
 
   const lenis = new Lenis({
     lerp: 0.08,
@@ -54,7 +50,8 @@
       specialty: member.specialty || member.country || '',
       bio: member.bio || '',
       points: window.TWS.impactPointsFromStats(member),
-      solved: Number(member.stats?.problemsSolved ?? member.solved) || 0
+      solved: Number(member.stats?.problemsSolved ?? member.solved) || 0,
+      badges: window.TWS.normalizeBadges(member.badges, member)
     };
   }
 
@@ -87,6 +84,9 @@
           <div class="member-meta">
             <span>${member.points.toLocaleString()} IP</span>
             <span>${member.solved.toLocaleString()} solved</span>
+          </div>
+          <div class="member-meta">
+            ${member.badges.slice(0, 3).map((badge) => `<span>${esc(badge.name)}</span>`).join('') || '<span>No badges yet</span>'}
           </div>
         </a>
       `;

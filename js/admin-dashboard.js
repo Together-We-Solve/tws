@@ -15,6 +15,7 @@
   let selectedMemberId = '';
   let selectedPartnerId = '';
   let selectedTaskId = '';
+  let selectedImpactArchiveId = '';
 
   const roleAccess = {
     Founder: ['user', 'evaluator', 'superadmin', 'supportingPartner'],
@@ -133,6 +134,22 @@
     if (levelSelect && !levelSelect.options.length) {
       levelSelect.innerHTML = Array.from({ length: 10 }, (_, index) => `<option value="${index + 1}">Level ${index + 1}</option>`).join('');
     }
+  }
+
+  function renderBadgeControls() {
+    const grid = document.querySelector('.badges-check-grid');
+    if (!grid) return;
+    grid.innerHTML = window.TWS.badgeCatalog
+      .filter((badge) => badge.source === 'admin')
+      .map((badge) => `
+        <label class="badge-check-card">
+          <input type="checkbox" name="badges" value="${esc(badge.id)}" />
+          <div class="badge-check-inner">
+            <span class="badge-check-icon">${esc(badge.icon)}</span>
+            <span class="badge-check-title">${esc(badge.name)}</span>
+          </div>
+        </label>
+      `).join('');
   }
 
   function renderReviewQueue() {
@@ -348,7 +365,7 @@
       const history = Array.isArray(member.awardHistory) ? member.awardHistory : [];
       const points = Number(award.points) || 0;
       const experience = Number(award.experience) || 0;
-      await window.TWS.saveUserProfile(id, {
+      const nextProfile = {
         ...member,
         awardHistory: history.includes(problemId) ? history : history.concat(problemId),
         lastContributionAward: {
@@ -365,7 +382,9 @@
           totalImpactPoints: current + points,
           problemsSolved: solved
         }
-      });
+      };
+      nextProfile.badges = window.TWS.badgeStorageValues(member.badges, nextProfile);
+      await window.TWS.saveUserProfile(id, nextProfile);
     }));
     window.TWS.logSystemActivity('AUDIT', `Finalized solved friction "${problem?.title || problemId}" with individual IP and EXP awards.`);
     await refresh();
@@ -432,6 +451,68 @@
       </div>
     `).join('') : '<div style="padding:18px;opacity:.65">No community tasks have been created yet.</div>';
     list.querySelectorAll('[data-select-task]').forEach((row) => row.addEventListener('click', () => selectTask(row.dataset.selectTask)));
+  }
+
+  function renderImpactArchiveLedger() {
+    const list = document.getElementById('impactArchiveList');
+    if (!list) return;
+    const search = document.getElementById('impactArchiveSearch')?.value.trim().toLowerCase() || '';
+    const solved = problems
+      .filter((problem) => problem.status === 'Solved')
+      .filter((problem) => !search || `${problem.title} ${problem.category} ${problem.solvedBy} ${problem.archiveSummary} ${problem.archiveOutcome}`.toLowerCase().includes(search))
+      .sort((a, b) => String(b.updatedAt || b.createdAt || b.date || '').localeCompare(String(a.updatedAt || a.createdAt || a.date || '')));
+    list.innerHTML = solved.length ? solved.map((problem) => `
+      <div class="solver-list-row" data-select-impact="${esc(problem.id)}" style="padding:12px;border-bottom:1px solid var(--border-light)">
+        <div class="row-avatar">${esc(String(problem.category || 'IP').slice(0, 2).toUpperCase())}</div>
+        <div class="row-info">
+          <span class="row-name">${esc(problem.title || 'Untitled Problem')}</span>
+          <span class="row-xp">${esc(problem.category || 'Community')} - ${esc(problem.solvedBy || 'No resolver recorded')}</span>
+        </div>
+        <span class="row-solved-badge">${Number(problem.archiveRippleReach || 0).toLocaleString()} reached</span>
+      </div>
+    `).join('') : '<div style="padding:18px;opacity:.65">No solved impact records yet.</div>';
+    list.querySelectorAll('[data-select-impact]').forEach((row) => row.addEventListener('click', () => selectImpactArchiveRecord(row.dataset.selectImpact)));
+  }
+
+  function selectImpactArchiveRecord(problemId) {
+    selectedImpactArchiveId = problemId;
+    const problem = problems.find((item) => item.id === problemId);
+    const form = document.getElementById('impactArchiveForm');
+    const empty = document.getElementById('impactArchiveUnselectedState');
+    if (!problem || !form || !empty) return;
+    empty.style.display = 'none';
+    form.style.display = 'block';
+    document.getElementById('impactArchiveTitle').textContent = problem.title || 'Impact Record';
+    document.getElementById('impactArchiveMeta').textContent = `${problem.category || 'Community'} - ${problem.solvedBy || 'No resolver recorded'}`;
+    setFieldValue('editArchiveSummary', problem.archiveSummary || problem.resolution || problem.ownerReview || '');
+    setFieldValue('editArchiveOutcome', problem.archiveOutcome || problem.ownerReview || problem.resolution || '');
+    setFieldValue('editArchiveHoursSaved', Number(problem.archiveHoursSaved) || 0);
+    setFieldValue('editArchiveRippleReach', Number(problem.archiveRippleReach) || 0);
+    setFieldValue('editArchiveClones', Number(problem.archiveClones ?? problem.clones) || 0);
+    setFieldValue('editArchiveViews', Number(problem.archiveViews ?? problem.views) || 0);
+  }
+
+  async function saveImpactArchiveRecord() {
+    if (!selectedImpactArchiveId || !canManageSystemSession()) return;
+    const problem = problems.find((item) => item.id === selectedImpactArchiveId);
+    if (!problem || problem.status !== 'Solved') {
+      alert('Only solved records can be edited for the public impact archive.');
+      return;
+    }
+    const patch = {
+      archiveSummary: fieldValue('editArchiveSummary').trim(),
+      archiveOutcome: fieldValue('editArchiveOutcome').trim(),
+      archiveHoursSaved: Math.max(0, Number(fieldValue('editArchiveHoursSaved')) || 0),
+      archiveRippleReach: Math.max(0, Number(fieldValue('editArchiveRippleReach')) || 0),
+      archiveClones: Math.max(0, Number(fieldValue('editArchiveClones')) || 0),
+      archiveViews: Math.max(0, Number(fieldValue('editArchiveViews')) || 0),
+      archiveEditedBy: session?.uid || session?.email || '',
+      archiveEditedAt: new Date().toISOString()
+    };
+    await window.TWS.updateProblem(selectedImpactArchiveId, patch);
+    window.TWS.logSystemActivity('AUDIT', `Updated impact archive record "${problem.title || selectedImpactArchiveId}".`);
+    await refresh();
+    selectImpactArchiveRecord(selectedImpactArchiveId);
   }
 
   function selectTask(taskId) {
@@ -557,8 +638,9 @@
     setFieldValue('editAdminRole', member.adminRole || '');
     setFieldValue('editSupportingPartner', String(Boolean(member.isSupportingPartner)));
     document.getElementById('editSolverSpecialty').value = member.specialty || '';
+    const badgeIds = window.TWS.badgeStorageValues(member.badges, member);
     document.querySelectorAll('input[name="badges"]').forEach((input) => {
-      input.checked = (member.badges || []).includes(input.value);
+      input.checked = badgeIds.includes(input.value);
     });
   }
 
@@ -598,7 +680,14 @@
     const accessRole = adminRole && adminRole !== 'Supporting Partner' ? adminRole : 'Member';
     const isSupportingPartner = fieldValue('editSupportingPartner', String(Boolean(member.isSupportingPartner))) === 'true' || adminRole === 'Supporting Partner';
     const dashboardAccess = Array.from(new Set([...(roleAccess[accessRole] || ['user']), ...(isSupportingPartner ? ['supportingPartner'] : [])]));
-    const badges = Array.from(document.querySelectorAll('input[name="badges"]:checked')).map((input) => input.value);
+    const automaticBadges = window.TWS.normalizeBadges(member.badges, member)
+      .filter((badge) => badge.source === 'automatic')
+      .map((badge) => badge.id);
+    const badges = Array.from(new Set(automaticBadges.concat(
+      Array.from(document.querySelectorAll('input[name="badges"]:checked')).map((input) => input.value)
+    )));
+    const currentAdminBadges = window.TWS.normalizeBadges(member.badges, member).filter((badge) => badge.source === 'admin').map((badge) => badge.id).sort();
+    const nextAdminBadges = badges.filter((id) => window.TWS.resolveBadge(id).source === 'admin').sort();
     const currentPoints = window.TWS.impactPointsFromStats(member);
     const currentExperience = Number(member.experience || member.stats?.experience || 0);
     const currentSolved = Number(member.solved || member.stats?.problemsSolved || 0);
@@ -607,10 +696,14 @@
       alert('Only superadmins can directly edit member EXP, Impact Points, or solved counts. Use friction finalization to award verified contribution points.');
       return;
     }
+    if (JSON.stringify(currentAdminBadges) !== JSON.stringify(nextAdminBadges) && !canManageSystemSession()) {
+      alert('Only superadmins can award or remove admin badges.');
+      return;
+    }
     await window.TWS.saveUserProfile(selectedMemberId, {
       ...member,
       specialty: document.getElementById('editSolverSpecialty').value.trim(),
-      badges,
+      badges: window.TWS.badgeStorageValues(badges, { ...member, stats: { ...(member.stats || {}), experience, impactPoints: points, totalImpactPoints: points, problemsSolved: solved } }),
       points,
       impactPoints: points,
       experience,
@@ -671,35 +764,6 @@
     const unselected = document.getElementById('partnerUnselectedState');
     if (form) form.style.display = 'none';
     if (unselected) unselected.style.display = 'flex';
-    await refresh();
-  }
-
-  async function recruitMember() {
-    const displayName = prompt('Display name for the new member?');
-    if (!displayName) return;
-    const email = String(prompt('Email for this member?') || '').trim().toLowerCase();
-    if (!email || !email.includes('@')) {
-      alert('A valid email is required to create a member.');
-      return;
-    }
-    const username = window.TWS.toUsername(prompt('Username for this member?') || displayName);
-    const id = `manual_${Date.now()}`;
-    if (!(await window.TWS.identityAvailable({ username, email, uid: id }))) {
-      alert('That username, email, or user ID is already attached to another account.');
-      return;
-    }
-    await window.TWS.saveUserProfile(id, {
-      id,
-      email,
-      displayName,
-      username,
-      role: 'Member',
-      adminRole: '',
-      specialty: '',
-      badges: [],
-      stats: { experience: 0, impactPoints: 0, totalImpactPoints: 0, problemsSolved: 0 }
-    });
-    window.TWS.logSystemActivity('SYSTEM', `Recruited member ${displayName}.`);
     await refresh();
   }
 
@@ -785,6 +849,8 @@
     });
     document.getElementById('solverListSearch')?.addEventListener('input', renderMembersLedger);
     document.getElementById('solverSortSelect')?.addEventListener('change', renderMembersLedger);
+    document.getElementById('impactArchiveSearch')?.addEventListener('input', renderImpactArchiveLedger);
+    document.getElementById('btnSaveImpactArchive')?.addEventListener('click', saveImpactArchiveRecord);
     document.getElementById('partnerListSearch')?.addEventListener('input', renderPartnersLedger);
     document.getElementById('taskListSearch')?.addEventListener('input', renderTasksLedger);
     document.getElementById('btnAddTask')?.addEventListener('click', () => {
@@ -812,7 +878,6 @@
       const level = Number(document.getElementById('editProgressionLevel').value) || 1;
       document.getElementById('editSolverExperience').value = window.TWS.experienceForProgression(rank, level);
     });
-    document.getElementById('btnRecruitSolver')?.addEventListener('click', recruitMember);
     document.getElementById('btnSaveSolver')?.addEventListener('click', saveSelectedMember);
     document.getElementById('btnDeleteSolver')?.addEventListener('click', deleteSelectedMember);
     document.getElementById('settingsForm')?.addEventListener('submit', async (event) => {
@@ -830,33 +895,6 @@
       window.TWS.logSystemActivity('SYSTEM', 'Updated global community parameters.');
       renderLogs();
       alert('System settings saved.');
-    });
-    document.getElementById('btnExportDB')?.addEventListener('click', () => {
-      const data = localStorage.getItem('tws_local_data_v1') || '{}';
-      const blob = new Blob([data], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `tws-backup-${new Date().toISOString().slice(0, 10)}.json`;
-      link.click();
-      URL.revokeObjectURL(url);
-      window.TWS.logSystemActivity('DATABASE', 'Exported local database backup.');
-      renderLogs();
-    });
-    document.getElementById('importDBFile')?.addEventListener('change', async (event) => {
-      const file = event.target.files?.[0];
-      if (!file) return;
-      const text = await file.text();
-      JSON.parse(text);
-      localStorage.setItem('tws_local_data_v1', text);
-      window.TWS.logSystemActivity('DATABASE', 'Imported local database backup.');
-      await refresh();
-    });
-    document.getElementById('btnResetDB')?.addEventListener('click', async () => {
-      if (!confirm('Reset local cached data for this browser?')) return;
-      localStorage.removeItem('tws_local_data_v1');
-      window.TWS.logSystemActivity('DATABASE', 'Reset local database cache.');
-      await refresh();
     });
     document.getElementById('btnClearLogs')?.addEventListener('click', () => {
       if (!confirm('Clear activity logs?')) return;
@@ -887,6 +925,7 @@
     renderPartnersLedger();
     renderTaskCategoryOptions();
     renderTasksLedger();
+    renderImpactArchiveLedger();
     renderSettings();
     renderLogs();
   }
@@ -894,6 +933,7 @@
   async function init() {
     if (!(await load())) return;
     renderShell();
+    renderBadgeControls();
     renderStats();
     renderReviewQueue();
     renderVerificationQueue();
@@ -901,6 +941,7 @@
     renderPartnersLedger();
     renderTaskCategoryOptions();
     renderTasksLedger();
+    renderImpactArchiveLedger();
     renderSettings();
     renderLogs();
     initControls();

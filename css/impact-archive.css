@@ -723,6 +723,38 @@ body::after {
   border-radius: 100px;
 }
 
+.archive-badge {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 8px;
+  padding: 3px 10px;
+  border-radius: 100px;
+  background: rgba(35, 56, 43, 0.08);
+  color: var(--accent-moss);
+  font-family: var(--font-body);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  vertical-align: middle;
+}
+
+.archive-empty-state {
+  border: 1px dashed var(--border-light);
+  border-radius: 8px;
+  padding: 40px 24px;
+  text-align: center;
+  color: var(--text-charcoal);
+  opacity: 0.68;
+  background: rgba(28, 30, 29, 0.015);
+}
+
+.drawer-section.archive-wide {
+  grid-column: 1 / -1;
+  border-top: 1px dashed var(--border-light);
+  padding-top: 18px;
+}
+
 /* Expand Button */
 .expand-btn {
   background: transparent;
