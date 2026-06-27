@@ -28,5 +28,7 @@ export const accessCollections = {
   communityTasks: 'communityTasks',
   taskSubmissions: 'taskSubmissions',
   taskCategories: 'taskCategories',
-  notifications: 'notifications'
+  notifications: 'notifications',
+  referrals: 'referrals'
 };
+

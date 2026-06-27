@@ -98,8 +98,12 @@
         badgesEarned: Number(stats.badgesEarned) || 0,
         currentRank: progression.label,
         currentStreak: Number(stats.currentStreak) || 0,
-        contributionStreak: Number(stats.contributionStreak || stats.currentStreak) || 0
+        contributionStreak: Number(stats.contributionStreak || stats.currentStreak) || 0,
+        successfulReferrals: Number(stats.successfulReferrals) || 0,
+        referralImpactPoints: Number(stats.referralImpactPoints) || 0,
+        referralExperience: Number(stats.referralExperience) || 0
       },
+      referralTier: raw.referralTier || 'Bronze Connector',
       badges: window.TWS.normalizeBadges(raw.badges, raw),
       timeline: Array.isArray(raw.timeline) ? raw.timeline : [],
       contributions: Array.isArray(raw.contributions) ? raw.contributions : [],
@@ -410,13 +414,50 @@
 
     grid.innerHTML = user.badges.map((badge) => {
       const item = window.TWS.resolveBadge(badge);
+      const isRefBadge = String(item.id || '').startsWith('referral-connector-');
+      
+      let refTooltipHtml = '';
+      let extraClass = '';
+      
+      if (isRefBadge) {
+        extraClass = ' referral-badge-card';
+        let nextCount = null;
+        if (item.id === 'referral-connector-l1') nextCount = 50;
+        else if (item.id === 'referral-connector-l2') nextCount = 100;
+        else if (item.id === 'referral-connector-l3') nextCount = 500;
+        else if (item.id === 'referral-connector-l4') nextCount = 1000;
+
+        let progressText = 'Maximum level achieved!';
+        let progressPercent = 100;
+        if (nextCount) {
+          progressText = `${user.stats.successfulReferrals} / ${nextCount} to next level`;
+          progressPercent = Math.min(100, Math.round((user.stats.successfulReferrals / nextCount) * 100));
+        }
+
+        refTooltipHtml = `
+          <div class="referral-tooltip-details">
+            <h4>Referral Achievements</h4>
+            <ul>
+              <li><strong>Successful Referrals:</strong> ${user.stats.successfulReferrals}</li>
+              <li><strong>Referral Impact Points:</strong> ${user.stats.referralImpactPoints} IP</li>
+              <li><strong>Referral Tier:</strong> ${esc(user.referralTier || 'Bronze Connector')}</li>
+              <li><strong>Progress:</strong> ${esc(progressText)}</li>
+            </ul>
+            <div class="progress-bar-mini">
+              <div class="progress-fill-mini" style="width: ${progressPercent}%"></div>
+            </div>
+          </div>
+        `;
+      }
+
       return `
-        <div class="badge-card">
+        <div class="badge-card${extraClass}">
           <div class="badge-card-accent"></div>
           <div class="badge-icon-wrap">${esc(item.icon || '*')}</div>
           <h3>${esc(item.name || 'Community Badge')}</h3>
           <span class="badge-level">${esc(item.level || item.honor || 'Community Honor')}</span>
           <p class="badge-desc">${esc(item.description || 'Awarded for meaningful cooperative participation.')}</p>
+          ${refTooltipHtml}
         </div>
       `;
     }).join('');

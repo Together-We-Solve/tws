@@ -162,6 +162,7 @@
     if (board === 'posted') return Number(member.stats?.problemsIdentified || member.problemsPosted || 0);
     if (board === 'solved') return Number(member.stats?.problemsSolved || member.solved || 0);
     if (board === 'experience') return Number(member.experience || member.stats?.experience || 0);
+    if (board === 'referrals') return Number(member.stats?.successfulReferrals || 0);
     if (board === 'hall') return member.hallOfFame ? member.impactPoints : -1;
     return member.impactPoints;
   }
@@ -172,6 +173,7 @@
       posted: 'Problems Posted',
       solved: 'Problems Solved',
       experience: 'Experience',
+      referrals: 'Successful Referrals',
       hall: 'Hall of Fame'
     }[board] || 'Impact Points';
   }
@@ -181,6 +183,15 @@
     const ledgerTableBody = document.querySelector('#ledgerTable tbody');
 
     if (!podiumGrid || !ledgerTableBody) return;
+
+    const impactHeader = document.querySelector('#ledgerTable th.col-impact');
+    if (impactHeader) {
+      if (board === 'referrals') impactHeader.textContent = 'Successful Referrals';
+      else if (board === 'experience') impactHeader.textContent = 'Experience Points';
+      else if (board === 'posted') impactHeader.textContent = 'Problems Posted';
+      else if (board === 'solved') impactHeader.textContent = 'Problems Solved';
+      else impactHeader.textContent = 'Impact Points';
+    }
 
     try {
       const solvers = leaderboardMembers.length ? leaderboardMembers : await window.TWS.loadMovementMembersAsync(defaultSolvers);
@@ -201,10 +212,9 @@
         return;
       }
 
-      // 1. RENDER PODIUM (TOP 3)
       podiumGrid.innerHTML = '';
       
-      const rankOrder = [1, 0, 2]; // Index mapping: Rank 2 (left), Rank 1 (center), Rank 3 (right)
+      const rankOrder = [1, 0, 2];
       const rankClasses = ['rank-2', 'rank-1', 'rank-3'];
       const rankLabels = [2, 1, 3];
       const defaultQuotes = [
@@ -221,14 +231,26 @@
         const rankNum = rankLabels[orderIdx];
         const quote = defaultQuotes[solverIndex] || "\"Vulnerability is the core of cooperative growth.\"";
         const profileHref = window.TWS.profileUrl(solver.username || solver.name);
-
-        // Gold highlighting for Rank 1
         const goldClass = rankNum === 1 ? 'gold' : '';
 
         const card = document.createElement('div');
         card.className = `podium-card ${rankClass}`;
         card.setAttribute('data-rank', rankNum);
         card.style.cursor = 'pointer';
+
+        let statDisplayVal = `${solver.impactPoints.toLocaleString()} IP`;
+        if (board === 'referrals') {
+          const refs = Number(solver.stats?.successfulReferrals) || 0;
+          statDisplayVal = `${refs.toLocaleString()} referrals`;
+        } else if (board === 'experience') {
+          statDisplayVal = `${solver.experience.toLocaleString()} EXP`;
+        } else if (board === 'posted') {
+          const posted = Number(solver.stats?.problemsIdentified) || 0;
+          statDisplayVal = `${posted} problems`;
+        } else if (board === 'solved') {
+          const solved = Number(solver.stats?.problemsSolved) || 0;
+          statDisplayVal = `${solved} solved`;
+        }
 
         card.innerHTML = `
           <div class="podium-badge">${rankNum}</div>
@@ -241,12 +263,8 @@
           <div class="podium-specialty">${esc(solver.specialty)}</div>
           <div class="podium-metrics">
             <div class="metric-item">
-              <span class="metric-val">${solver.impactPoints.toLocaleString()}</span>
-              <span class="metric-lbl">Impact Points</span>
-            </div>
-            <div class="metric-item">
-              <span class="metric-val">${solver.experience.toLocaleString()}</span>
-              <span class="metric-lbl">EXP</span>
+              <span class="metric-val">${statDisplayVal}</span>
+              <span class="metric-lbl">${esc(boardLabel(board))}</span>
             </div>
           </div>
           <div class="podium-badges">
@@ -255,7 +273,6 @@
           <p class="podium-quote">${quote}</p>
         `;
 
-        // Redirect card click to public profile
         card.addEventListener('click', () => {
           window.location.href = profileHref;
         });
@@ -263,7 +280,6 @@
         podiumGrid.appendChild(card);
       });
 
-      // 2. RENDER THE LEDGER TABLE (RANKS 4+)
       ledgerTableBody.innerHTML = '';
 
       for (let i = 3; i < rankedSolvers.length; i++) {
@@ -273,7 +289,15 @@
 
         const row = document.createElement('tr');
         row.className = 'ledger-row';
-        row.setAttribute('data-specialty', solver.specialty.split(' & ')[0].split(' ')[0]); // Get clean category tag
+        row.setAttribute('data-specialty', solver.specialty.split(' & ')[0].split(' ')[0]);
+
+        let cellUnit = ' IP';
+        if (board === 'referrals') cellUnit = ' referrals';
+        else if (board === 'experience') cellUnit = ' EXP';
+        else if (board === 'posted') cellUnit = ' problems';
+        else if (board === 'solved') cellUnit = ' solved';
+
+        const displayVal = boardValue(solver, board);
 
         row.innerHTML = `
           <td class="col-rank"><span class="rank-number">${rankStr}</span></td>
@@ -293,7 +317,7 @@
               ${solver.badges.map(b => `<span class="mini-badge">${esc(window.TWS.resolveBadge(b).name)}</span>`).join('') || '<span class="mini-badge">No badges yet</span>'}
             </div>
           </td>
-          <td class="col-impact"><span class="impact-val">${boardValue(solver, board).toLocaleString()} ${board === 'impact' || board === 'hall' ? 'IP' : ''}</span></td>
+          <td class="col-impact"><span class="impact-val">${displayVal.toLocaleString()}${cellUnit}</span></td>
         `;
 
         // Redirect row profile click to public profile

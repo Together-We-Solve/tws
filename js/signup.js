@@ -98,6 +98,32 @@ import { auth, db } from './firebase-core.js';
     const submitBtn = document.getElementById('signupSubmitBtn');
     if (!form) return;
 
+    const cachedRef = localStorage.getItem('tws_referral_ref');
+    let validReferrer = null;
+
+    if (cachedRef) {
+      const usersRef = collection(db, accessCollections.users);
+      getDocs(query(usersRef, where('referralCode', '==', cachedRef))).then((snap) => {
+        if (!snap.empty) {
+          const referrerDoc = snap.docs[0];
+          validReferrer = {
+            uid: referrerDoc.id,
+            displayName: referrerDoc.data().displayName || referrerDoc.data().username,
+            username: referrerDoc.data().username,
+            email: referrerDoc.data().email
+          };
+          const refContainer = document.getElementById('referredByContainer');
+          const refText = document.getElementById('referrerCodeText');
+          if (refContainer && refText) {
+            refText.textContent = `${validReferrer.displayName} (${cachedRef})`;
+            refContainer.style.display = 'block';
+          }
+        }
+      }).catch((err) => {
+        console.warn(err);
+      });
+    }
+
     form.addEventListener('submit', async (event) => {
       event.preventDefault();
       const displayName = document.getElementById('displayName').value.trim();
@@ -126,6 +152,7 @@ import { auth, db } from './firebase-core.js';
           throw new Error('identity-taken');
         }
 
+        const selfRefCode = window.TWS.generateReferralCode();
         const userDoc = {
           uid: credential.user.uid,
           email,
@@ -135,6 +162,9 @@ import { auth, db } from './firebase-core.js';
           role: 'Member',
           privileges: [],
           joinedDate: new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
+          referralCode: selfRefCode,
+          referralTier: 'Bronze Connector',
+          referralBadgeLevel: 0,
           stats: {
             experience: 0,
             impactPoints: 0,
@@ -142,13 +172,23 @@ import { auth, db } from './firebase-core.js';
             problemsSolved: 0,
             problemsIdentified: 0,
             helpfulResponses: 0,
-            knowledgeContributions: 0
+            knowledgeContributions: 0,
+            successfulReferrals: 0,
+            pendingReferrals: 0,
+            rejectedReferrals: 0,
+            referralImpactPoints: 0,
+            referralExperience: 0
           },
           badges: ['first-step'],
           bio: '',
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp()
         };
+
+        if (validReferrer) {
+          userDoc.referredBy = validReferrer.uid;
+          userDoc.referredByCode = cachedRef;
+        }
 
         await runTransaction(db, async (transaction) => {
           const userRef = doc(db, accessCollections.users, credential.user.uid);
@@ -157,6 +197,78 @@ import { auth, db } from './firebase-core.js';
           if (usernameSnapshot.exists() && usernameSnapshot.data().uid !== credential.user.uid) {
             throw new Error('identity-taken');
           }
+
+          if (validReferrer) {
+            const referrerRef = doc(db, accessCollections.users, validReferrer.uid);
+            const referrerSnapshot = await transaction.get(referrerRef);
+            if (referrerSnapshot.exists()) {
+              const rData = referrerSnapshot.data();
+              const rStats = rData.stats || {};
+              const currentPending = Number(rStats.pendingReferrals) || 0;
+              transaction.update(referrerRef, {
+                'stats.pendingReferrals': currentPending + 1
+              });
+            }
+
+            const referralId = `ref_${credential.user.uid}`;
+            const referralRef = doc(db, 'referrals', referralId);
+
+            let clientIp = 'unknown';
+            try {
+              const ipRes = await fetch('https://api.ipify.org?format=json').then(r => r.json());
+              if (ipRes && ipRes.ip) clientIp = ipRes.ip;
+            } catch (ipErr) {}
+
+            transaction.set(referralRef, {
+              id: referralId,
+              inviterUid: validReferrer.uid,
+              inviterName: validReferrer.displayName,
+              inviterUsername: validReferrer.username,
+              inviteeUid: credential.user.uid,
+              inviteeName: displayName,
+              inviteeUsername: username,
+              inviteeEmail: email,
+              status: 'Pending Verification',
+              submittedAt: new Date().toISOString(),
+              validationDate: null,
+              rejectionReason: null,
+              verifiedAt: null,
+              inviteeIp: clientIp,
+              inviteeUserAgent: navigator.userAgent,
+              validationEvidence: {
+                emailVerified: false,
+                accountAgeDays: 0,
+                profileCompleted: false,
+                activityCount: 0
+              },
+              fraudScore: {
+                selfReferral: false,
+                duplicateIp: false,
+                suspiciousDevice: false,
+                disposableEmail: false
+              },
+              history: [{
+                status: 'Pending Verification',
+                updatedBy: 'system',
+                updatedAt: new Date().toISOString()
+              }]
+            }, { merge: true });
+
+            const notifId = `notif_ref_${credential.user.uid}`;
+            const notifRef = doc(db, accessCollections.notifications, notifId);
+            transaction.set(notifRef, {
+              id: notifId,
+              userId: validReferrer.uid,
+              email: validReferrer.email,
+              type: 'referral',
+              title: 'New Pending Referral',
+              message: `${displayName} has signed up using your referral link. Rewards will be verified soon.`,
+              read: false,
+              createdBy: credential.user.uid,
+              createdAt: new Date().toISOString()
+            }, { merge: true });
+          }
+
           transaction.set(usernameRef, {
             uid: credential.user.uid,
             email,

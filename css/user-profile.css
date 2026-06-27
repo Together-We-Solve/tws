@@ -853,3 +853,69 @@ body::after {
   opacity: 0.6;
   max-width: 600px;
 }
+
+.referral-badge-card {
+  position: relative;
+  cursor: pointer;
+}
+
+.referral-tooltip-details {
+  position: absolute;
+  bottom: 110%;
+  left: 50%;
+  transform: translateX(-50%) translateY(10px);
+  width: 260px;
+  background: rgba(30, 48, 38, 0.95);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--accent-moss);
+  border-radius: 12px;
+  padding: 16px;
+  color: #fff;
+  font-size: 12px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  z-index: 100;
+  text-align: left;
+}
+
+.referral-badge-card:hover .referral-tooltip-details {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(-50%) translateY(0);
+}
+
+.referral-tooltip-details h4 {
+  font-family: var(--font-display);
+  font-size: 14px;
+  color: var(--accent-clay, #c87d55);
+  margin-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 4px;
+}
+
+.referral-tooltip-details ul {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 10px 0;
+}
+
+.referral-tooltip-details li {
+  margin-bottom: 6px;
+  line-height: 1.4;
+}
+
+.progress-bar-mini {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-fill-mini {
+  height: 100%;
+  background: var(--accent-moss, #385e4a);
+  border-radius: 3px;
+}

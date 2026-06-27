@@ -1,6 +1,12 @@
 (function () {
   'use strict';
 
+  const urlParams = new URLSearchParams(window.location.search);
+  const refParam = urlParams.get('ref');
+  if (refParam) {
+    localStorage.setItem('tws_referral_ref', refParam.trim());
+  }
+
   const memory = {
     users: [],
     problems: [],
@@ -341,7 +347,12 @@
     { id: 'sudden-light', name: 'Sudden Light', icon: 'SL', level: 'Admin Award', description: 'Awarded by admins for a breakthrough insight that unlocks progress.', source: 'admin' },
     { id: 'dignity-guard', name: 'Dignity Guard', icon: 'DG', level: 'Admin Award', description: 'Awarded by admins for protecting respectful, humane collaboration.', source: 'admin' },
     { id: 'mentor-signal', name: 'Mentor Signal', icon: 'MS', level: 'Admin Award', description: 'Awarded by admins for guiding other members with patience and clarity.', source: 'admin' },
-    { id: 'evidence-keeper', name: 'Evidence Keeper', icon: 'EK', level: 'Admin Award', description: 'Awarded by admins for careful verification, research, or documentation.', source: 'admin' }
+    { id: 'evidence-keeper', name: 'Evidence Keeper', icon: 'EK', level: 'Admin Award', description: 'Awarded by admins for careful verification, research, or documentation.', source: 'admin' },
+    { id: 'referral-connector-l1', name: 'Referral Connector (Level 1)', icon: '🌱', level: 'Milestone', description: 'Reaching 10 successful referrals. Helping our community grow organically.', source: 'automatic' },
+    { id: 'referral-connector-l2', name: 'Referral Connector (Level 2)', icon: '🌿', level: 'Milestone', description: 'Reaching 50 successful referrals. A trusted connector of solutions and people.', source: 'automatic' },
+    { id: 'referral-connector-l3', name: 'Referral Connector (Level 3)', icon: '🌳', level: 'Milestone', description: 'Reaching 100 successful referrals. An impactful pillar of community development.', source: 'automatic' },
+    { id: 'referral-connector-l4', name: 'Referral Connector (Level 4)', icon: '👑', level: 'Milestone', description: 'Reaching 500 successful referrals. A masterful architect of community growth.', source: 'automatic' },
+    { id: 'referral-connector-l5', name: 'Referral Connector (Level 5)', icon: '⭐', level: 'Milestone', description: 'Reaching 1,000 successful referrals. An legendary guide of Together We Solve.', source: 'automatic' }
   ];
 
   const badgeById = new Map(badgeCatalog.map((badge) => [badge.id, badge]));
@@ -371,6 +382,7 @@
     const solved = Number(stats.problemsSolved ?? raw.solved) || 0;
     const posted = Number(stats.problemsIdentified ?? raw.problemsPosted) || 0;
     const completedTasks = Number(stats.communityTasksCompleted) || 0;
+    const referrals = Number(stats.successfulReferrals) || 0;
     const ids = [];
     if (raw.uid || raw.email || raw.createdAt || raw.joinedDate) ids.push('first-step');
     if (posted > 0) ids.push('friction-spotter');
@@ -380,6 +392,11 @@
     if (points >= 100) ids.push('impact-100');
     if (points >= 500) ids.push('impact-500');
     if (points >= 1000) ids.push('impact-1000');
+    if (referrals >= 1000) ids.push('referral-connector-l5');
+    else if (referrals >= 500) ids.push('referral-connector-l4');
+    else if (referrals >= 100) ids.push('referral-connector-l3');
+    else if (referrals >= 50) ids.push('referral-connector-l2');
+    else if (referrals >= 10) ids.push('referral-connector-l1');
     return ids;
   }
 
@@ -1536,6 +1553,189 @@
     return progressionFromExperience(0).label;
   }
 
+  const defaultReferralSettings = {
+    validation: {
+      requireEmailVerified: true,
+      minAccountAgeDays: 0,
+      requireProfileCompletion: true,
+      minActivityCount: 1,
+      enableFraudCheck: true
+    },
+    tiers: [
+      { name: 'Bronze Connector', threshold: 0, reward: 100 },
+      { name: 'Silver Connector', threshold: 5, reward: 150 },
+      { name: 'Gold Connector', threshold: 15, reward: 220 },
+      { name: 'Platinum Builder', threshold: 35, reward: 300 },
+      { name: 'Diamond Catalyst', threshold: 75, reward: 400 },
+      { name: 'Apex Ambassador', threshold: 150, reward: 500 }
+    ],
+    milestones: [
+      { count: 10, bonus: 500 },
+      { count: 50, bonus: 2500 },
+      { count: 100, bonus: 6000 },
+      { count: 500, bonus: 35000 },
+      { count: 1000, bonus: 80000 }
+    ]
+  };
+
+  function generateReferralCode() {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let code = 'TWS-';
+    for (let i = 0; i < 6; i++) {
+      code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return code;
+  }
+
+  function calculateReferralEXP(successfulCount, refSettings) {
+    const tiers = refSettings?.tiers || defaultReferralSettings.tiers;
+    const sortedTiers = [...tiers].sort((a, b) => a.threshold - b.threshold);
+    let totalEXP = 0;
+    for (let i = 1; i <= successfulCount; i++) {
+      const prevCount = i - 1;
+      let activeTier = sortedTiers[0];
+      for (const tier of sortedTiers) {
+        if (prevCount >= tier.threshold) {
+          activeTier = tier;
+        } else {
+          break;
+        }
+      }
+      totalEXP += Number(activeTier.reward) || 0;
+    }
+    const milestones = refSettings?.milestones || defaultReferralSettings.milestones;
+    let bonusEXP = 0;
+    for (const m of milestones) {
+      if (successfulCount >= m.count) {
+        bonusEXP += Number(m.bonus) || 0;
+      }
+    }
+    return totalEXP + bonusEXP;
+  }
+
+  async function recalculateUserReferralProgression(userId) {
+    const { configModule, db, firestoreModule } = await getFirebaseDataApiSafe();
+    const queryConstraints = [
+      firestoreModule.where('inviterUid', '==', userId)
+    ];
+    const q = firestoreModule.query(
+      firestoreModule.collection(db, configModule.accessCollections.referrals),
+      ...queryConstraints
+    );
+    const snap = await firestoreModule.getDocs(q);
+    const referrals = snap.docs.map(doc => doc.data());
+    const approved = referrals.filter(r => r.status === 'Approved');
+    const pending = referrals.filter(r => r.status === 'Pending Verification');
+    const rejected = referrals.filter(r => r.status === 'Rejected');
+    const settings = await loadSettings({});
+    const refSettings = settings.referralSettings || defaultReferralSettings;
+    const N = approved.length;
+    const pendingCount = pending.length;
+    const rejectedCount = rejected.length;
+    const newReferralIP = N * 1;
+    const newReferralEXP = calculateReferralEXP(N, refSettings);
+    const userDoc = await fetchDocument(configModule.accessCollections.users, userId);
+    if (!userDoc) return;
+    const stats = userDoc.stats || {};
+    const oldReferralIP = Number(stats.referralImpactPoints) || 0;
+    const oldReferralEXP = Number(stats.referralExperience) || 0;
+    const ipDiff = newReferralIP - oldReferralIP;
+    const expDiff = newReferralEXP - oldReferralEXP;
+    const newStats = {
+      ...stats,
+      successfulReferrals: N,
+      pendingReferrals: pendingCount,
+      rejectedReferrals: rejectedCount,
+      referralImpactPoints: newReferralIP,
+      referralExperience: newReferralEXP,
+      impactPoints: (Number(stats.impactPoints) || 0) + ipDiff,
+      totalImpactPoints: (Number(stats.totalImpactPoints) || 0) + ipDiff,
+      experience: (Number(stats.experience) || 0) + expDiff
+    };
+    const updatedUser = {
+      ...userDoc,
+      stats: newStats,
+      points: newStats.impactPoints,
+      impactPoints: newStats.impactPoints,
+      experience: newStats.experience,
+      updatedAt: new Date().toISOString()
+    };
+    const sortedTiers = [...(refSettings.tiers || defaultReferralSettings.tiers)].sort((a, b) => a.threshold - b.threshold);
+    let activeTierName = sortedTiers[0].name;
+    for (const tier of sortedTiers) {
+      if (N >= tier.threshold) {
+        activeTierName = tier.name;
+      } else {
+        break;
+      }
+    }
+    updatedUser.referralTier = activeTierName;
+    const progression = progressionFromExperience(updatedUser.experience);
+    updatedUser.role = progression.role;
+    await saveDocument(configModule.accessCollections.users, userId, updatedUser);
+    memory.users = replaceById(memory.users.length ? memory.users : readLocalStore().users, { id: userId, uid: userId, ...updatedUser });
+    writeLocalStore({ users: memory.users });
+    const session = getPortalSession();
+    if (session && (session.uid === userId || session.username === updatedUser.username)) {
+      session.role = updatedUser.role;
+      sessionStorage.setItem('portal_session', JSON.stringify(session));
+    }
+  }
+
+  function triggerReferralCelebration(milestone, badgeName, badgeIcon, bonusExp) {
+    const existing = document.querySelector('.level-up-overlay');
+    if (existing) existing.remove();
+    const overlay = document.createElement('div');
+    overlay.className = 'level-up-overlay';
+    overlay.innerHTML = `
+      <div class="level-up-card">
+        <div class="level-up-glow" style="background: radial-gradient(circle, rgba(200, 125, 85, 0.4) 0%, transparent 70%);"></div>
+        <div class="level-up-celebration-particles"></div>
+        <div class="level-up-badge-container">
+          <div class="level-up-badge" style="background: #c87d55; border-color: #385e4a;">
+            <span class="level-up-badge-num" style="font-size: 32px;">${badgeIcon}</span>
+          </div>
+        </div>
+        <h2 class="level-up-title" style="color: #c87d55;">Milestone Unlocked!</h2>
+        <p class="level-up-subtitle">Incredible! You have reached the milestone of <strong>${milestone} successful referrals</strong>.</p>
+        <p class="level-up-subtitle">Your referral badge has evolved to <strong>${badgeName}</strong>! ${bonusExp ? `You've also been awarded a one-time bonus of <strong>${bonusExp.toLocaleString()} EXP</strong>!` : ''}</p>
+        <button class="btn btn-primary btn-level-up-dismiss" style="background: #c87d55; border-color: #c87d55;">Phenomenal! &nearr;</button>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+    const particleContainer = overlay.querySelector('.level-up-celebration-particles');
+    const colors = ['#C87D55', '#23382B', '#3D5A6C', '#FAF6F0', '#E8A885'];
+    for (let index = 0; index < 45; index += 1) {
+      const particle = document.createElement('div');
+      particle.className = 'level-up-particle';
+      const angle = Math.random() * Math.PI * 2;
+      const distance = 80 + Math.random() * 160;
+      const x = Math.cos(angle) * distance;
+      const y = Math.sin(angle) * distance;
+      const size = 6 + Math.random() * 10;
+      const rotation = 90 + Math.random() * 360;
+      const delay = Math.random() * 0.2;
+      const color = colors[Math.floor(Math.random() * colors.length)];
+      const br = Math.random() > 0.5 ? '50%' : '0%';
+      particle.style.setProperty('--x', `${x}px`);
+      particle.style.setProperty('--y', `${y}px`);
+      particle.style.setProperty('--size', `${size}px`);
+      particle.style.setProperty('--r', `${rotation}deg`);
+      particle.style.setProperty('--bg', color);
+      particle.style.setProperty('--br', br);
+      particle.style.animationDelay = `${delay}s`;
+      particleContainer.appendChild(particle);
+    }
+    requestAnimationFrame(() => {
+      overlay.classList.add('active');
+    });
+    const dismissBtn = overlay.querySelector('.btn-level-up-dismiss');
+    dismissBtn.onclick = () => {
+      overlay.classList.remove('active');
+      setTimeout(() => overlay.remove(), 600);
+    };
+  }
+
   function enhanceNavigation() {
     const session = JSON.parse(sessionStorage.getItem('portal_session') || 'null');
     const navLinks = document.querySelector('.nav-links');
@@ -1550,6 +1750,7 @@
         ['home.html', 'Home'],
         ['open-frictions.html', 'Open Frictions'],
         ['tasks.html', 'Tasks'],
+        ['referrals.html', 'Referrals'],
         ['members.html', 'Members'],
         ['impact-archive.html', 'Impact Archive'],
         ['core-team.html', 'Partners']
@@ -1779,6 +1980,11 @@
     dashboardsForSession,
     memberPrefix,
     enhanceNavigation,
+    defaultReferralSettings,
+    generateReferralCode,
+    calculateReferralEXP,
+    recalculateUserReferralProgression,
+    triggerReferralCelebration,
     ensureSolverProfile,
     triggerLevelUpAnimation,
     checkLevelUpProgression

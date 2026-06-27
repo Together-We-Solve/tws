@@ -73,6 +73,12 @@
             <span class="tab-label">System Settings</span>
           </button>
 
+          <button class="nav-tab-btn" data-tab="referrals">
+            <span class="tab-icon">🌱</span>
+            <span class="tab-label">Referrals Manager</span>
+            <span class="tab-badge" id="badgeReferralCount">0</span>
+          </button>
+
           <button class="nav-tab-btn" data-tab="logs">
             <span class="tab-icon">📋</span>
             <span class="tab-label">System Logs</span>
@@ -683,6 +689,124 @@
                   <button type="submit" class="btn btn-primary btn-sm">Save System Configurations</button>
                 </div>
               </form>
+            </div>
+          </section>
+
+          <section class="console-tab-panel" id="panel-referrals">
+            <div class="dual-pane-layout">
+              <div class="master-list-pane">
+                <div class="pane-header">
+                  <h3>Pending Referrals</h3>
+                  <div class="pane-search-row" style="display: flex; gap: 8px; margin-top: 12px; margin-bottom: 8px;">
+                    <input type="text" id="referralListSearch" class="pane-search-input" placeholder="Search referrer or invitee..." style="flex: 1;" />
+                  </div>
+                  <span class="pane-subtitle" id="referralQueueCount">0 pending review</span>
+                </div>
+                <div class="master-list-scrollable" id="referralMasterList">
+                  <!-- Dynamic referral items go here -->
+                </div>
+                <div class="empty-pane-placeholder" id="referralQueueEmpty" style="display: none;">
+                  <span class="placeholder-icon">🌱</span>
+                  <h4>No Referrals Found</h4>
+                  <p>All referred signups have been verified and processed.</p>
+                </div>
+              </div>
+
+              <div class="detail-viewer-pane" id="referralDetailPane">
+                <div class="empty-detail-state" id="referralDetailEmpty">
+                  <span class="empty-icon">🌱</span>
+                  <h4>Select a Referral</h4>
+                  <p>Choose an entry from the list to audit validation parameters and manage progression rewards.</p>
+                </div>
+
+                <div class="detail-content-wrap" id="referralDetailContent" style="display: none;">
+                  <div class="pane-header flex-header">
+                    <div>
+                      <h3 id="referralDetailInvitee">New Solver Sign Up</h3>
+                      <span class="pane-subtitle" id="referralDetailInviter">Invited by: loader</span>
+                    </div>
+                    <span class="status-badge" id="referralDetailStatus">Pending Verification</span>
+                  </div>
+
+                  <div class="detail-scroll-area">
+                    
+                    <div class="audit-section-card">
+                      <h4 class="section-title">Automated Abuse Audit Checks</h4>
+                      <div class="audit-checks-grid">
+                        <div class="audit-check-item" id="chkSelfReferral">
+                          <span class="check-icon">❔</span>
+                          <div class="check-info">
+                            <span class="check-title">Self-Referral Check</span>
+                            <span class="check-desc">Verifies invitee UID is not identical to inviter UID.</span>
+                          </div>
+                        </div>
+                        <div class="audit-check-item" id="chkDuplicateIp">
+                          <span class="check-icon">❔</span>
+                          <div class="check-info">
+                            <span class="check-title">Duplicate Network Check</span>
+                            <span class="check-desc">Checks if invitee and inviter signed up from matching IP addresses.</span>
+                          </div>
+                        </div>
+                        <div class="audit-check-item" id="chkSuspiciousDevice">
+                          <span class="check-icon">❔</span>
+                          <div class="check-info">
+                            <span class="check-title">Browser Footprint Check</span>
+                            <span class="check-desc">Flags matching device fingerprint or suspicious user agents.</span>
+                          </div>
+                        </div>
+                        <div class="audit-check-item" id="chkDisposableEmail">
+                          <span class="check-icon">❔</span>
+                          <div class="check-info">
+                            <span class="check-title">Email Domain Validation</span>
+                            <span class="check-desc">Flags suspicious disposable/temporary email provider domains.</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="audit-section-card" style="margin-top: 24px;">
+                      <h4 class="section-title">Member Verification Progress</h4>
+                      <div class="audit-checks-grid">
+                        <div class="audit-check-item" id="chkVipEmailVerified">
+                          <span class="check-icon">❔</span>
+                          <div class="check-info">
+                            <span class="check-title">Email Verification Status</span>
+                            <span class="check-desc" id="lblVipEmailVerified">Invitee has not verified their email address.</span>
+                          </div>
+                        </div>
+                        <div class="audit-check-item" id="chkVipProfileCompleted">
+                          <span class="check-icon">❔</span>
+                          <div class="check-info">
+                            <span class="check-title">Profile Completion Status</span>
+                            <span class="check-desc" id="lblVipProfileCompleted">Invitee profile requires display name, bio, and custom username.</span>
+                          </div>
+                        </div>
+                        <div class="audit-check-item" id="chkVipActivity">
+                          <span class="check-icon">❔</span>
+                          <div class="check-info">
+                            <span class="check-title">Platform Activity Check</span>
+                            <span class="check-desc" id="lblVipActivity">Checks for minimum problem/task participation.</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="audit-section-card" style="margin-top: 24px;">
+                      <h4 class="section-title">Action Ledger & Verification Notes</h4>
+                      <div class="input-group" style="margin-top: 12px;">
+                        <label for="referralReviewNotes" class="input-label">Audit Remarks / Decision Reason</label>
+                        <textarea id="referralReviewNotes" rows="3" placeholder="Provide reason for approval, rejection, or revocation..."></textarea>
+                      </div>
+                    </div>
+
+                  </div>
+
+                  <div class="pane-action-footer">
+                    <button type="button" class="btn btn-outline" id="btnRejectReferral" style="color: #c85555; border-color: rgba(200, 85, 85, 0.25);">Reject & Revoke</button>
+                    <button type="button" class="btn btn-primary" id="btnApproveReferral">Approve & Issue Rewards</button>
+                  </div>
+                </div>
+              </div>
             </div>
           </section>
 

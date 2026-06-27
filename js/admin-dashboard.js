@@ -5,6 +5,8 @@
   const mode = window.TWS_DASHBOARD_MODE || 'Superadmin';
   let session = null;
   let problems = [];
+  let referrals = [];
+  let selectedReferralId = '';
   let members = [];
   let partners = [];
   let tasks = [];
@@ -76,6 +78,13 @@
     }
     problems = await window.TWS.loadProblemsAsync([]);
     members = await window.TWS.loadMovementMembersAsync([]);
+    try {
+      const { configModule, db, firestoreModule } = await window.TWS.getFirebaseDataApiSafe();
+      const snap = await firestoreModule.getDocs(firestoreModule.collection(db, configModule.accessCollections.referrals));
+      referrals = snap.docs.map(doc => doc.data());
+    } catch (e) {
+      console.warn('Failed to load referrals', e);
+    }
     partners = await window.TWS.loadPartnersAsync([]);
     tasks = await window.TWS.loadCommunityTasksAsync([]);
     taskSubmissions = await window.TWS.loadTaskSubmissionsAsync([]);
@@ -123,6 +132,13 @@
     document.getElementById('statResolutionRate').textContent = problems.length ? `${Math.round((solved / problems.length) * 100)}%` : '0%';
     document.getElementById('badgePendingCount').textContent = pending;
     document.getElementById('badgeVerificationCount').textContent = evaluation + taskEvaluation;
+
+    const pendingReferralsCount = referrals.filter(r => r.status === 'Pending Verification').length;
+    const badgeReferralCount = document.getElementById('badgeReferralCount');
+    if (badgeReferralCount) {
+      badgeReferralCount.textContent = pendingReferralsCount;
+      badgeReferralCount.style.display = pendingReferralsCount > 0 ? 'inline-block' : 'none';
+    }
   }
 
   function populateProgressionControls() {
@@ -903,6 +919,291 @@
     });
   }
 
+  function renderReferralList() {
+    const listContainer = document.getElementById('referralMasterList');
+    const emptyPlaceholder = document.getElementById('referralQueueEmpty');
+    const queueCountEl = document.getElementById('referralQueueCount');
+    if (!listContainer) return;
+
+    listContainer.innerHTML = '';
+    const queryStr = (document.getElementById('referralListSearch')?.value || '').trim().toLowerCase();
+
+    const filtered = referrals.filter(r => {
+      if (!queryStr) return true;
+      return String(r.inviteeName || '').toLowerCase().includes(queryStr) ||
+             String(r.inviteeUsername || '').toLowerCase().includes(queryStr) ||
+             String(r.inviterName || '').toLowerCase().includes(queryStr) ||
+             String(r.inviterUsername || '').toLowerCase().includes(queryStr);
+    });
+
+    const sorted = [...filtered].sort((a, b) => {
+      const aPending = a.status === 'Pending Verification' ? 1 : 0;
+      const bPending = b.status === 'Pending Verification' ? 1 : 0;
+      if (aPending !== bPending) return bPending - aPending;
+      return new Date(b.submittedAt || 0) - new Date(a.submittedAt || 0);
+    });
+
+    const pendingCount = sorted.filter(r => r.status === 'Pending Verification').length;
+    if (queueCountEl) queueCountEl.textContent = `${pendingCount} pending review`;
+
+    if (sorted.length === 0) {
+      if (emptyPlaceholder) emptyPlaceholder.style.display = 'block';
+      return;
+    }
+
+    if (emptyPlaceholder) emptyPlaceholder.style.display = 'none';
+
+    sorted.forEach(ref => {
+      const card = document.createElement('div');
+      card.className = `master-item-card${selectedReferralId === ref.id ? ' active' : ''}`;
+      
+      let statusClass = 'status-pending';
+      if (ref.status === 'Approved') statusClass = 'status-solved';
+      else if (ref.status === 'Rejected') statusClass = 'status-flagged';
+      else if (ref.status === 'Revoked') statusClass = 'status-archived';
+
+      card.innerHTML = `
+        <div class="card-left">
+          <span class="card-author">@${esc(ref.inviteeUsername)}</span>
+          <h4 class="card-item-title" style="margin-top: 4px;">Referred by @${esc(ref.inviterUsername)}</h4>
+          <span class="card-timestamp">${new Date(ref.submittedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+        </div>
+        <div class="card-right">
+          <span class="status-badge ${statusClass}">${esc(ref.status)}</span>
+        </div>
+      `;
+
+      card.onclick = () => {
+        selectedReferralId = ref.id;
+        document.querySelectorAll('#referralMasterList .master-item-card').forEach(c => c.classList.remove('active'));
+        card.classList.add('active');
+        renderReferralDetail();
+      };
+
+      listContainer.appendChild(card);
+    });
+  }
+
+  function renderReferralDetail() {
+    const emptyState = document.getElementById('referralDetailEmpty');
+    const contentWrap = document.getElementById('referralDetailContent');
+    if (!emptyState || !contentWrap) return;
+
+    if (!selectedReferralId) {
+      emptyState.style.display = 'block';
+      contentWrap.style.display = 'none';
+      return;
+    }
+
+    const ref = referrals.find(r => r.id === selectedReferralId);
+    if (!ref) {
+      selectedReferralId = '';
+      emptyState.style.display = 'block';
+      contentWrap.style.display = 'none';
+      return;
+    }
+
+    emptyState.style.display = 'none';
+    contentWrap.style.display = 'block';
+
+    document.getElementById('referralDetailInvitee').textContent = `${ref.inviteeName} (@${ref.inviteeUsername})`;
+    document.getElementById('referralDetailInviter').textContent = `Invited by: ${ref.inviterName} (@${ref.inviterUsername})`;
+
+    const statusEl = document.getElementById('referralDetailStatus');
+    if (statusEl) {
+      statusEl.textContent = ref.status;
+      statusEl.className = 'status-badge';
+      if (ref.status === 'Approved') statusEl.classList.add('status-solved');
+      else if (ref.status === 'Rejected') statusEl.classList.add('status-flagged');
+      else if (ref.status === 'Revoked') statusEl.classList.add('status-archived');
+      else statusEl.classList.add('status-pending');
+    }
+
+    document.getElementById('referralReviewNotes').value = ref.rejectionReason || '';
+
+    const inviter = members.find(m => m.uid === ref.inviterUid);
+    const invitee = members.find(m => m.uid === ref.inviteeUid);
+
+    const checkSelf = ref.inviterUid === ref.inviteeUid;
+    const checkIp = invitee && inviter && invitee.lastIp && inviter.lastIp && invitee.lastIp !== 'unknown' && invitee.lastIp === inviter.lastIp;
+    const checkAgent = ref.inviteeUserAgent && inviter && inviter.lastUserAgent && ref.inviteeUserAgent === inviter.lastUserAgent;
+    
+    const tempDomains = ['mailinator.com', 'yopmail.com', 'tempmail.com', '10minutemail.com', 'guerrillamail.com'];
+    const emailDomain = String(ref.inviteeEmail || '').split('@')[1] || '';
+    const checkEmail = tempDomains.includes(emailDomain.toLowerCase());
+
+    const emailVerified = invitee ? (invitee.emailVerified === true) : false;
+    const profileCompleted = invitee ? (invitee.bio && invitee.bio.trim().length > 5 && invitee.displayName) : false;
+    const activityCount = invitee ? ((Number(invitee.stats?.problemsIdentified) || 0) + (Number(invitee.stats?.problemsSolved) || 0)) : 0;
+    const checkActivity = activityCount >= 1;
+
+    setAuditCheck('chkSelfReferral', !checkSelf, checkSelf ? 'FAIL: Same accounts detected' : 'PASS: Distinct accounts');
+    setAuditCheck('chkDuplicateIp', !checkIp, checkIp ? 'FAIL: Matching network IP detected' : 'PASS: Distinct IP networks');
+    setAuditCheck('chkSuspiciousDevice', !checkAgent, checkAgent ? 'FAIL: Matching browser agent detected' : 'PASS: Distinct browser footprints');
+    setAuditCheck('chkDisposableEmail', !checkEmail, checkEmail ? 'FAIL: Temporary email provider detected' : 'PASS: Valid email domain');
+
+    setAuditCheck('chkVipEmailVerified', emailVerified, emailVerified ? 'PASS: Email address is verified' : 'Awaiting: Email address verification');
+    setAuditCheck('chkVipProfileCompleted', profileCompleted, profileCompleted ? 'PASS: Bio and display name completed' : 'Awaiting: Profile bio and display name');
+    setAuditCheck('chkVipActivity', checkActivity, checkActivity ? `PASS: Solver has ${activityCount} platform activities` : `Awaiting: Minimum activity check (${activityCount}/1 completed)`);
+
+    const btnApprove = document.getElementById('btnApproveReferral');
+    const btnReject = document.getElementById('btnRejectReferral');
+
+    if (ref.status !== 'Pending Verification') {
+      if (btnApprove) btnApprove.disabled = true;
+      if (btnReject) {
+        btnReject.disabled = false;
+        btnReject.textContent = 'Revoke Referral';
+        btnReject.style.color = '#c85555';
+      }
+    } else {
+      if (btnApprove) btnApprove.disabled = false;
+      if (btnReject) {
+        btnReject.disabled = false;
+        btnReject.textContent = 'Reject Referral';
+        btnReject.style.color = '#c85555';
+      }
+    }
+  }
+
+  function setAuditCheck(elementId, passed, message) {
+    const el = document.getElementById(elementId);
+    if (!el) return;
+    const iconEl = el.querySelector('.check-icon');
+    const descEl = el.querySelector('.check-desc');
+    if (passed) {
+      if (iconEl) iconEl.textContent = '✅';
+      el.style.opacity = '1';
+    } else {
+      if (iconEl) iconEl.textContent = '❌';
+      el.style.opacity = '1';
+    }
+    if (descEl) descEl.textContent = message;
+  }
+
+  function initReferralTab() {
+    const searchInput = document.getElementById('referralListSearch');
+    if (searchInput) {
+      searchInput.addEventListener('input', () => {
+        renderReferralList();
+      });
+    }
+
+    document.getElementById('btnApproveReferral')?.addEventListener('click', async () => {
+      if (!selectedReferralId) return;
+      const ref = referrals.find(r => r.id === selectedReferralId);
+      if (!ref) return;
+
+      if (!confirm(`Approve referral of ${ref.inviteeName}? This will award IP/EXP rewards to ${ref.inviterName}.`)) return;
+
+      try {
+        const { configModule, db, firestoreModule } = await window.TWS.getFirebaseDataApiSafe();
+        const referralRef = firestoreModule.doc(db, 'referrals', ref.id);
+        
+        const note = document.getElementById('referralReviewNotes').value.trim() || 'Approved by administrator';
+        const now = new Date().toISOString();
+        
+        const newHistory = [...(ref.history || [])];
+        newHistory.push({
+          status: 'Approved',
+          updatedBy: session.uid,
+          updatedAt: now,
+          notes: note
+        });
+
+        await firestoreModule.updateDoc(referralRef, {
+          status: 'Approved',
+          rejectionReason: note,
+          validationDate: now,
+          verifiedAt: now,
+          history: newHistory
+        });
+
+        await window.TWS.recalculateUserReferralProgression(ref.inviterUid);
+
+        await window.TWS.createNotification({
+          userId: ref.inviterUid,
+          email: ref.inviteeEmail,
+          type: 'referral',
+          title: 'Referral Verified!',
+          message: `Your referral of ${ref.inviteeName} has been approved. You earned +1 IP and EXP rewards!`
+        });
+
+        await window.TWS.logSystemActivity({
+          action: 'REFERRAL_APPROVE',
+          detail: `Approved referral of ${ref.inviteeName} by ${ref.inviterName}.`,
+          userId: session.uid
+        });
+
+        alert('Referral successfully approved.');
+        await refresh();
+      } catch (err) {
+        console.error(err);
+        alert('Failed to approve referral.');
+      }
+    });
+
+    document.getElementById('btnRejectReferral')?.addEventListener('click', async () => {
+      if (!selectedReferralId) return;
+      const ref = referrals.find(r => r.id === selectedReferralId);
+      if (!ref) return;
+
+      const isRevoking = ref.status === 'Approved';
+      const actionName = isRevoking ? 'Revoke' : 'Reject';
+
+      const note = document.getElementById('referralReviewNotes').value.trim();
+      if (!note) {
+        alert('Please specify the rejection or revocation reason in the notes field.');
+        return;
+      }
+
+      if (!confirm(`Are you sure you want to ${actionName.toLowerCase()} the referral of ${ref.inviteeName}?`)) return;
+
+      try {
+        const { configModule, db, firestoreModule } = await window.TWS.getFirebaseDataApiSafe();
+        const referralRef = firestoreModule.doc(db, 'referrals', ref.id);
+        
+        const now = new Date().toISOString();
+        const newHistory = [...(ref.history || [])];
+        newHistory.push({
+          status: isRevoking ? 'Revoked' : 'Rejected',
+          updatedBy: session.uid,
+          updatedAt: now,
+          notes: note
+        });
+
+        await firestoreModule.updateDoc(referralRef, {
+          status: isRevoking ? 'Revoked' : 'Rejected',
+          rejectionReason: note,
+          validationDate: now,
+          history: newHistory
+        });
+
+        await window.TWS.recalculateUserReferralProgression(ref.inviterUid);
+
+        await window.TWS.createNotification({
+          userId: ref.inviterUid,
+          email: ref.inviteeEmail,
+          type: 'referral',
+          title: `Referral ${isRevoking ? 'Revoked' : 'Rejected'}`,
+          message: `Your referral of ${ref.inviteeName} has been ${isRevoking ? 'revoked' : 'rejected'}. Reason: ${note}`
+        });
+
+        await window.TWS.logSystemActivity({
+          action: isRevoking ? 'REFERRAL_REVOKE' : 'REFERRAL_REJECT',
+          detail: `${isRevoking ? 'Revoked' : 'Rejected'} referral of ${ref.inviteeName} by ${ref.inviterName}. Reason: ${note}`,
+          userId: session.uid
+        });
+
+        alert(`Referral successfully ${isRevoking ? 'revoked' : 'rejected'}.`);
+        await refresh();
+      } catch (err) {
+        console.error(err);
+        alert(`Failed to ${isRevoking ? 'revoke' : 'reject'} referral.`);
+      }
+    });
+  }
+
   function initSignOut() {
     document.getElementById('signOutBtn')?.addEventListener('click', () => {
       sessionStorage.removeItem('portal_session');
@@ -918,6 +1219,13 @@
     taskSubmissions = await window.TWS.loadTaskSubmissionsAsync([]);
     taskCategories = await window.TWS.loadTaskCategoriesAsync();
     settings = await window.TWS.loadSettings(settings);
+    try {
+      const { configModule, db, firestoreModule } = await window.TWS.getFirebaseDataApiSafe();
+      const snap = await firestoreModule.getDocs(firestoreModule.collection(db, configModule.accessCollections.referrals));
+      referrals = snap.docs.map(doc => doc.data());
+    } catch (e) {
+      console.warn(e);
+    }
     renderStats();
     renderReviewQueue();
     renderVerificationQueue();
@@ -928,6 +1236,8 @@
     renderImpactArchiveLedger();
     renderSettings();
     renderLogs();
+    renderReferralList();
+    renderReferralDetail();
   }
 
   async function init() {
@@ -944,8 +1254,11 @@
     renderImpactArchiveLedger();
     renderSettings();
     renderLogs();
+    renderReferralList();
+    renderReferralDetail();
     initControls();
     initRoleAssignment();
+    initReferralTab();
     initSignOut();
   }
 

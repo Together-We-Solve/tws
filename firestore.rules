@@ -111,6 +111,7 @@ service cloud.firestore {
         'portfolio',
         'profileAccent',
         'availability',
+        'referralCode',
         'updatedAt'
       ]);
     }
@@ -166,6 +167,11 @@ service cloud.firestore {
         'impactPoints',
         'experience',
         'solved',
+        'referralCode',
+        'referredBy',
+        'referredByCode',
+        'referralTier',
+        'referralBadgeLevel',
         'createdAt',
         'updatedAt'
       ]);
@@ -644,6 +650,12 @@ service cloud.firestore {
     match /rewardsCatalog/{rewardId} {
       allow read: if true;
       allow write: if false;
+    }
+
+    match /referrals/{referralId} {
+      allow read: if signedIn() && (resource.data.inviterUid == request.auth.uid || resource.data.inviteeUid == request.auth.uid || isSuperadmin());
+      allow create: if signedIn() && (request.resource.data.inviteeUid == request.auth.uid || isSuperadmin()) && request.resource.data.inviterUid != request.resource.data.inviteeUid;
+      allow update, delete: if isSuperadmin();
     }
 
     match /{document=**} {

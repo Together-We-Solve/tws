@@ -18,8 +18,9 @@ The app is built with plain HTML, CSS, and browser JavaScript. It uses Firebase 
 - `post-problem.html`, `open-frictions.html`, `my-frictions.html`: problem posting and browsing flows.
 - `tasks.html`: member community task dashboard for available tasks, proof submissions, verification status, and task history.
 - `leaderboard.html`, `hall-of-fame.html`, `impact-archive.html`, `members.html`, `core-team.html`: community and impact pages.
-- `admin-dashboard.html`: superadmin management surface, including community task creation and categories.
+- `admin-dashboard.html`: superadmin management surface, including community task creation and categories, plus referrals auditing.
 - `evaluator-dashboard.html`: evaluator workflow for problem and task-submission verification.
+- `referrals.html`: member referrals center and invitations hub.
 - `supporting-partner-dashboard.html`: supporting partner workflow.
 - `user-profile.html`, `user-settings.html`: account/profile surfaces.
 - `firestore.rules`: Firestore authorization rules.
@@ -146,6 +147,7 @@ Known Firestore collections from project config and rules:
 - `taskSubmissions`
 - `taskCategories`
 - `notifications`
+- `referrals`
 
 Known fixed roles:
 
@@ -181,6 +183,8 @@ Known community task fields:
 - `taskSubmissions`: `taskId`, `taskTitle`, `category`, `memberUid`, `memberEmail`, `memberName`, `memberUsername`, `description`, `reflection`, `attachments`, `links`, `proofHash`, `status`, `expReward`, `impactPointReward`, `evaluatorComments`, `evaluatorUid`, `evaluatorName`, `submittedAt`, `reviewedAt`, `history`
 - `taskCategories`: `name`
 - `notifications`: `userId`, `email`, `type`, `title`, `message`, `read`, `createdBy`, `createdAt`
+- `referrals`: `id`, `inviterUid`, `inviterName`, `inviterUsername`, `inviteeUid`, `inviteeName`, `inviteeUsername`, `inviteeEmail`, `status`, `submittedAt`, `validationDate`, `rejectionReason`, `verifiedAt`, `inviteeIp`, `inviteeUserAgent`, `validationEvidence`, `fraudScore`, `history`
+- `users`: `referralCode`, `referralTier`, `referralBadgeLevel`, `referredBy`, `referredByCode`, `stats.successfulReferrals`, `stats.pendingReferrals`, `stats.rejectedReferrals`, `stats.referralImpactPoints`, `stats.referralExperience`, `stats.lastCelebratedMilestone`
 - `users.badges`: array of badge IDs. Badge metadata is defined in `js/utils.js` as `badgeCatalog`; use `window.TWS.normalizeBadges`, `window.TWS.resolveBadge`, and `window.TWS.badgeStorageValues` instead of hardcoding badge display details.
 - `usernames`: username reservation documents keyed by normalized username. Fields: `uid`, `email`, `username`, `createdAt`, `updatedAt`. Keep `users.username` and `users.usernameLower` equal to the reservation document ID for that user's UID.
 - `problems` archive display fields: `archiveSummary`, `archiveOutcome`, `archiveHoursSaved`, `archiveRippleReach`, `archiveClones`, `archiveViews`, `archiveEditedBy`, `archiveEditedAt`. These are edited from the superadmin Impact Archive panel and used by `impact-archive.html`; do not hardcode public archive counts.
@@ -195,6 +199,11 @@ Known automatic badge IDs:
 - `impact-100`
 - `impact-500`
 - `impact-1000`
+- `referral-connector-l1`
+- `referral-connector-l2`
+- `referral-connector-l3`
+- `referral-connector-l4`
+- `referral-connector-l5`
 
 Known admin-awarded badge IDs:
 

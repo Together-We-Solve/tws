@@ -38,6 +38,10 @@
     const members = await window.TWS.loadMovementMembersAsync([]);
     profile = members.find(sameIdentity)
       || window.TWS.ensureSolverProfile(session);
+    if (profile && !profile.referralCode) {
+      profile.referralCode = window.TWS.generateReferralCode();
+      await window.TWS.saveUserProfile(profile.uid || session.uid, profile);
+    }
   }
 
   function renderShell() {

@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Referrals — Together We Solve</title>
+    <link rel="stylesheet" href="css/user-profile.css" />
+    <link rel="stylesheet" href="css/user-settings.css" />
+    <link rel="stylesheet" href="css/referrals.css" />
+    <link rel="stylesheet" href="css/ui-polish.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://www.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap"
+      rel="stylesheet" />
+  </head>
+  <body class="settings-body">
+
+    <nav class="nav scrolled" id="nav">
+      <div class="nav-inner">
+        <a href="home.html" class="nav-logo">Together We Solve</a>
+        <div class="nav-links">
+          <a href="home.html" class="nav-link">Home</a>
+          <a href="open-frictions.html" class="nav-link">Open Frictions</a>
+          <a href="tasks.html" class="nav-link">Tasks</a>
+          <a href="referrals.html" class="nav-link active">Referrals</a>
+          <a href="members.html" class="nav-link">Members</a>
+          <a href="impact-archive.html" class="nav-link">Impact Archive</a>
+          <a href="core-team.html" class="nav-link">Partners</a>
+        </div>
+        <button class="nav-cta" id="signOutBtn">Sign Out <span class="nav-cta-arrow">↗</span></button>
+      </div>
+    </nav>
+
+    <header class="settings-hero">
+      <div class="container hero-content">
+        <div class="hero-eyebrow">
+          <span class="hero-eyebrow-text">Community Growth</span>
+          <div class="hero-eyebrow-line"></div>
+        </div>
+        <h1 class="hero-headline">Referral Center</h1>
+        <p class="hero-tagline">Invite new members to Together We Solve, support community growth, and earn progression rewards.</p>
+      </div>
+    </header>
+
+    <section class="section config-section">
+      <div class="container">
+        <div class="referrals-grid">
+          
+          <div class="referrals-left-column">
+            
+            <div class="settings-card referrals-identity-card">
+              <h2 class="card-title">Your Referral Link</h2>
+              <p class="card-subtitle font-sm">Copy your unique link or share it directly across your networks.</p>
+              
+              <div class="referral-box-container">
+                <div class="referral-field">
+                  <span class="field-label">Referral Code</span>
+                  <div class="code-display-row">
+                    <span id="referralCodeVal" class="code-text-val">Loading...</span>
+                    <button id="btnCopyCode" class="btn btn-outline btn-xs">Copy</button>
+                  </div>
+                </div>
+
+                <div class="referral-field">
+                  <span class="field-label">Shareable Referral Link</span>
+                  <div class="link-display-row">
+                    <input type="text" id="referralLinkVal" class="link-input-val" value="Loading..." readonly />
+                    <button id="btnCopyLink" class="btn btn-primary btn-xs">Copy Link</button>
+                  </div>
+                  <span id="copyConfirmMsg" class="copy-success-hint" style="display: none;">Copied to clipboard!</span>
+                </div>
+              </div>
+
+              <div class="social-share-wrap">
+                <span class="share-title-lbl">Quick Share:</span>
+                <div class="social-buttons-rack">
+                  <button id="shareWA" class="btn btn-outline btn-share-sm">WhatsApp</button>
+                  <button id="shareLI" class="btn btn-outline btn-share-sm">LinkedIn</button>
+                  <button id="shareTW" class="btn btn-outline btn-share-sm">Twitter</button>
+                  <button id="shareMail" class="btn btn-outline btn-share-sm">Email</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="settings-card progression-summary-card">
+              <h2 class="card-title">Your Connector Level</h2>
+              <p class="card-subtitle font-sm">Track your progress toward higher tiers and badge levels.</p>
+              
+              <div class="tier-identity-badge-row">
+                <div id="referralBadgeWrap" class="badge-icon-wrap referrals-badge-display">🌱</div>
+                <div class="tier-details-block">
+                  <span id="referralTierName" class="active-tier-name-display">Bronze Connector</span>
+                  <span id="referralBadgeName" class="active-badge-lvl-display">No Level Unlocked</span>
+                </div>
+              </div>
+
+              <div class="milestone-progress-wrap">
+                <div class="progress-labels-row">
+                  <span id="progressTextLabel" class="progress-ratio-lbl">0 / 10 referrals</span>
+                  <span id="progressPercentLabel" class="progress-pct-lbl">0%</span>
+                </div>
+                <div class="progress-bar-container">
+                  <div id="progressBarFill" class="progress-bar-fill" style="width: 0%;"></div>
+                </div>
+                <p id="nextRewardLabel" class="upcoming-milestone-hint">Invite 10 members to unlock the Sprouter Badge & +500 EXP!</p>
+              </div>
+            </div>
+
+          </div>
+
+          <div class="referrals-right-column">
+            
+            <div class="settings-card stats-summary-card">
+              <h2 class="card-title">Referral Statistics</h2>
+              <p class="card-subtitle font-sm">Rewards are verified and issued after referred accounts pass validation checks.</p>
+              
+              <div class="referral-stats-blocks-grid">
+                <div class="ref-stat-block">
+                  <span class="stat-lbl">Validated</span>
+                  <span id="statSuccessCount" class="stat-num-val success">0</span>
+                </div>
+                <div class="ref-stat-block">
+                  <span class="stat-lbl">Pending</span>
+                  <span id="statPendingCount" class="stat-num-val warning">0</span>
+                </div>
+                <div class="ref-stat-block">
+                  <span class="stat-lbl">Rejected</span>
+                  <span id="statRejectedCount" class="stat-num-val error">0</span>
+                </div>
+                <div class="ref-stat-block">
+                  <span class="stat-lbl">IP Credited</span>
+                  <span id="statIpCredited" class="stat-num-val info">0 IP</span>
+                </div>
+                <div class="ref-stat-block">
+                  <span class="stat-lbl">EXP Earned</span>
+                  <span id="statExpEarned" class="stat-num-val info">0 EXP</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="settings-card referral-notifications-card">
+              <h2 class="card-title">Recent Referral Activity</h2>
+              <p class="card-subtitle font-sm">Real-time status updates on registration logs and verification checks.</p>
+              <div id="referralsNotificationsList" class="compact-notifications-list"></div>
+            </div>
+
+          </div>
+
+        </div>
+
+        <div class="settings-card history-full-width-card" style="margin-top: 32px;">
+          <h2 class="card-title">Referral Log & Audit Trail</h2>
+          <p class="card-subtitle">Complete list of members registered using your links, with verification history and rewards status.</p>
+          
+          <div class="referrals-table-wrapper">
+            <table class="referrals-history-table" id="referralsHistoryTable">
+              <thead>
+                <tr>
+                  <th>Referred Solver</th>
+                  <th>Registration Date</th>
+                  <th>Validation Status</th>
+                  <th>Validation Date</th>
+                  <th>Rewards Earned</th>
+                  <th>Audit Notes / Reasons</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td colspan="6" style="text-align: center; opacity: 0.6; padding: 32px;">Loading referral history...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="settings-card abuse-disclosure-card" style="margin-top: 32px;">
+          <h4 style="color: var(--accent-moss); font-family: var(--font-display); font-size: 16px; margin-bottom: 8px;">Fair Play & Abuse Prevention Notice</h4>
+          <p style="font-size: 13px; line-height: 1.6; opacity: 0.8;">
+            To ensure organic community building and prevent game manipulation, Together We Solve employs extensive verification parameters. Self-referrals, alternate/duplicate accounts, temporary or disposable email addresses, browser signature manipulation, and co-registration clusters are automatically audited. Referral points and experience weights are only credited upon successful validation by the Steward Council, and any progression values associated with invalid registrations will be retroactively revoked.
+          </p>
+        </div>
+
+      </div>
+    </section>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        <div class="footer-top">
+          <div class="footer-brand">
+            <p class="footer-name">Together We Solve</p>
+            <p class="footer-tagline">No problem too small. No challenge too big.</p>
+          </div>
+          <nav class="footer-nav">
+            <a href="leaderboard.html">Leaderboard</a>
+            <a href="hall-of-fame.html">Hall of Fame</a>
+            <a href="impact-archive.html">Impact Archive</a>
+          </nav>
+        </div>
+        <div class="footer-bottom">
+          <p class="footer-copy">A movement built on the belief that people can solve more together than they ever could alone.</p>
+          <a href="post-problem.html" class="btn btn-ghost btn-sm">Share a Problem</a>
+        </div>
+      </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <script src="https://unpkg.com/lenis@1.1.13/dist/lenis.min.js"></script>
+    <script src="js/utils.js?v=2"></script>
+    <script type="module" src="js/referrals.js"></script>
+  </body>
+</html>
