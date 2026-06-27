@@ -376,6 +376,15 @@
     `);
   }
 
+  function categoryClass(category) {
+    return {
+      Education: 'edu',
+      Technical: 'tech',
+      Environmental: 'env',
+      Community: 'comm'
+    }[category] || 'tech';
+  }
+
   function renderCategories(user) {
     renderCardList('categoriesList', user.categories, 'No contribution areas yet.', (item) => `
       <div class="user-friction-card">
@@ -383,7 +392,7 @@
           <div class="card-header-left">
             <span class="status-badge solved">${esc(item.name || 'General')}</span>
           </div>
-          <span class="category-tag tech">${Number(item.count) || 0}</span>
+          <span class="category-tag ${categoryClass(item.name)}">${Number(item.count) || 0}</span>
         </div>
         <h3 class="card-title">${esc(item.name || 'General')}</h3>
         <p style="opacity: 0.7;">${Number(item.count) || 0} ${Number(item.count) === 1 ? 'contribution' : 'contributions'}</p>

@@ -1,5 +1,5 @@
 import { signInWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js';
-import { doc, getDoc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
+import { doc, getDoc, runTransaction, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
 import { fixedRoles, accessCollections } from './firebase-config.js';
 import { auth, db } from './firebase-core.js';
 
@@ -217,10 +217,25 @@ import { auth, db } from './firebase-core.js';
         }
       });
     }
-    await setDoc(doc(db, accessCollections.users, user.uid), {
-      ...profilePatch,
-      updatedAt: serverTimestamp()
-    }, { merge: true });
+    await runTransaction(db, async (transaction) => {
+      const userRef = doc(db, accessCollections.users, user.uid);
+      const usernameRef = doc(db, accessCollections.usernames, username);
+      const usernameSnapshot = await transaction.get(usernameRef);
+      if (usernameSnapshot.exists() && usernameSnapshot.data().uid !== user.uid) {
+        throw new Error('identity-conflict');
+      }
+      transaction.set(usernameRef, {
+        uid: user.uid,
+        email: user.email,
+        username,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+      transaction.set(userRef, {
+        ...profilePatch,
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+    });
     return { displayName, username };
   }
 

@@ -92,7 +92,7 @@
       const initials = document.getElementById('avatarInitials').value.toUpperCase().slice(0, 2);
       const avatar = document.getElementById('profilePictureUrl').value.trim();
       const banner = document.getElementById('profileBannerUrl').value.trim();
-      if (displayName.length < 3 || username.length < 3 || !/^[a-z0-9_]{3,30}$/.test(username)) {
+      if (displayName.length < 3 || !window.TWS.validUsername(username)) {
         alert('Use a valid display name and a username with lowercase letters, numbers, or underscores.');
         return;
       }
@@ -105,25 +105,34 @@
         alert('That username, email, or user ID is already attached to another account.');
         return;
       }
-      await window.TWS.saveUserProfile(userId, {
-        uid: session.uid || '',
-        email: session.email || '',
-        displayName,
-        username,
-        usernameLower: username,
-        specialty,
-        initials,
-        avatar,
-        profilePicture: avatar,
-        banner,
-        bio: document.getElementById('profileBioInput').value.trim(),
-        country: document.getElementById('profileCountry').value.trim(),
-        website: document.getElementById('profileWebsite').value.trim(),
-        linkedin: document.getElementById('profileLinkedin').value.trim(),
-        github: document.getElementById('profileGithub').value.trim(),
-        profileAccent: document.getElementById('profileAccent').value,
-        availability: document.getElementById('profileAvailability').value
-      });
+      try {
+        await window.TWS.saveUserProfile(userId, {
+          ...(profile || {}),
+          uid: session.uid || profile?.uid || '',
+          email: session.email || profile?.email || '',
+          displayName,
+          username,
+          usernameLower: username,
+          specialty,
+          initials,
+          avatar,
+          profilePicture: avatar,
+          banner,
+          bio: document.getElementById('profileBioInput').value.trim(),
+          country: document.getElementById('profileCountry').value.trim(),
+          website: document.getElementById('profileWebsite').value.trim(),
+          linkedin: document.getElementById('profileLinkedin').value.trim(),
+          github: document.getElementById('profileGithub').value.trim(),
+          profileAccent: document.getElementById('profileAccent').value,
+          availability: document.getElementById('profileAvailability').value
+        });
+      } catch (err) {
+        if (['username-taken', 'invalid-username'].includes(err?.message)) {
+          alert('That username is not available.');
+          return;
+        }
+        throw err;
+      }
       session.displayName = displayName;
       session.username = username;
       session.avatar = avatar;

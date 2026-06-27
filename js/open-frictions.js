@@ -12,6 +12,15 @@
     return window.TWS.toUsername(session.username || session.displayName || session.email);
   }
 
+  function categoryClass(category) {
+    return {
+      Education: 'edu',
+      Technical: 'tech',
+      Environmental: 'env',
+      Community: 'comm'
+    }[category] || 'tech';
+  }
+
   function render(list) {
     const root = document.getElementById('openFrictionsList');
     if (!root) return;
@@ -22,7 +31,7 @@
         <div class="timeline-item" data-search="${esc(`${problem.title} ${problem.category} ${problem.friction}`.toLowerCase())}">
           <div class="timeline-marker"></div>
           <div class="timeline-card">
-            <div class="card-header"><span class="item-date">${esc(problem.date)}</span><span class="category-tag tech">${esc(problem.category)}</span></div>
+            <div class="card-header"><span class="item-date">${esc(problem.date)}</span><span class="category-tag ${categoryClass(problem.category)}">${esc(problem.category)}</span></div>
             <h3 class="item-title">${esc(problem.title)}</h3>
             <p class="item-summary">${esc(problem.friction)}</p>
             <div class="item-meta">

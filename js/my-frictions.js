@@ -95,7 +95,6 @@
     `;
     modal.style.display = 'flex';
     document.getElementById('btnCloseReview').addEventListener('click', () => modal.style.display = 'none');
-    document.getElementById('btnCloseModal')?.addEventListener('click', () => modal.style.display = 'none', { once: true });
     document.getElementById('verificationForm').onsubmit = async (event) => {
       event.preventDefault();
       const ownerReview = document.getElementById('verifyReviewText').value.trim();
@@ -128,6 +127,10 @@
     await load();
     renderFrictions();
     initSignOut();
+    document.getElementById('btnCloseModal')?.addEventListener('click', () => {
+      const modal = document.getElementById('verificationModal');
+      if (modal) modal.style.display = 'none';
+    });
   }
 
   document.addEventListener('DOMContentLoaded', init);

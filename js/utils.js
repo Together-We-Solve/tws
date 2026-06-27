@@ -245,6 +245,10 @@
       .replace(/^_+|_+$/g, '');
   }
 
+  function validUsername(value) {
+    return /^[a-z0-9_]{3,30}$/.test(toUsername(value));
+  }
+
   function profileUrl(name) {
     return `user-profile.html?username=${encodeURIComponent(toUsername(name))}`;
   }
@@ -528,6 +532,58 @@
     const { db, firestoreModule } = await getFirebaseDataApiSafe();
     const snap = await firestoreModule.getDoc(firestoreModule.doc(db, collectionName, id));
     return snap.exists() ? { id: snap.id, ...snap.data() } : null;
+  }
+
+  async function usernameReservation(username) {
+    const normalized = toUsername(username);
+    if (!validUsername(normalized)) return null;
+    const { configModule } = await getFirebaseDataApiSafe();
+    if (!configModule.accessCollections.usernames) return null;
+    return fetchDocument(configModule.accessCollections.usernames, normalized);
+  }
+
+  function reservationMatchesIdentity(reservation, identity = {}) {
+    if (!reservation) return false;
+    const normalized = normalizeIdentity(identity);
+    const reservationUid = String(reservation.uid || '').trim().toLowerCase();
+    const reservationEmail = String(reservation.email || '').trim().toLowerCase();
+    return Boolean(
+      (normalized.uid && reservationUid === normalized.uid) ||
+      (normalized.email && reservationEmail === normalized.email)
+    );
+  }
+
+  async function reserveUsername(username, identity = {}) {
+    const normalized = toUsername(username);
+    if (!validUsername(normalized)) throw new Error('invalid-username');
+    const uid = String(identity.uid || identity.id || '').trim();
+    if (!uid) throw new Error('missing-uid');
+    const email = String(identity.email || '').trim().toLowerCase();
+    const { configModule } = await getFirebaseDataApiSafe();
+    if (!configModule.accessCollections.usernames) return null;
+    const current = await fetchDocument(configModule.accessCollections.usernames, normalized);
+    if (current && !reservationMatchesIdentity(current, { uid, email })) throw new Error('username-taken');
+    await saveDocument(configModule.accessCollections.usernames, normalized, {
+      uid,
+      email,
+      username: normalized
+    });
+    return normalized;
+  }
+
+  async function releaseUsername(username, identity = {}) {
+    const normalized = toUsername(username);
+    if (!validUsername(normalized)) return;
+    try {
+      const { configModule } = await getFirebaseDataApiSafe();
+      if (!configModule.accessCollections.usernames) return;
+      const current = await fetchDocument(configModule.accessCollections.usernames, normalized);
+      if (current && reservationMatchesIdentity(current, identity)) {
+        await deleteDocument(configModule.accessCollections.usernames, normalized);
+      }
+    } catch (err) {
+      if (!isPermissionDeniedError(err)) console.warn('Could not release old username reservation.', err);
+    }
   }
 
   function normalizeTimestamp(value) {
@@ -1229,6 +1285,7 @@
 
   async function saveUserProfile(userId, data) {
     const normalizedUsername = toUsername(data.username || data.displayName);
+    if (!validUsername(normalizedUsername)) throw new Error('invalid-username');
     const payload = {
       ...data,
       username: normalizedUsername,
@@ -1269,10 +1326,20 @@
     if (isCreate && !ownProfile && !canManageSystem(session)) {
       throw new Error('permission-denied');
     }
+    const reservationIdentity = {
+      uid: payload.uid || userId,
+      email: payload.email || session?.email || ''
+    };
+    const previousUsername = toUsername(currentUser?.usernameLower || currentUser?.username || '');
     try {
       const { configModule } = await getFirebaseDataApiSafe();
+      await reserveUsername(normalizedUsername, reservationIdentity);
       await saveDocument(configModule.accessCollections.users, userId, payload);
+      if (previousUsername && previousUsername !== normalizedUsername) {
+        await releaseUsername(previousUsername, reservationIdentity);
+      }
     } catch (err) {
+      if (['invalid-username', 'missing-uid', 'username-taken'].includes(err?.message)) throw err;
       localFallbackOrThrow(err);
       console.warn('Saved user locally because Firebase write failed.', err);
     }
@@ -1283,7 +1350,16 @@
   async function usernameAvailable(username, currentUserId = '') {
     const normalized = toUsername(username);
     const current = String(currentUserId || '').trim().toLowerCase();
-    if (!normalized) return false;
+    if (!validUsername(normalized)) return false;
+    try {
+      const reservation = await usernameReservation(normalized);
+      if (reservation) {
+        const ids = identityKeys(reservation);
+        if (!ids.includes(current)) return false;
+      }
+    } catch (err) {
+      localFallbackOrThrow(err);
+    }
     const users = await loadMovementMembersAsync([]);
     return !users.some((user) => {
       const userName = toUsername(user.usernameLower || user.username);
@@ -1294,7 +1370,13 @@
 
   async function identityAvailable(identity = {}) {
     const normalized = normalizeIdentity(identity);
-    if (!normalized.username || !normalized.email) return false;
+    if (!validUsername(normalized.username) || !normalized.email) return false;
+    try {
+      const reservation = await usernameReservation(normalized.username);
+      if (reservation && !reservationMatchesIdentity(reservation, normalized)) return false;
+    } catch (err) {
+      localFallbackOrThrow(err);
+    }
     const users = await loadMovementMembersAsync([]);
     return !users.some((user) => {
       if (sameAccount(user, normalized)) return false;
@@ -1516,6 +1598,7 @@
     experienceForProgression,
     impactPointsFromStats,
     experienceFromStats,
+    validUsername,
     normalizeMember,
     normalizeProblem,
     defaultTaskCategories,

@@ -85,7 +85,7 @@
       available: available.filter((task) => {
         const latest = latestSubmissionForTask(task.id);
         return !latest || ['Rejected', 'Information Requested'].includes(latest.status);
-      }).map((task) => ({ type: 'task', task, submission: latest })),
+      }).map((task) => ({ type: 'task', task, submission: latestSubmissionForTask(task.id) })),
       pending: submissions.filter((item) => ownSubmission(item) && item.status === 'Pending Verification').map((submission) => ({ type: 'submission', task: tasks.find((item) => item.id === submission.taskId), submission })),
       info: submissions.filter((item) => ownSubmission(item) && item.status === 'Information Requested').map((submission) => ({ type: 'submission', task: tasks.find((item) => item.id === submission.taskId), submission })),
       completed: submissions.filter((item) => ownSubmission(item) && item.status === 'Approved').map((submission) => ({ type: 'submission', task: tasks.find((item) => item.id === submission.taskId), submission })),

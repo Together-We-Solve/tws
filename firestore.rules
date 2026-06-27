@@ -78,6 +78,21 @@ service cloud.firestore {
         && (!('email' in resource.data) || request.resource.data.email == resource.data.email);
     }
 
+    function validUsernameValue(value) {
+      return value is string && value.matches('^[a-z0-9_]{3,30}$');
+    }
+
+    function usernameReservationPath(username) {
+      return /databases/$(database)/documents/usernames/$(username);
+    }
+
+    function usernameReservedFor(userId) {
+      return validUsernameValue(request.resource.data.username)
+        && request.resource.data.usernameLower == request.resource.data.username
+        && existsAfter(usernameReservationPath(request.resource.data.usernameLower))
+        && getAfter(usernameReservationPath(request.resource.data.usernameLower)).data.uid == userId;
+    }
+
     function protectedUserFieldsUnchanged() {
       return request.resource.data.diff(resource.data).affectedKeys().hasOnly([
         'displayName',
@@ -286,6 +301,7 @@ service cloud.firestore {
       return userId == request.auth.uid
         && userCreateFieldsOnly()
         && isSelfUser(userId)
+        && usernameReservedFor(userId)
         && request.resource.data.uid == request.auth.uid
         && request.resource.data.email == cleanEmail()
         && (!('role' in request.resource.data) || request.resource.data.role == 'Member')
@@ -529,13 +545,35 @@ service cloud.firestore {
       allow read: if true;
       allow create: if validSelfCreate(userId) || isSuperadmin();
       allow update: if (
-        (isSelfUser(userId) && protectedUserFieldsUnchanged() && immutableIdentityUnchanged()) ||
+        (isSelfUser(userId) && protectedUserFieldsUnchanged() && immutableIdentityUnchanged() && usernameReservedFor(userId)) ||
         (contributionAwardShape() && contributionAwardUpdate()) ||
         (taskAwardShape() && taskAwardUpdate()) ||
         (platformExperienceAwardShape() && platformExperienceAwardUpdate()) ||
         isSuperadmin()
       );
       allow delete: if isSuperadmin();
+    }
+
+    match /usernames/{username} {
+      allow read: if true;
+      allow create: if isSuperadmin() || (
+        signedIn()
+        && request.resource.data.keys().hasOnly(['uid', 'email', 'username', 'createdAt', 'updatedAt'])
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.email == cleanEmail()
+        && request.resource.data.username == username
+        && validUsernameValue(username)
+      );
+      allow update: if isSuperadmin() || (
+        signedIn()
+        && request.resource.data.keys().hasOnly(['uid', 'email', 'username', 'createdAt', 'updatedAt'])
+        && resource.data.uid == request.auth.uid
+        && request.resource.data.uid == resource.data.uid
+        && request.resource.data.email == resource.data.email
+        && request.resource.data.username == username
+        && validUsernameValue(username)
+      );
+      allow delete: if isSuperadmin() || (signedIn() && resource.data.uid == request.auth.uid);
     }
 
     match /problems/{problemId} {

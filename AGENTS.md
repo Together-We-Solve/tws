@@ -22,6 +22,7 @@ The app is built with plain HTML, CSS, and browser JavaScript. It uses Firebase 
 - `evaluator-dashboard.html`: evaluator workflow for problem and task-submission verification.
 - `supporting-partner-dashboard.html`: supporting partner workflow.
 - `user-profile.html`, `user-settings.html`: account/profile surfaces.
+- `seed.html`: backend seeding and reset utility tool.
 - `firestore.rules`: Firestore authorization rules.
 - `js/firebase-config.js`: Firebase project config, fixed roles, and collection names.
 - `js/firebase-core.js`: shared Firebase CDN app/auth/Firestore initialization used by module scripts and shared data helpers.
@@ -137,6 +138,7 @@ If verification cannot be run because tooling or access is unavailable, state ex
 Known Firestore collections from project config and rules:
 
 - `users`
+- `usernames`
 - `roleAssignments`
 - `problems`
 - `supportingPartners`
@@ -181,6 +183,7 @@ Known community task fields:
 - `taskCategories`: `name`
 - `notifications`: `userId`, `email`, `type`, `title`, `message`, `read`, `createdBy`, `createdAt`
 - `users.badges`: array of badge IDs. Badge metadata is defined in `js/utils.js` as `badgeCatalog`; use `window.TWS.normalizeBadges`, `window.TWS.resolveBadge`, and `window.TWS.badgeStorageValues` instead of hardcoding badge display details.
+- `usernames`: username reservation documents keyed by normalized username. Fields: `uid`, `email`, `username`, `createdAt`, `updatedAt`. Keep `users.username` and `users.usernameLower` equal to the reservation document ID for that user's UID.
 - `problems` archive display fields: `archiveSummary`, `archiveOutcome`, `archiveHoursSaved`, `archiveRippleReach`, `archiveClones`, `archiveViews`, `archiveEditedBy`, `archiveEditedAt`. These are edited from the superadmin Impact Archive panel and used by `impact-archive.html`; do not hardcode public archive counts.
 
 Known automatic badge IDs:

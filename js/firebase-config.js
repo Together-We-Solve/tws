@@ -20,6 +20,7 @@ export const fixedRoles = [
 
 export const accessCollections = {
   users: 'users',
+  usernames: 'usernames',
   roleAssignments: 'roleAssignments',
   problems: 'problems',
   partners: 'supportingPartners',

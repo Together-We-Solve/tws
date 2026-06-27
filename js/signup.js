@@ -1,5 +1,5 @@
 import { createUserWithEmailAndPassword, updateProfile } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js';
-import { doc, getDoc, getDocs, collection, query, where, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
+import { doc, getDoc, getDocs, collection, query, where, runTransaction, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
 import { accessCollections } from './firebase-config.js';
 import { auth, db } from './firebase-core.js';
 
@@ -67,7 +67,11 @@ import { auth, db } from './firebase-core.js';
   async function identityExists({ username, email, uid = '' }) {
     const normalized = window.TWS.toUsername(username);
     const cleanEmail = String(email || '').trim().toLowerCase();
-    const cleanUid = String(uid || '').trim();
+    const cleanUid = String(uid || '').trim().toLowerCase();
+    const sameIdentity = (data = {}, id = '') => (
+      (cleanUid && String(data.uid || id || '').trim().toLowerCase() === cleanUid) ||
+      (cleanEmail && String(data.email || '').trim().toLowerCase() === cleanEmail)
+    );
     try {
       const usersRef = collection(db, accessCollections.users);
       const checks = [
@@ -78,7 +82,11 @@ import { auth, db } from './firebase-core.js';
       if (cleanUid) checks.push(getDocs(query(usersRef, where('uid', '==', cleanUid))));
       const snapshots = await Promise.all(checks);
       const uidDoc = cleanUid ? await getDoc(doc(db, accessCollections.users, cleanUid)) : null;
-      return snapshots.some((snapshot) => !snapshot.empty) || Boolean(uidDoc?.exists());
+      const usernameDoc = accessCollections.usernames ? await getDoc(doc(db, accessCollections.usernames, normalized)) : null;
+      const profileConflict = snapshots.some((snapshot) => snapshot.docs.some((item) => !sameIdentity(item.data(), item.id)));
+      const uidConflict = Boolean(uidDoc?.exists() && !sameIdentity(uidDoc.data(), uidDoc.id));
+      const usernameConflict = Boolean(usernameDoc?.exists() && !sameIdentity(usernameDoc.data(), usernameDoc.id));
+      return profileConflict || uidConflict || usernameConflict;
     } catch (error) {
       return !(await window.TWS.identityAvailable({ username: normalized, email: cleanEmail, uid: cleanUid }));
     }
@@ -98,7 +106,7 @@ import { auth, db } from './firebase-core.js';
       const password = document.getElementById('password').value;
 
       if (errorEl) errorEl.textContent = '';
-      if (displayName.length < 3 || username.length < 3 || !/^[a-z0-9_]{3,30}$/.test(username)) {
+      if (displayName.length < 3 || !window.TWS.validUsername(username)) {
         if (errorEl) errorEl.textContent = 'Use a valid display name and a username with lowercase letters, numbers, or underscores.';
         return;
       }
@@ -142,7 +150,22 @@ import { auth, db } from './firebase-core.js';
           updatedAt: serverTimestamp()
         };
 
-        await setDoc(doc(db, accessCollections.users, credential.user.uid), userDoc, { merge: true });
+        await runTransaction(db, async (transaction) => {
+          const userRef = doc(db, accessCollections.users, credential.user.uid);
+          const usernameRef = doc(db, accessCollections.usernames, username);
+          const usernameSnapshot = await transaction.get(usernameRef);
+          if (usernameSnapshot.exists() && usernameSnapshot.data().uid !== credential.user.uid) {
+            throw new Error('identity-taken');
+          }
+          transaction.set(usernameRef, {
+            uid: credential.user.uid,
+            email,
+            username,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+          }, { merge: true });
+          transaction.set(userRef, userDoc, { merge: true });
+        });
 
         sessionStorage.setItem('portal_session', JSON.stringify({
           uid: credential.user.uid,
