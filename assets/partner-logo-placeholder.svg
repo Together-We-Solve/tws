@@ -1,9 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 160" role="img" aria-label="Partner logo placeholder">
-  <rect width="320" height="160" rx="10" fill="#FAF6F0"/>
-  <rect x="1" y="1" width="318" height="158" rx="9" fill="none" stroke="#23382B" stroke-opacity=".12"/>
-  <circle cx="96" cy="80" r="34" fill="#23382B"/>
-  <path d="M88 82h16m-8-8v16" stroke="#FAF6F0" stroke-width="7" stroke-linecap="round"/>
-  <rect x="148" y="56" width="102" height="10" rx="5" fill="#C87D55"/>
-  <rect x="148" y="77" width="78" height="8" rx="4" fill="#23382B" opacity=".6"/>
-  <rect x="148" y="95" width="112" height="8" rx="4" fill="#23382B" opacity=".35"/>
-</svg>
