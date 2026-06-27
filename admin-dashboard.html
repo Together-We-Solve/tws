@@ -51,6 +51,11 @@
             <span class="tab-label">Solvers Ledger</span>
           </button>
 
+          <button class="nav-tab-btn founder-only" data-tab="partners">
+            <span class="tab-icon">✦</span>
+            <span class="tab-label">Partners</span>
+          </button>
+
           <button class="nav-tab-btn" data-tab="settings">
             <span class="tab-icon">⚙️</span>
             <span class="tab-label">System Settings</span>
@@ -150,7 +155,7 @@
                   <span class="placeholder-icon">📜</span>
                   <h4>All Frictions Published</h4>
                   <p>Voiced frictions have been audited, categorized, and published to the public registry timeline.</p>
-                  <p class="hint">Submit new frictions via the <a href="post-problem.html" target="_blank" style="color: var(--accent-clay); text-decoration: underline;">Post Problem Form</a> to populate the queue.</p>
+                  <p class="hint">Submit new frictions via the <a href="post-problem.html" target="_blank" rel="noopener" style="color: var(--accent-clay); text-decoration: underline;">Post Problem Form</a> to populate the queue.</p>
                 </div>
               </div>
               
@@ -259,8 +264,8 @@
                   <input type="text" id="solverListSearch" class="pane-search-input" placeholder="Search solvers..." />
                   <div style="display: flex; gap: 8px;">
                     <select id="solverSortSelect" class="editor-input select-input" style="flex: 1; padding: 6px 12px; font-size: 11px; height: auto;">
-                      <option value="points-desc">XP (High to Low)</option>
-                      <option value="points-asc">XP (Low to High)</option>
+                      <option value="points-desc">IP (High to Low)</option>
+                      <option value="points-asc">IP (Low to High)</option>
                       <option value="name-asc">Name (A to Z)</option>
                     </select>
                     <button type="button" class="btn btn-primary btn-sm" id="btnRecruitSolver" style="padding: 6px 12px; font-size: 11px; white-space: nowrap; background: var(--accent-moss); color: var(--bg-warm);">+ Recruit</button>
@@ -296,15 +301,51 @@
                     
                     <!-- Points field -->
                     <div class="editor-field-group">
-                      <label for="editSolverPoints" class="editor-label">Impact Points (XP)</label>
+                      <label for="editSolverPoints" class="editor-label">Impact Points (IP)</label>
                       <input type="number" id="editSolverPoints" class="editor-input" />
-                      <p class="field-help">Adjusting points will instantly recalculate ranks and update the Leaderboard page.</p>
+                      <p class="field-help">Impact Points represent verified impact and update the Leaderboard page.</p>
+                    </div>
+
+                    <div class="editor-field-group">
+                      <label for="editSolverExperience" class="editor-label">Experience (EXP)</label>
+                      <input type="number" id="editSolverExperience" class="editor-input" />
+                    </div>
+
+                    <div class="editor-field-group">
+                      <label for="editProgressionRank" class="editor-label">Progression Rank</label>
+                      <select id="editProgressionRank" class="editor-input select-input"></select>
+                    </div>
+
+                    <div class="editor-field-group">
+                      <label for="editProgressionLevel" class="editor-label">Progression Level</label>
+                      <select id="editProgressionLevel" class="editor-input select-input"></select>
                     </div>
 
                     <!-- Solved Count field -->
                     <div class="editor-field-group">
                       <label for="editSolverSolved" class="editor-label">Verified Solutions</label>
                       <input type="number" id="editSolverSolved" class="editor-input" />
+                    </div>
+
+                    <div class="editor-field-group">
+                      <label for="editAdminRole" class="editor-label">Administrative Role</label>
+                      <select id="editAdminRole" class="editor-input select-input">
+                        <option value="">No admin role</option>
+                        <option value="Founder">Founder</option>
+                        <option value="Co-Founder">Co-Founder</option>
+                        <option value="Innovator">Innovator</option>
+                        <option value="Evaluator">Evaluator</option>
+                        <option value="Steward">Steward</option>
+                        <option value="Supporting Partner">Supporting Partner</option>
+                      </select>
+                    </div>
+
+                    <div class="editor-field-group">
+                      <label for="editSupportingPartner" class="editor-label">Partner Access</label>
+                      <select id="editSupportingPartner" class="editor-input select-input">
+                        <option value="false">No</option>
+                        <option value="true">Yes</option>
+                      </select>
                     </div>
 
                     <!-- Specialty field -->
@@ -384,6 +425,48 @@
             </div>
           </section>
 
+          <!-- TAB 4: SUPPORTING PARTNERS -->
+          <section class="console-tab-panel founder-only" id="panel-partners">
+            <div class="solvers-panel-layout">
+              <div class="solvers-list-pane">
+                <div class="pane-header search-header" style="display: flex; flex-direction: column; gap: 8px;">
+                  <h3>Supporting Partners</h3>
+                  <input type="text" id="partnerListSearch" class="pane-search-input" placeholder="Search partners..." />
+                  <button type="button" class="btn btn-primary btn-sm" id="btnAddPartner" style="padding: 8px 12px; font-size: 11px;">+ Add Partner</button>
+                </div>
+                <div class="solvers-compact-list" id="partnersCompactList"></div>
+              </div>
+              <div class="solver-editor-pane">
+                <div class="detail-unselected-state" id="partnerUnselectedState">
+                  <span class="unselected-icon">✦</span>
+                  <h3>Select a Partner</h3>
+                  <p>Add, edit, or remove supporting partner profiles shown on the public partners page.</p>
+                </div>
+                <div class="solver-profile-form" id="partnerProfileForm" style="display: none;">
+                  <div class="pane-header flex-header">
+                    <div>
+                      <h3 class="solver-profile-name" id="partnerProfileName">Partner</h3>
+                      <span class="solver-profile-role" id="partnerProfileMeta">Supporting Partner</span>
+                    </div>
+                  </div>
+                  <div class="solver-edit-grid">
+                    <div class="editor-field-group"><label class="editor-label" for="editPartnerName">Partner Name</label><input id="editPartnerName" class="editor-input" /></div>
+                    <div class="editor-field-group"><label class="editor-label" for="editPartnerEmail">Owner Email</label><input id="editPartnerEmail" class="editor-input" type="email" /></div>
+                    <div class="editor-field-group"><label class="editor-label" for="editPartnerOwnerUid">Owner UID</label><input id="editPartnerOwnerUid" class="editor-input" /></div>
+                    <div class="editor-field-group"><label class="editor-label" for="editPartnerWebsite">Website</label><input id="editPartnerWebsite" class="editor-input" type="url" /></div>
+                    <div class="editor-field-group span-full"><label class="editor-label" for="editPartnerLogo">Logo URL</label><input id="editPartnerLogo" class="editor-input" /></div>
+                    <div class="editor-field-group span-full"><label class="editor-label" for="editPartnerFocus">Support Focus</label><input id="editPartnerFocus" class="editor-input" /></div>
+                    <div class="editor-field-group span-full"><label class="editor-label" for="editPartnerBio">Public Description</label><textarea id="editPartnerBio" class="editor-textarea"></textarea></div>
+                  </div>
+                  <div class="editor-action-footer justify-end" style="display: flex; gap: 10px; width: 100%;">
+                    <button type="button" class="btn btn-outline btn-sm btn-danger" id="btnDeletePartner" style="color: #c85555; border-color: rgba(200, 85, 85, 0.25); background: transparent;">Delete Partner</button>
+                    <button type="button" class="btn btn-primary btn-sm" id="btnSavePartner">Save Partner Profile</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
           <!-- TAB 4: SYSTEM SETTINGS -->
           <section class="console-tab-panel" id="panel-settings">
             <div class="settings-layout-container">
@@ -396,14 +479,14 @@
                 <div class="settings-grid-panel">
                   
                   <div class="settings-card">
-                    <h4>Gamification & XP Weights</h4>
+                    <h4>Progression & Impact Defaults</h4>
                     <div class="settings-fields">
                       <div class="editor-field-group">
-                        <label for="setBaseFrictionXP" class="editor-label">Base XP for Voicing Friction</label>
+                        <label for="setBaseFrictionXP" class="editor-label">Base EXP for Voicing Friction</label>
                         <input type="number" id="setBaseFrictionXP" class="editor-input" value="50" />
                       </div>
                       <div class="editor-field-group">
-                        <label for="setBaseSolutionXP" class="editor-label">Base XP for Verifying Solution</label>
+                        <label for="setBaseSolutionXP" class="editor-label">Base EXP for Verifying Solution</label>
                         <input type="number" id="setBaseSolutionXP" class="editor-input" value="150" />
                       </div>
                     </div>
@@ -455,7 +538,6 @@
                         <label for="roleAssignRole" class="editor-label">Movement Role</label>
                         <select id="roleAssignRole" class="editor-input select-input">
                           <option value="Member">Member</option>
-                          <option value="Contributor">Contributor</option>
                           <option value="Steward">Steward</option>
                           <option value="Evaluator">Evaluator</option>
                           <option value="Innovator">Innovator</option>

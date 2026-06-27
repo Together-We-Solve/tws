@@ -26,7 +26,7 @@
       (session.email && String(member.email || '').toLowerCase() === String(session.email).toLowerCase())
     ))
       || window.TWS.ensureSolverProfile(session);
-    const points = Number(profile?.points || profile?.stats?.totalImpactPoints || 0);
+    const points = window.TWS.impactPointsFromStats(profile);
     const mine = problems.filter((problem) => (
       problem.ownerUid === session.uid ||
       problem.ownerUsername === session.username ||
@@ -37,7 +37,7 @@
 
     const cards = [
       {
-        title: `${points.toLocaleString()} pts`,
+        title: `${points.toLocaleString()} IP`,
         body: 'Total impact points credited to your member profile.',
         href: `user-profile.html?username=${encodeURIComponent(profile?.username || session.username || '')}`,
         meta: 'Impact score'

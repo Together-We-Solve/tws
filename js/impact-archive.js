@@ -374,7 +374,7 @@
               <p style="font-style: italic; opacity: 0.85;">"${esc(prob.ownerReview || 'Challenge successfully completed and archived.')}"</p>
               <div style="font-size: 11px; opacity: 0.6; margin-top: 10px; display: flex; gap: 15px;">
                 <span>Complexity: <strong>${esc(prob.complexity)}</strong></span>
-                <span>Council Award: <strong>+${prob.winnerXP || 150} XP Solver, +${prob.attemptXP || 40} XP Attempts</strong></span>
+                <span>Council Award: <strong>+${prob.winnerXP || window.TWS.defaultImpactRewards.verifiedSolution} IP Solver, +${prob.attemptXP || window.TWS.defaultImpactRewards.partialSolution} IP Attempts</strong></span>
               </div>
             </div>
           `;
@@ -407,7 +407,7 @@
               ${contributorsAvatarsHtml}
               <div style="display: flex; gap: 10px; margin-top: 8px; width: 100%;">
                 <button type="button" class="btn btn-primary btn-sm btn-attempt-challenge" data-id="${esc(prob.id)}" style="padding: 8px 16px; font-size: 12px; border-radius: 100px; border: none; cursor: pointer; background: var(--accent-moss); color: var(--bg-warm);">Claim & Attempt Challenge</button>
-                <a href="user-profile.html" class="btn btn-outline btn-sm" style="padding: 8px 16px; font-size: 12px; border-radius: 100px; border: 1px solid var(--border-light); color: var(--text-charcoal); text-decoration: none;">View Profiles</a>
+                <a href="members.html" class="btn btn-outline btn-sm" style="padding: 8px 16px; font-size: 12px; border-radius: 100px; border: 1px solid var(--border-light); color: var(--text-charcoal); text-decoration: none;">View Members</a>
               </div>
             </div>
           `;
@@ -498,7 +498,7 @@
       }
 
       problem.contributors.push(username);
-      await window.TWS.saveProblem(problem);
+      await window.TWS.updateProblem(problemId, { contributors: problem.contributors });
       window.TWS.logSystemActivity('LEDGER', `Contributor "${username}" self-assigned to attempt challenge "${problem.title}" externally.`);
 
       alert(`Success! You have successfully registered as a contributor to attempt "${problem.title}"!\nWork on your solution externally. The problem owner will verify the winner and complexity once resolved.`);

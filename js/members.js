@@ -43,19 +43,18 @@
   }
 
   function normalizeMember(raw) {
-    const displayName = raw.displayName || raw.name || raw.username || 'Together We Solve Member';
-    const username = window.TWS.toUsername(raw.username || displayName);
-    const stats = raw.stats || {};
+    const member = window.TWS.normalizeMember(raw);
     return {
-      id: raw.id || username,
-      username,
-      displayName,
-      avatar: raw.avatar || '',
-      role: raw.role || 'Member',
-      specialty: raw.specialty || raw.country || '',
-      bio: raw.bio || '',
-      points: Number(stats.totalImpactPoints ?? raw.points) || 0,
-      solved: Number(stats.problemsSolved ?? raw.solved) || 0
+      id: member.id,
+      username: member.username,
+      displayName: member.displayName,
+      avatar: member.avatar,
+      role: member.progression?.label || window.TWS.memberPrefix(member),
+      adminRole: member.adminRole,
+      specialty: member.specialty || member.country || '',
+      bio: member.bio || '',
+      points: window.TWS.impactPointsFromStats(member),
+      solved: Number(member.stats?.problemsSolved ?? member.solved) || 0
     };
   }
 
@@ -83,10 +82,10 @@
           ${avatar}
           <h3>${esc(member.displayName)}</h3>
           <span class="member-username">@${esc(member.username)}</span>
-          <span class="member-role">${esc(member.role)}</span>
+          <span class="member-role">${esc(member.role)}${member.adminRole ? ` • ${esc(member.adminRole)}` : ''}</span>
           <p class="member-bio">${esc(member.bio || member.specialty || 'No bio provided.')}</p>
           <div class="member-meta">
-            <span>${member.points.toLocaleString()} pts</span>
+            <span>${member.points.toLocaleString()} IP</span>
             <span>${member.solved.toLocaleString()} solved</span>
           </div>
         </a>

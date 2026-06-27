@@ -6,6 +6,7 @@
 (function () {
   'use strict';
   const esc = window.TWS.escapeHTML;
+  let leaderboardMembers = [];
 
   // Default seed database if empty
   const defaultSolvers = [
@@ -169,17 +170,41 @@
   }
 
   /* ─── DYNAMIC LEADERBOARD GENERATION ───────── */
-  async function loadLeaderboardData() {
+  function boardValue(member, board) {
+    if (board === 'posted') return Number(member.stats?.problemsIdentified || member.problemsPosted || 0);
+    if (board === 'solved') return Number(member.stats?.problemsSolved || member.solved || 0);
+    if (board === 'experience') return Number(member.experience || member.stats?.experience || 0);
+    if (board === 'hall') return member.hallOfFame ? member.impactPoints : -1;
+    return member.impactPoints;
+  }
+
+  function boardLabel(board) {
+    return {
+      impact: 'Impact Points',
+      posted: 'Problems Posted',
+      solved: 'Problems Solved',
+      experience: 'Experience',
+      hall: 'Hall of Fame'
+    }[board] || 'Impact Points';
+  }
+
+  async function loadLeaderboardData(board = 'impact') {
     const podiumGrid = document.querySelector('.podium-grid');
     const ledgerTableBody = document.querySelector('#ledgerTable tbody');
 
     if (!podiumGrid || !ledgerTableBody) return;
 
     try {
-      const solvers = await window.TWS.loadMovementMembersAsync(defaultSolvers);
-      
-      // Sort by points descending
-      solvers.sort((a, b) => b.points - a.points);
+      const solvers = leaderboardMembers.length ? leaderboardMembers : await window.TWS.loadMovementMembersAsync(defaultSolvers);
+      leaderboardMembers = solvers;
+
+      solvers.forEach((solver) => {
+        solver.progression = solver.progression || window.TWS.progressionFromExperience(solver.experience || solver.stats?.experience || 0);
+        solver.impactPoints = window.TWS.impactPointsFromStats(solver);
+      });
+      const rankedSolvers = solvers
+        .filter((solver) => board !== 'hall' || solver.hallOfFame)
+        .sort((a, b) => boardValue(b, board) - boardValue(a, board));
 
       // 1. RENDER PODIUM (TOP 3)
       podiumGrid.innerHTML = '';
@@ -194,7 +219,7 @@
       ];
 
       rankOrder.forEach((solverIndex, orderIdx) => {
-        const solver = solvers[solverIndex];
+        const solver = rankedSolvers[solverIndex];
         if (!solver) return;
 
         const rankClass = rankClasses[orderIdx];
@@ -216,16 +241,17 @@
             <div class="avatar-initials">${esc(solver.initials)}</div>
           </div>
           <h3 class="podium-name">${esc(solver.name)}</h3>
-          <span class="podium-title">${esc(solver.role)}</span>
+          <span class="podium-title">${esc(solver.progression.label)}</span>
+          ${solver.adminRole ? `<div class="podium-specialty">${esc(solver.adminRole)}</div>` : ''}
           <div class="podium-specialty">${esc(solver.specialty)}</div>
           <div class="podium-metrics">
             <div class="metric-item">
-              <span class="metric-val">${solver.points.toLocaleString()}</span>
-              <span class="metric-lbl">Impact Pts</span>
+              <span class="metric-val">${solver.impactPoints.toLocaleString()}</span>
+              <span class="metric-lbl">Impact Points</span>
             </div>
             <div class="metric-item">
-              <span class="metric-val">${solver.solved}</span>
-              <span class="metric-lbl">Solved</span>
+              <span class="metric-val">${solver.experience.toLocaleString()}</span>
+              <span class="metric-lbl">EXP</span>
             </div>
           </div>
           <div class="podium-badges">
@@ -245,8 +271,8 @@
       // 2. RENDER THE LEDGER TABLE (RANKS 4+)
       ledgerTableBody.innerHTML = '';
 
-      for (let i = 3; i < solvers.length; i++) {
-        const solver = solvers[i];
+      for (let i = 3; i < rankedSolvers.length; i++) {
+        const solver = rankedSolvers[i];
         const rankStr = (i + 1) < 10 ? `0${i + 1}` : `${i + 1}`;
         const profileHref = window.TWS.profileUrl(solver.username || solver.name);
 
@@ -261,7 +287,7 @@
               <div class="solver-avatar">${esc(solver.initials)}</div>
               <div class="solver-info">
                 <span class="solver-name">${esc(solver.name)}</span>
-                <span class="solver-sub">${esc(solver.role)}</span>
+                <span class="solver-sub">${esc(solver.progression.label)}${solver.adminRole ? ` • ${esc(solver.adminRole)}` : ''}</span>
               </div>
             </div>
           </td>
@@ -272,7 +298,7 @@
               ${solver.badges.map(b => `<span class="mini-badge">${esc(b)}</span>`).join('') || '<span class="mini-badge">Member</span>'}
             </div>
           </td>
-          <td class="col-impact"><span class="impact-val">${solver.points.toLocaleString()} XP</span></td>
+          <td class="col-impact"><span class="impact-val">${boardValue(solver, board).toLocaleString()} ${board === 'impact' || board === 'hall' ? 'IP' : ''}</span></td>
         `;
 
         // Redirect row profile click to public profile
@@ -347,8 +373,6 @@
     const filterButtons = document.querySelectorAll('.filter-btn');
     
     function filterTable() {
-      const activeFilterBtn = document.querySelector('.filter-btn.active');
-      const activeFilter = activeFilterBtn ? activeFilterBtn.getAttribute('data-filter') : 'all';
       const searchQuery = searchInput ? searchInput.value.toLowerCase().trim() : '';
 
       const tableRows = document.querySelectorAll('.ledger-row');
@@ -362,12 +386,11 @@
           .map(b => b.textContent.toLowerCase())
           .join(' ');
         
-        const matchesFilter = activeFilter === 'all' || specialty.includes(activeFilter.toLowerCase());
         const matchesSearch = solverName.includes(searchQuery) || 
                             solverSub.includes(searchQuery) || 
                             badges.includes(searchQuery);
 
-        if (matchesFilter && matchesSearch) {
+        if (matchesSearch) {
           if (row.style.display === 'none' || row.style.opacity === '0') {
             row.style.display = 'table-row';
             gsap.fromTo(row, { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.4, ease: 'power2.out' });
@@ -389,9 +412,10 @@
     }
 
     filterButtons.forEach(btn => {
-      btn.addEventListener('click', () => {
+      btn.addEventListener('click', async () => {
         filterButtons.forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
+        await loadLeaderboardData(btn.dataset.board || 'impact');
         filterTable();
       });
     });

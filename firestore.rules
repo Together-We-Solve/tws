@@ -8,7 +8,7 @@ service cloud.firestore {
 
     function cleanEmail() {
       return signedIn() && request.auth.token.email != null
-        ? request.auth.token.email
+        ? request.auth.token.email.lower()
         : '';
     }
 
@@ -100,6 +100,62 @@ service cloud.firestore {
       ]);
     }
 
+    function awardUserFieldsOnly() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+        'points',
+        'impactPoints',
+        'experience',
+        'solved',
+        'stats',
+        'awardHistory',
+        'lastContributionAward',
+        'updatedAt'
+      ]);
+    }
+
+    function contributionAwardShape() {
+      let award = request.resource.data.lastContributionAward;
+      return award is map
+        && award.problemId is string
+        && award.points is number
+        && award.points > 0
+        && award.points <= 50;
+    }
+
+    function contributionAwardUpdate() {
+      let award = request.resource.data.lastContributionAward;
+      let previousHistory = resource.data.awardHistory is list ? resource.data.awardHistory : [];
+      let nextHistory = request.resource.data.awardHistory is list ? request.resource.data.awardHistory : [];
+      let previousStats = resource.data.stats is map ? resource.data.stats : {};
+      let nextStats = request.resource.data.stats is map ? request.resource.data.stats : {};
+      let previousImpact = previousStats.impactPoints is number ? previousStats.impactPoints : 0;
+      let previousTotalImpact = previousStats.totalImpactPoints is number ? previousStats.totalImpactPoints : 0;
+      let previousSolved = previousStats.problemsSolved is number ? previousStats.problemsSolved : 0;
+      let previousExperience = previousStats.experience is number ? previousStats.experience : 0;
+      let problemPath = /databases/$(database)/documents/problems/$(award.problemId);
+      return canAwardPoints()
+        && awardUserFieldsOnly()
+        && (!('points' in request.resource.data) || !('points' in resource.data) || request.resource.data.points == resource.data.points)
+        && (!('impactPoints' in request.resource.data) || !('impactPoints' in resource.data) || request.resource.data.impactPoints == resource.data.impactPoints)
+        && (!('experience' in request.resource.data) || !('experience' in resource.data) || request.resource.data.experience == resource.data.experience)
+        && (!('solved' in request.resource.data) || !('solved' in resource.data) || request.resource.data.solved == resource.data.solved)
+        && nextStats.impactPoints == previousImpact + award.points
+        && nextStats.totalImpactPoints == previousTotalImpact + award.points
+        && nextStats.problemsSolved == previousSolved + 1
+        && nextStats.experience == previousExperience
+        && exists(problemPath)
+        && get(problemPath).data.status == 'Solved'
+        && get(problemPath).data.contributors is list
+        && (
+          get(problemPath).data.contributors.hasAny([request.resource.data.username]) ||
+          get(problemPath).data.contributors.hasAny([request.resource.data.displayName])
+        )
+        && nextHistory.size() == previousHistory.size() + 1
+        && nextHistory.hasAll(previousHistory)
+        && nextHistory.hasAny([award.problemId])
+        && !previousHistory.hasAny([award.problemId]);
+    }
+
     function validSelfCreate(userId) {
       return isSelfUser(userId)
         && request.resource.data.uid == request.auth.uid
@@ -110,6 +166,8 @@ service cloud.firestore {
         && (!('points' in request.resource.data) || request.resource.data.points == 0)
         && (!('solved' in request.resource.data) || request.resource.data.solved == 0)
         && (!('stats' in request.resource.data) || (
+          (!('experience' in request.resource.data.stats) || request.resource.data.stats.experience == 0) &&
+          (!('impactPoints' in request.resource.data.stats) || request.resource.data.stats.impactPoints == 0) &&
           (!('totalImpactPoints' in request.resource.data.stats) || request.resource.data.stats.totalImpactPoints == 0) &&
           (!('problemsSolved' in request.resource.data.stats) || request.resource.data.stats.problemsSolved == 0)
         ));
@@ -131,7 +189,11 @@ service cloud.firestore {
     function participantOnlyUpdate() {
       return signedIn()
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['contributors', 'updatedAt'])
-        && resource.data.status == 'Open';
+        && resource.data.status == 'Open'
+        && request.resource.data.contributors is list
+        && resource.data.contributors is list
+        && request.resource.data.contributors.size() >= resource.data.contributors.size()
+        && request.resource.data.contributors.hasAll(resource.data.contributors);
     }
 
     function ownerReviewUpdate() {
@@ -156,7 +218,11 @@ service cloud.firestore {
           'resolution',
           'status',
           'updatedAt'
-        ]);
+        ])
+        && (
+          !request.resource.data.diff(resource.data).affectedKeys().hasAny(['status']) ||
+          request.resource.data.status in ['Open', 'Needs Revision', 'Rejected', 'Pending Review', 'Pending Evaluation', 'Closed by Owner']
+        );
     }
 
     function awardProblemUpdate() {
@@ -178,7 +244,7 @@ service cloud.firestore {
       allow create: if validSelfCreate(userId) || isSuperadmin();
       allow update: if (
         (isSelfUser(userId) && protectedUserFieldsUnchanged() && immutableIdentityUnchanged()) ||
-        canAwardPoints() ||
+        (contributionAwardShape() && contributionAwardUpdate()) ||
         isSuperadmin()
       );
       allow delete: if isSuperadmin();
@@ -202,17 +268,31 @@ service cloud.firestore {
 
     match /supportingPartners/{partnerId} {
       allow read: if true;
-      allow write: if isSuperadmin()
-        || (signedIn() && (
-          request.auth.uid == partnerId ||
-          request.resource.data.ownerUid == request.auth.uid ||
-          hasDashboard('supportingPartner')
-        ));
+      allow create: if isSuperadmin()
+        || (signedIn() && request.resource.data.ownerUid == request.auth.uid && hasDashboard('supportingPartner'));
+      allow update: if isSuperadmin()
+        || (signedIn() && resource.data.ownerUid == request.auth.uid && request.resource.data.ownerUid == resource.data.ownerUid && hasDashboard('supportingPartner'));
+      allow delete: if isSuperadmin();
     }
 
     match /settings/{settingId} {
       allow read: if true;
       allow write: if isSuperadmin();
+    }
+
+    match /impactPointTransactions/{transactionId} {
+      allow read: if signedIn() && (resource.data.userId == request.auth.uid || isSuperadmin());
+      allow create, update, delete: if isSuperadmin() || canAwardPoints();
+    }
+
+    match /rewardRedemptions/{redemptionId} {
+      allow read: if signedIn() && (resource.data.userId == request.auth.uid || isSuperadmin());
+      allow write: if false;
+    }
+
+    match /rewardsCatalog/{rewardId} {
+      allow read: if true;
+      allow write: if false;
     }
 
     match /{document=**} {

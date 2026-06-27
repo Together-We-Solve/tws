@@ -5,6 +5,7 @@
 
 (function () {
   'use strict';
+  const esc = window.TWS.escapeHTML;
 
   /* ─── LENIS SMOOTH SCROLL ──────────────────── */
   const lenis = new Lenis({
@@ -251,14 +252,64 @@
     });
   }
 
+  async function renderHallOfFame() {
+    const grid = document.querySelector('.legends-grid');
+    if (!grid) return;
+    const members = await window.TWS.loadMovementMembersAsync([]);
+    const legends = members
+      .filter((member) => member.hallOfFame || member.progression?.hallOfFame)
+      .sort((a, b) => window.TWS.impactPointsFromStats(b) - window.TWS.impactPointsFromStats(a));
+
+    if (!legends.length) {
+      grid.innerHTML = `
+        <div class="legend-card" style="grid-column: 1 / -1; cursor: default;">
+          <div class="legend-accent-bar"></div>
+          <div class="legend-year">Awaiting first induction</div>
+          <div class="avatar-circle">TWS</div>
+          <h3 class="legend-name">No Hall of Fame members yet</h3>
+          <span class="legend-role">Contributor Level 10</span>
+          <p class="legend-teaser">Members are inducted automatically after completing Contributor Level 10.</p>
+        </div>
+      `;
+      return;
+    }
+
+    grid.innerHTML = legends.map((member) => {
+      const impact = window.TWS.impactPointsFromStats(member);
+      const exp = window.TWS.experienceFromStats(member);
+      return `
+        <a class="legend-card hall-profile-card" href="${window.TWS.profileUrl(member.username || member.displayName)}">
+          <div class="legend-accent-bar"></div>
+          <div class="legend-year">Hall of Fame</div>
+          <div class="avatar-circle">${esc(member.initials || window.TWS.initialsFromName(member.displayName))}</div>
+          <h3 class="legend-name">${esc(member.displayName || member.name || member.username)}</h3>
+          <span class="legend-role">${esc(member.progression?.label || 'Contributor Level 10')}</span>
+          ${member.adminRole ? `<span class="legend-admin-role">${esc(member.adminRole)}</span>` : ''}
+          <div class="legend-stats">
+            <div class="stat">
+              <span class="stat-num">${impact.toLocaleString()}</span>
+              <span class="stat-lbl">Impact Points</span>
+            </div>
+            <div class="stat">
+              <span class="stat-num">${exp.toLocaleString()}</span>
+              <span class="stat-lbl">EXP</span>
+            </div>
+          </div>
+          <p class="legend-teaser">${esc(member.bio || 'Recognized for sustained, meaningful contribution to Together We Solve.')}</p>
+          <span class="view-story-btn">View Profile</span>
+        </a>
+      `;
+    }).join('');
+  }
+
   /* ─── INIT ─────────────────────────────────── */
   function init() {
     gsap.registerPlugin(ScrollTrigger);
 
     initGoldDustCanvas();
+    renderHallOfFame();
     animateHero();
     initScrollTriggers();
-    initModals();
   }
 
   document.addEventListener('DOMContentLoaded', init);

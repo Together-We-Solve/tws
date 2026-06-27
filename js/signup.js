@@ -132,6 +132,8 @@ import { firebaseConfig, accessCollections } from './firebase-config.js';
           privileges: [],
           joinedDate: new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
           stats: {
+            experience: 0,
+            impactPoints: 0,
             totalImpactPoints: 0,
             problemsSolved: 0,
             problemsIdentified: 0,

@@ -65,8 +65,11 @@
   function normalizeUser(raw) {
     const name = raw.displayName || raw.name || raw.username || 'Together We Solve Member';
     const username = window.TWS.toUsername(raw.username || raw.usernameLower || name);
-    const role = fixedRoles.includes(raw.role) ? raw.role : 'Member';
     const stats = raw.stats || {};
+    const experience = Number(stats.experience ?? raw.experience) || 0;
+    const progression = raw.progression || window.TWS.progressionFromExperience(experience);
+    const adminRole = raw.adminRole || (fixedRoles.includes(raw.role) && !['Member', 'Contributor'].includes(raw.role) ? raw.role : '');
+    const impactPoints = window.TWS.impactPointsFromStats(raw);
 
     return {
       id: String(raw.id || username),
@@ -78,7 +81,9 @@
       bio: raw.bio || '',
       profileAccent: raw.profileAccent || 'moss',
       availability: raw.availability || '',
-      role,
+      role: progression.role,
+      adminRole,
+      progression,
       joinedDate: raw.joinedDate || '',
       country: raw.country || '',
       website: raw.website || '',
@@ -91,9 +96,11 @@
         problemsSolved: Number(stats.problemsSolved) || 0,
         knowledgeContributions: Number(stats.knowledgeContributions) || 0,
         helpfulResponses: Number(stats.helpfulResponses) || 0,
-        totalImpactPoints: Number(stats.totalImpactPoints) || 0,
+        experience,
+        totalImpactPoints: impactPoints,
+        impactPoints,
         badgesEarned: Number(stats.badgesEarned) || 0,
-        currentRank: stats.currentRank || rankFromPoints(Number(stats.totalImpactPoints) || 0),
+        currentRank: progression.label,
         currentStreak: Number(stats.currentStreak) || 0,
         contributionStreak: Number(stats.contributionStreak || stats.currentStreak) || 0
       },
@@ -150,14 +157,14 @@
         title: problem.title,
         type: 'Solution',
         date: problem.date,
-        impact: `+${Number(problem.winnerXP) || 150} points`,
+        impact: `+${Number(problem.winnerXP) || window.TWS.defaultImpactRewards.verifiedSolution} IP`,
         status: 'Solved'
       })),
       ...attempts.map((problem) => ({
         title: problem.title,
         type: 'Discussion',
         date: problem.date,
-        impact: `+${Number(problem.attemptXP) || 40} attempt points`,
+        impact: `+${Number(problem.attemptXP) || window.TWS.defaultImpactRewards.partialSolution} IP`,
         status: problem.status
       }))
     ];
@@ -171,7 +178,7 @@
       bio: solver.bio || '',
       profileAccent: solver.profileAccent || 'moss',
       availability: solver.availability || '',
-      role: fixedRoles.includes(solver.role) ? solver.role : 'Contributor',
+      role: solver.adminRole || (fixedRoles.includes(solver.role) && !['Member', 'Contributor'].includes(solver.role) ? solver.role : 'Member'),
       joinedDate: solver.joinedDate || '',
       country: solver.country || '',
       website: solver.website || '',
@@ -183,9 +190,11 @@
         problemsSolved: Number(solver.solved) || solved.length,
         knowledgeContributions: Number(solver.knowledgeContributions) || 0,
         helpfulResponses: Number(solver.helpfulResponses) || attempts.length,
-        totalImpactPoints: Number(solver.points) || 0,
+        experience: Number(solver.experience || solver.stats?.experience) || 0,
+        totalImpactPoints: Number(solver.impactPoints || solver.points) || 0,
+        impactPoints: Number(solver.impactPoints || solver.points) || 0,
         badgesEarned: Array.isArray(solver.badges) ? solver.badges.length : 0,
-        currentRank: solver.rank || rankFromPoints(Number(solver.points) || 0),
+        currentRank: solver.progression?.label || window.TWS.progressionFromExperience(solver.experience || solver.stats?.experience || 0).label,
         currentStreak: Number(solver.currentStreak) || 0,
         contributionStreak: Number(solver.contributionStreak) || Number(solver.currentStreak) || 0
       },
@@ -259,9 +268,9 @@
     if (meta) meta.setAttribute('content', user.bio || `${user.displayName}'s public contributor profile on Together We Solve.`);
 
     setText('welcomeMessage', user.displayName);
-    setText('profileTagline', `@${user.username} • ${user.role} • ${user.stats.currentRank}`);
+    setText('profileTagline', `@${user.username} - ${user.progression.label}${user.adminRole ? ` - ${user.adminRole}` : ''}`);
     setText('profileBio', user.bio || 'No bio provided.');
-    setText('profileTypeLabel', `${user.role} Profile`);
+    setText('profileTypeLabel', `${user.progression.role} Profile`);
     document.body.dataset.profileAccent = user.profileAccent || 'moss';
 
     const avatar = document.getElementById('profileAvatar');
@@ -282,6 +291,10 @@
     }
 
     const metaItems = [
+      `Progression: ${user.progression.label}`,
+      `EXP: ${user.stats.experience.toLocaleString()}${user.progression.hallOfFame ? '' : ` / +${Math.max(0, user.progression.experienceForNextLevel - user.progression.experienceIntoLevel).toLocaleString()} to next level`}`,
+      `Impact Points: ${user.stats.impactPoints.toLocaleString()}`,
+      user.progression.hallOfFame ? 'Hall of Fame: Inducted' : '',
       user.availability ? `Status: ${user.availability}` : '',
       user.country ? `Country: ${user.country}` : '',
       user.joinedDate ? `Joined: ${user.joinedDate}` : '',
@@ -315,7 +328,8 @@
       ['LinkedIn', user.linkedin],
       ['Portfolio', user.portfolio],
       ...user.socialLinks.map((link) => [link.label || 'Social', link.url])
-    ].filter(([, url]) => url);
+    ].map(([label, url]) => [label, window.TWS.safeExternalUrl(url)])
+      .filter(([, url]) => url);
 
     if (links.length === 0) {
       container.style.display = 'none';

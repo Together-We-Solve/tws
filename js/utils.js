@@ -86,7 +86,6 @@
     return Boolean(
       hasPrivilege(session, 'award_points') ||
       hasPrivilege(session, 'manage_system') ||
-      hasPrivilege(session, 'manage_community') ||
       hasDashboard(session, 'superadmin') ||
       ['Founder', 'Co-Founder', 'Evaluator', 'Innovator'].includes(session?.role)
     );
@@ -123,11 +122,49 @@
     const checks = [
       ['points', current.points, next.points],
       ['solved', current.solved, next.solved],
+      ['experience', current.experience, next.experience],
       ['role', current.role, next.role],
       ['privileges', current.privileges || [], next.privileges || []],
       ['dashboardAccess', current.dashboardAccess || [], next.dashboardAccess || []],
       ['isSupportingPartner', Boolean(current.isSupportingPartner), Boolean(next.isSupportingPartner)],
       ['badges', current.badges || [], next.badges || []],
+      ['stats.experience', currentStats.experience, nextStats.experience],
+      ['stats.impactPoints', currentStats.impactPoints, nextStats.impactPoints],
+      ['stats.totalImpactPoints', currentStats.totalImpactPoints, nextStats.totalImpactPoints],
+      ['stats.problemsSolved', currentStats.problemsSolved, nextStats.problemsSolved],
+      ['stats.problemsIdentified', currentStats.problemsIdentified, nextStats.problemsIdentified],
+      ['stats.helpfulResponses', currentStats.helpfulResponses, nextStats.helpfulResponses],
+      ['stats.knowledgeContributions', currentStats.knowledgeContributions, nextStats.knowledgeContributions]
+    ];
+    return checks.some(([, before, after]) => (
+      after !== undefined && JSON.stringify(before ?? null) !== JSON.stringify(after ?? null)
+    ));
+  }
+
+  function systemUserFieldsChanged(current = {}, next = {}) {
+    const checks = [
+      ['role', current.role, next.role],
+      ['adminRole', current.adminRole, next.adminRole],
+      ['privileges', current.privileges || [], next.privileges || []],
+      ['dashboardAccess', current.dashboardAccess || [], next.dashboardAccess || []],
+      ['isSupportingPartner', Boolean(current.isSupportingPartner), Boolean(next.isSupportingPartner)]
+    ];
+    return checks.some(([, before, after]) => (
+      after !== undefined && JSON.stringify(before ?? null) !== JSON.stringify(after ?? null)
+    ));
+  }
+
+  function progressionUserFieldsChanged(current = {}, next = {}) {
+    const currentStats = current.stats || {};
+    const nextStats = next.stats || {};
+    const checks = [
+      ['points', current.points, next.points],
+      ['impactPoints', current.impactPoints, next.impactPoints],
+      ['solved', current.solved, next.solved],
+      ['experience', current.experience, next.experience],
+      ['badges', current.badges || [], next.badges || []],
+      ['stats.experience', currentStats.experience, nextStats.experience],
+      ['stats.impactPoints', currentStats.impactPoints, nextStats.impactPoints],
       ['stats.totalImpactPoints', currentStats.totalImpactPoints, nextStats.totalImpactPoints],
       ['stats.problemsSolved', currentStats.problemsSolved, nextStats.problemsSolved],
       ['stats.problemsIdentified', currentStats.problemsIdentified, nextStats.problemsIdentified],
@@ -174,9 +211,120 @@
     return `user-profile.html?username=${encodeURIComponent(toUsername(name))}`;
   }
 
+  function safeExternalUrl(value) {
+    const raw = String(value || '').trim();
+    if (!raw) return '';
+    try {
+      const url = new URL(raw, window.location.href);
+      return ['http:', 'https:', 'mailto:'].includes(url.protocol) ? url.href : '';
+    } catch (_) {
+      return '';
+    }
+  }
+
   function initialsFromName(name) {
     const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
     return (parts[0]?.charAt(0) || 'U').toUpperCase() + (parts[1]?.charAt(0) || 'S').toUpperCase();
+  }
+
+  const progressionRanks = [
+    'Newbie',
+    'Explorer',
+    'Learner',
+    'Collaborator',
+    'Problem Solver',
+    'Researcher',
+    'Changemaker',
+    'Community Leader',
+    'Expert',
+    'Contributor'
+  ];
+
+  const administrativeRoles = ['Founder', 'Co-Founder', 'Innovator', 'Evaluator', 'Steward', 'Supporting Partner'];
+
+  const defaultImpactRewards = {
+    verifiedProblem: 3,
+    engagedProblem: 2,
+    solvedProblem: 5,
+    measurableImpact: 10,
+    usefulSuggestion: 1,
+    adoptedSuggestion: 3,
+    exceptionalInsight: 5,
+    partialSolution: 3,
+    workingSolution: 5,
+    verifiedSolution: 8,
+    implementedSolution: 12,
+    exceptionalLongTermImpact: 20,
+    documentationImprovement: 1,
+    researchContribution: 2,
+    factVerification: 2,
+    mentoringMembers: 3,
+    organizingInitiative: 5
+  };
+
+  function levelRequirement(level) {
+    return Math.round(100 * Math.pow(1.38, Math.max(0, Number(level) - 1)));
+  }
+
+  function progressionFromExperience(experience = 0) {
+    let remaining = Math.max(0, Number(experience) || 0);
+    let rankIndex = 0;
+    let level = 1;
+
+    while (rankIndex < progressionRanks.length - 1 || level < 10) {
+      const required = levelRequirement(level);
+      if (remaining < required) break;
+      remaining -= required;
+      if (level < 10) {
+        level += 1;
+      } else {
+        rankIndex += 1;
+        level = 1;
+      }
+    }
+
+    const isComplete = rankIndex === progressionRanks.length - 1 && level === 10;
+    const requiredForNext = isComplete ? 0 : levelRequirement(level);
+    const rank = progressionRanks[rankIndex];
+    return {
+      rank,
+      level,
+      label: `${rank} Level ${level}`,
+      experience: Math.max(0, Number(experience) || 0),
+      experienceIntoLevel: isComplete ? requiredForNext : remaining,
+      experienceForNextLevel: requiredForNext,
+      progressPercent: isComplete ? 100 : Math.min(100, Math.round((remaining / requiredForNext) * 100)),
+      role: rank === 'Contributor' ? 'Contributor' : 'Member',
+      hallOfFame: isComplete
+    };
+  }
+
+  function experienceForProgression(rank, level) {
+    const rankIndex = Math.max(0, progressionRanks.indexOf(rank));
+    const targetLevel = Math.min(10, Math.max(1, Number(level) || 1));
+    let total = 0;
+    for (let index = 0; index < rankIndex; index += 1) {
+      for (let levelIndex = 1; levelIndex <= 10; levelIndex += 1) total += levelRequirement(levelIndex);
+    }
+    for (let levelIndex = 1; levelIndex < targetLevel; levelIndex += 1) total += levelRequirement(levelIndex);
+    return total;
+  }
+
+  function impactPointsFromStats(raw = {}) {
+    const stats = raw.stats || {};
+    return Number(stats.impactPoints ?? raw.impactPoints ?? stats.totalImpactPoints ?? raw.points) || 0;
+  }
+
+  function experienceFromStats(raw = {}) {
+    const stats = raw.stats || {};
+    return Number(stats.experience ?? raw.experience ?? 0) || 0;
+  }
+
+  function adminRoleFor(raw = {}) {
+    const role = raw.adminRole || raw.role || '';
+    if (administrativeRoles.includes(role)) return role;
+    if (raw.isSupportingPartner || raw.supportingPartner) return 'Supporting Partner';
+    return '';
   }
 
   let firebaseDataPromise = null;
@@ -219,6 +367,7 @@
     try {
       return await fetchCollection(collectionName);
     } catch (err) {
+      if (isPermissionDeniedError(err)) throw err;
       console.warn(`Using local ${collectionName} data because Firebase is unavailable.`, err);
       return fallback;
     }
@@ -236,6 +385,12 @@
   async function deleteDocument(collectionName, id) {
     const { db, firestoreModule } = await getFirebaseDataApiSafe();
     await firestoreModule.deleteDoc(firestoreModule.doc(db, collectionName, id));
+  }
+
+  function isPermissionDeniedError(err) {
+    const code = String(err?.code || '').toLowerCase();
+    const message = String(err?.message || '').toLowerCase();
+    return code.includes('permission-denied') || message.includes('permission-denied') || message.includes('missing or insufficient permissions');
   }
 
   async function fetchDocument(collectionName, id) {
@@ -256,7 +411,10 @@
     const stats = raw.stats || {};
     const displayName = raw.displayName || raw.name || raw.username || 'Together We Solve Member';
     const username = toUsername(raw.username || displayName);
-    const totalImpactPoints = Number(stats.totalImpactPoints ?? raw.points) || 0;
+    const totalImpactPoints = impactPointsFromStats(raw);
+    const experience = experienceFromStats(raw);
+    const progression = raw.progression || progressionFromExperience(experience);
+    const adminRole = adminRoleFor(raw);
     const problemsSolved = Number(stats.problemsSolved ?? raw.solved) || 0;
 
     return {
@@ -270,7 +428,13 @@
       avatar: raw.avatar || raw.profilePicture || '',
       profilePicture: raw.profilePicture || raw.avatar || '',
       banner: raw.banner || '',
-      role: raw.role || 'Member',
+      role: adminRole || raw.role || 'Member',
+      adminRole,
+      progressionRole: progression.role,
+      progressionRank: progression.rank,
+      progressionLevel: progression.level,
+      progression,
+      hallOfFame: Boolean(raw.hallOfFame || progression.hallOfFame),
       isSupportingPartner: Boolean(raw.isSupportingPartner || raw.supportingPartner),
       dashboardAccess: Array.isArray(raw.dashboardAccess) ? raw.dashboardAccess : [],
       specialty: raw.specialty || raw.country || '',
@@ -282,11 +446,13 @@
       portfolio: raw.portfolio || '',
       profileAccent: raw.profileAccent || 'moss',
       availability: raw.availability || '',
+      experience,
+      impactPoints: totalImpactPoints,
       points: totalImpactPoints,
       solved: problemsSolved,
       initials: raw.initials || initialsFromName(displayName),
       badges: Array.isArray(raw.badges) ? raw.badges : [],
-      stats: { ...stats, totalImpactPoints, problemsSolved }
+      stats: { ...stats, experience, impactPoints: totalImpactPoints, totalImpactPoints, problemsSolved }
     };
   }
 
@@ -336,8 +502,22 @@
       return loadMovementMembers(defaultMembers);
     }
 
-    const firestoreUsers = await fetchCollectionSafe(configModule.accessCollections.users, local.users);
-    const roleAssignments = await fetchCollectionSafe(configModule.accessCollections.roleAssignments, []);
+    let firestoreUsers = [];
+    try {
+      firestoreUsers = await fetchCollectionSafe(configModule.accessCollections.users, local.users);
+    } catch (err) {
+      console.warn('Firebase users collection is not readable for this session; loading local members.', err);
+      firestoreUsers = local.users;
+    }
+    const session = getPortalSession();
+    let roleAssignments = [];
+    if (canManageSystem(session)) {
+      try {
+        roleAssignments = await fetchCollectionSafe(configModule.accessCollections.roleAssignments, []);
+      } catch (err) {
+        console.warn('Role assignments are not listable for this session; continuing with public user roles.', err);
+      }
+    }
     const roleByEmail = new Map(roleAssignments.map((item) => [String(item.id || item.email || '').toLowerCase(), item]));
     const mergedUsers = firestoreUsers.map((user) => {
       const roleDoc = roleByEmail.get(String(user.email || '').toLowerCase());
@@ -391,6 +571,7 @@
       const { configModule } = await getFirebaseDataApiSafe();
       await saveDocument(configModule.accessCollections.problems, normalized.id, normalized);
     } catch (err) {
+      if (isPermissionDeniedError(err)) throw err;
       console.warn('Saved problem locally because Firebase write failed.', err);
     }
     memory.problems = replaceById(memory.problems.length ? memory.problems : readLocalStore().problems, normalized);
@@ -440,6 +621,7 @@
       const { configModule } = await getFirebaseDataApiSafe();
       await deleteDocument(configModule.accessCollections.problems, problemId);
     } catch (err) {
+      if (isPermissionDeniedError(err)) throw err;
       console.warn('Deleted problem locally because Firebase delete failed.', err);
     }
     memory.problems = memory.problems.filter((item) => item.id !== problemId);
@@ -460,7 +642,10 @@
     if (!isCreate && !ownProfile && !canManageSystem(session) && !canAwardPoints(session)) {
       throw new Error('permission-denied');
     }
-    if (!isCreate && protectedUserFieldsChanged(currentUser, payload) && !canAwardPoints(session)) {
+    if (!isCreate && systemUserFieldsChanged(currentUser, payload) && !canManageSystem(session)) {
+      throw new Error('permission-denied');
+    }
+    if (!isCreate && progressionUserFieldsChanged(currentUser, payload) && !canAwardPoints(session)) {
       throw new Error('permission-denied');
     }
     if (isCreate && !ownProfile && !canManageSystem(session)) {
@@ -470,6 +655,7 @@
       const { configModule } = await getFirebaseDataApiSafe();
       await saveDocument(configModule.accessCollections.users, userId, payload);
     } catch (err) {
+      if (isPermissionDeniedError(err)) throw err;
       console.warn('Saved user locally because Firebase write failed.', err);
     }
     memory.users = replaceById(memory.users.length ? memory.users : readLocalStore().users, { id: userId, uid: userId, ...payload });
@@ -506,10 +692,15 @@
   }
 
   async function deleteUserProfile(userId) {
+    const session = getPortalSession();
+    if (!canManageSystem(session)) {
+      throw new Error('permission-denied');
+    }
     try {
       const { configModule } = await getFirebaseDataApiSafe();
       await deleteDocument(configModule.accessCollections.users, userId);
     } catch (err) {
+      if (isPermissionDeniedError(err)) throw err;
       console.warn('Deleted user locally because Firebase delete failed.', err);
     }
     memory.users = (memory.users.length ? memory.users : readLocalStore().users)
@@ -533,13 +724,36 @@
   }
 
   async function savePartnerProfile(partnerId, data) {
+    const session = getPortalSession();
+    const ownsPartner = session && (data.ownerUid === session.uid || data.email === String(session.email || '').toLowerCase());
+    if (!canManageSystem(session) && !ownsPartner) {
+      throw new Error('permission-denied');
+    }
     try {
       const { configModule } = await getFirebaseDataApiSafe();
       await saveDocument(configModule.accessCollections.partners, partnerId, data);
     } catch (err) {
+      if (isPermissionDeniedError(err)) throw err;
       console.warn('Saved partner locally because Firebase write failed.', err);
     }
     memory.partners = replaceById(memory.partners.length ? memory.partners : readLocalStore().partners, { id: partnerId, ...data });
+    writeLocalStore({ partners: memory.partners });
+  }
+
+  async function deletePartnerProfile(partnerId) {
+    const session = getPortalSession();
+    if (!canManageSystem(session)) {
+      throw new Error('permission-denied');
+    }
+    try {
+      const { configModule } = await getFirebaseDataApiSafe();
+      await deleteDocument(configModule.accessCollections.partners, partnerId);
+    } catch (err) {
+      if (isPermissionDeniedError(err)) throw err;
+      console.warn('Deleted partner locally because Firebase delete failed.', err);
+    }
+    memory.partners = (memory.partners.length ? memory.partners : readLocalStore().partners)
+      .filter((item) => item.id !== partnerId);
     writeLocalStore({ partners: memory.partners });
   }
 
@@ -614,13 +828,11 @@
     return Array.from(dashboards);
   }
 
-  function memberPrefix(points) {
-    const score = Number(points) || 0;
-    if (score >= 10000) return 'Contributor';
-    if (score >= 5000) return 'Pro';
-    if (score >= 1500) return 'Regular';
-    if (score >= 250) return 'Rising';
-    return 'Newbie';
+  function memberPrefix(pointsOrMember) {
+    if (typeof pointsOrMember === 'object' && pointsOrMember) {
+      return pointsOrMember.progression?.label || progressionFromExperience(experienceFromStats(pointsOrMember)).label;
+    }
+    return progressionFromExperience(0).label;
   }
 
   function enhanceNavigation() {
@@ -668,8 +880,17 @@
     escapeHTML,
     decodeProfileName,
     profileUrl,
+    safeExternalUrl,
     toUsername,
     initialsFromName,
+    progressionRanks,
+    administrativeRoles,
+    defaultImpactRewards,
+    levelRequirement,
+    progressionFromExperience,
+    experienceForProgression,
+    impactPointsFromStats,
+    experienceFromStats,
     normalizeMember,
     normalizeProblem,
     loadMovementMembers,
@@ -684,6 +905,7 @@
     deleteUserProfile,
     loadPartnersAsync,
     savePartnerProfile,
+    deletePartnerProfile,
     loadSettings,
     saveSettings,
     logSystemActivity,

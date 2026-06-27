@@ -179,6 +179,7 @@ import { firebaseConfig, fixedRoles, accessCollections } from './firebase-config
     const privileges = Array.isArray(data.privileges) ? data.privileges : [];
 
     return {
+      exists: uidSnapshot.exists(),
       role,
       privileges,
       displayName: data.displayName || user.displayName || displayNameFromUser(user),
@@ -195,21 +196,33 @@ import { firebaseConfig, fixedRoles, accessCollections } from './firebase-config
     if (!(await window.TWS.identityAvailable({ username, email: user.email, uid: user.uid }))) {
       throw new Error('identity-conflict');
     }
-    await setDoc(doc(db, accessCollections.users, user.uid), {
+    const elevated = ['Founder', 'Co-Founder', 'Evaluator', 'Innovator'].includes(accessProfile.role)
+      || accessProfile.privileges.includes('award_points')
+      || accessProfile.privileges.includes('manage_system');
+    const profilePatch = {
       uid: user.uid,
       email: user.email,
       displayName,
       username,
-      usernameLower: username,
-      role: accessProfile.role,
-      isSupportingPartner: accessProfile.isSupportingPartner,
-      dashboardAccess: accessProfile.dashboardAccess,
-      privileges: accessProfile.privileges,
-      joinedDate: new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
-      stats: accessProfile.stats || {
+      usernameLower: username
+    };
+    if (!accessProfile.exists || elevated) {
+      Object.assign(profilePatch, {
+        joinedDate: new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
+        role: accessProfile.role,
+        isSupportingPartner: accessProfile.isSupportingPartner,
+        dashboardAccess: accessProfile.dashboardAccess,
+        privileges: accessProfile.privileges,
+        stats: accessProfile.stats || {
+        experience: 0,
+        impactPoints: 0,
         totalImpactPoints: 0,
         problemsSolved: 0
-      },
+        }
+      });
+    }
+    await setDoc(doc(db, accessCollections.users, user.uid), {
+      ...profilePatch,
       updatedAt: serverTimestamp()
     }, { merge: true });
     return { displayName, username };

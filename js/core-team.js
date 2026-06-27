@@ -32,15 +32,15 @@
     }
 
     grid.innerHTML = partners.map((partner) => {
-      const href = partner.website || '#';
+      const href = window.TWS.safeExternalUrl(partner.website);
       const tag = partner.focus || 'Supporting Partner';
       return `
-        <a class="member-card" href="${esc(href)}" ${partner.website ? 'target="_blank" rel="noopener"' : ''}>
+        <a class="member-card" href="${esc(href || '#')}" ${href ? 'target="_blank" rel="noopener"' : ''}>
           ${partnerLogo(partner)}
           <h3>${esc(partner.name)}</h3>
           <span class="member-role">${esc(tag)}</span>
           <p class="member-bio">${esc(partner.bio)}</p>
-          ${partner.website ? '<div class="member-meta"><span>Visit website</span></div>' : ''}
+          ${href ? '<div class="member-meta"><span>Visit website</span></div>' : ''}
         </a>
       `;
     }).join('');

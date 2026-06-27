@@ -57,7 +57,7 @@
   }
 
   function renderProfile() {
-    const points = Number(profile?.points || profile?.stats?.totalImpactPoints || 0);
+    const points = window.TWS.impactPointsFromStats(profile);
     document.getElementById('displayName').value = profile?.displayName || profile?.name || session.displayName || '';
     document.getElementById('displayUsername').value = profile?.username || session.username || '';
     document.getElementById('displaySpecialty').value = profile?.specialty || '';
@@ -72,9 +72,9 @@
     document.getElementById('profileAvailability').value = profile?.availability || '';
     document.getElementById('avatarInitials').value = profile?.initials || window.TWS.initialsFromName(profile?.displayName || session.displayName);
     document.getElementById('avatarPreview').textContent = document.getElementById('avatarInitials').value || 'TW';
-    document.getElementById('credPoints').textContent = `${points.toLocaleString()} pts`;
+    document.getElementById('credPoints').textContent = `${points.toLocaleString()} IP`;
     document.getElementById('credSolved').textContent = `${Number(profile?.solved || profile?.stats?.problemsSolved || 0)} solved`;
-    document.getElementById('credRank').textContent = `${window.TWS.memberPrefix(points)} ${profile?.role || session.role || 'Member'}`;
+    document.getElementById('credRank').textContent = `${window.TWS.memberPrefix(profile)}${profile?.adminRole ? ` • ${profile.adminRole}` : ''}`;
     syncPublicProfileLink();
   }
 
@@ -122,11 +122,7 @@
         linkedin: document.getElementById('profileLinkedin').value.trim(),
         github: document.getElementById('profileGithub').value.trim(),
         profileAccent: document.getElementById('profileAccent').value,
-        availability: document.getElementById('profileAvailability').value,
-        role: session.role || profile?.role || 'Member',
-        isSupportingPartner: Boolean(session.isSupportingPartner || profile?.isSupportingPartner),
-        dashboardAccess: session.dashboardAccess || profile?.dashboardAccess || [],
-        stats: profile?.stats || { totalImpactPoints: profile?.points || 0, problemsSolved: profile?.solved || 0 }
+        availability: document.getElementById('profileAvailability').value
       });
       session.displayName = displayName;
       session.username = username;
