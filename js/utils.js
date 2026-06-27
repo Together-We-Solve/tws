@@ -1541,25 +1541,66 @@
     const navLinks = document.querySelector('.nav-links');
     const logo = document.querySelector('.nav-logo');
     const cta = document.querySelector('.nav-cta');
-    if (!session || !navLinks) return;
-    if (logo) logo.href = 'home.html';
+    const nav = document.getElementById('nav');
 
-    const desiredLinks = [
-      ['home.html', 'Home'],
-      ['open-frictions.html', 'Open Frictions'],
-      ['tasks.html', 'Tasks'],
-      ['members.html', 'Members'],
-      ['impact-archive.html', 'Impact Archive'],
-      ['core-team.html', 'Partners']
-    ];
-    const current = window.location.pathname.split('/').pop() || 'index.html';
-    navLinks.innerHTML = desiredLinks.map(([href, label]) => {
-      const active = href.split('?')[0] === current ? ' active' : '';
-      return `<a href="${escapeHTML(href)}" class="nav-link${active}">${escapeHTML(label)}</a>`;
-    }).join('');
-    if (cta && cta.tagName === 'A') {
-      cta.href = 'post-problem.html';
-      cta.innerHTML = 'Share a Problem <span class="nav-cta-arrow">&nearr;</span>';
+    if (logo && session) logo.href = 'home.html';
+
+    if (session && navLinks) {
+      const desiredLinks = [
+        ['home.html', 'Home'],
+        ['open-frictions.html', 'Open Frictions'],
+        ['tasks.html', 'Tasks'],
+        ['members.html', 'Members'],
+        ['impact-archive.html', 'Impact Archive'],
+        ['core-team.html', 'Partners']
+      ];
+      const current = window.location.pathname.split('/').pop() || 'index.html';
+      navLinks.innerHTML = desiredLinks.map(([href, label]) => {
+        const active = href.split('?')[0] === current ? ' active' : '';
+        return `<a href="${escapeHTML(href)}" class="nav-link${active}">${escapeHTML(label)}</a>`;
+      }).join('');
+      if (cta && cta.tagName === 'A') {
+        cta.href = 'post-problem.html';
+        cta.innerHTML = 'Share a Problem <span class="nav-cta-arrow">&nearr;</span>';
+      }
+    }
+
+    if (nav) {
+      let menuBtn = nav.querySelector('.nav-mobile-toggle');
+      if (!menuBtn) {
+        menuBtn = document.createElement('button');
+        menuBtn.className = 'nav-mobile-toggle';
+        menuBtn.setAttribute('aria-label', 'Toggle Navigation Menu');
+        menuBtn.innerHTML = '<span></span><span></span><span></span>';
+        const inner = nav.querySelector('.nav-inner');
+        if (inner) {
+          inner.appendChild(menuBtn);
+        }
+      }
+
+      menuBtn.onclick = (e) => {
+        e.stopPropagation();
+        nav.classList.toggle('menu-open');
+        if (nav.classList.contains('menu-open')) {
+          document.body.style.overflow = 'hidden';
+        } else {
+          document.body.style.overflow = '';
+        }
+      };
+
+      nav.querySelectorAll('.nav-link, .nav-cta').forEach(link => {
+        link.addEventListener('click', () => {
+          nav.classList.remove('menu-open');
+          document.body.style.overflow = '';
+        });
+      });
+
+      document.addEventListener('click', (e) => {
+        if (nav.classList.contains('menu-open') && !nav.contains(e.target)) {
+          nav.classList.remove('menu-open');
+          document.body.style.overflow = '';
+        }
+      });
     }
   }
 
@@ -1574,6 +1615,103 @@
       role: session.role || 'Member',
       stats: {}
     });
+  }
+
+  function triggerLevelUpAnimation(rank, level, requiredExp) {
+    const existing = document.querySelector('.level-up-overlay');
+    if (existing) existing.remove();
+
+    const overlay = document.createElement('div');
+    overlay.className = 'level-up-overlay';
+    overlay.innerHTML = `
+      <div class="level-up-card">
+        <div class="level-up-glow"></div>
+        <div class="level-up-celebration-particles"></div>
+        <div class="level-up-badge-container">
+          <div class="level-up-badge">
+            <span class="level-up-badge-num">${level}</span>
+            <span class="level-up-badge-lbl">${rank === 'Contributor' ? 'LVL' : 'RANK'}</span>
+          </div>
+        </div>
+        <h2 class="level-up-title">Level Up!</h2>
+        <p class="level-up-subtitle">Outstanding work! You have progressed to <strong>${rank} Level ${level}</strong>. Keep sharing frictions and solving problems!</p>
+        <button class="btn btn-primary btn-level-up-dismiss">Magnificent! &nearr;</button>
+      </div>
+    `;
+
+    document.body.appendChild(overlay);
+
+    const particleContainer = overlay.querySelector('.level-up-celebration-particles');
+    const colors = ['#C87D55', '#23382B', '#3D5A6C', '#FAF6F0', '#E8A885'];
+
+    for (let index = 0; index < 45; index += 1) {
+      const particle = document.createElement('div');
+      particle.className = 'level-up-particle';
+      const angle = Math.random() * Math.PI * 2;
+      const distance = 80 + Math.random() * 160;
+      const x = Math.cos(angle) * distance;
+      const y = Math.sin(angle) * distance;
+      const size = 6 + Math.random() * 10;
+      const rotation = 90 + Math.random() * 360;
+      const delay = Math.random() * 0.2;
+      const color = colors[Math.floor(Math.random() * colors.length)];
+      const br = Math.random() > 0.5 ? '50%' : '0%';
+
+      particle.style.setProperty('--x', `${x}px`);
+      particle.style.setProperty('--y', `${y}px`);
+      particle.style.setProperty('--size', `${size}px`);
+      particle.style.setProperty('--r', `${rotation}deg`);
+      particle.style.setProperty('--bg', color);
+      particle.style.setProperty('--br', br);
+      particle.style.animationDelay = `${delay}s`;
+
+      particleContainer.appendChild(particle);
+    }
+
+    requestAnimationFrame(() => {
+      overlay.classList.add('active');
+    });
+
+    const dismissBtn = overlay.querySelector('.btn-level-up-dismiss');
+    dismissBtn.onclick = () => {
+      overlay.classList.remove('active');
+      setTimeout(() => overlay.remove(), 600);
+    };
+  }
+
+  async function checkLevelUpProgression() {
+    const session = getPortalSession();
+    if (!session) return;
+    const uid = session.uid || session.username;
+    if (!uid) return;
+
+    try {
+      const members = await loadMovementMembersAsync([]);
+      const member = members.find((item) => (
+        (session.uid && (item.uid === session.uid || item.id === session.uid)) ||
+        (session.email && String(item.email || '').toLowerCase() === String(session.email).toLowerCase())
+      ));
+      if (!member) return;
+
+      const exp = experienceFromStats(member);
+      const progression = progressionFromExperience(exp);
+      const currentLevel = progression.level;
+      const currentRank = progression.rank;
+
+      const levelKey = `tws_level_${uid}`;
+      const lastLevelVal = localStorage.getItem(levelKey);
+
+      if (lastLevelVal !== null) {
+        const lastLevel = parseInt(lastLevelVal, 10);
+        if (!isNaN(lastLevel) && currentLevel > lastLevel) {
+          triggerLevelUpAnimation(currentRank, currentLevel, progression.experienceForNextLevel);
+        }
+      }
+      localStorage.setItem(levelKey, currentLevel.toString());
+      localStorage.setItem(`tws_rank_${uid}`, currentRank);
+    } catch (err) {
+      console.warn('Level progression check failed:', err);
+    }
   }
 
   window.TWS = {
@@ -1641,8 +1779,13 @@
     dashboardsForSession,
     memberPrefix,
     enhanceNavigation,
-    ensureSolverProfile
+    ensureSolverProfile,
+    triggerLevelUpAnimation,
+    checkLevelUpProgression
   };
 
-  document.addEventListener('DOMContentLoaded', enhanceNavigation);
+  document.addEventListener('DOMContentLoaded', () => {
+    enhanceNavigation();
+    setTimeout(checkLevelUpProgression, 400);
+  });
 })();
