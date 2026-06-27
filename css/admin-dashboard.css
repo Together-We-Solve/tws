@@ -1217,6 +1217,11 @@ body {
   color: #ebdcb2;
 }
 
+.log-tag.task {
+  background: rgba(61, 90, 108, 0.25);
+  color: #8fbcd4;
+}
+
 /* ─── ADDITIONAL GRID / VIEWPORT ADJUSTMENTS ───────── */
 .verification-card-detail-box {
   background: rgba(28, 30, 29, 0.02);

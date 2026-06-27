@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tasks - Together We Solve</title>
+    <link rel="stylesheet" href="css/tasks.css" />
+    <link rel="stylesheet" href="css/ui-polish.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <nav class="nav scrolled" id="nav">
+      <div class="nav-inner">
+        <a href="home.html" class="nav-logo">Together We Solve</a>
+        <div class="nav-links">
+          <a href="home.html" class="nav-link">Home</a>
+          <a href="open-frictions.html" class="nav-link">Open Frictions</a>
+          <a href="tasks.html" class="nav-link active">Tasks</a>
+          <a href="members.html" class="nav-link">Members</a>
+          <a href="impact-archive.html" class="nav-link">Impact Archive</a>
+          <a href="core-team.html" class="nav-link">Partners</a>
+        </div>
+        <a href="post-problem.html" class="nav-cta">Share a Problem <span class="nav-cta-arrow">&nearr;</span></a>
+      </div>
+    </nav>
+
+    <main class="tasks-shell">
+      <section class="tasks-hero">
+        <div>
+          <p class="label">Experience Tasks</p>
+          <h1>Build your helping practice</h1>
+          <p>Community tasks turn real-world contribution into verified Experience and Impact Points.</p>
+        </div>
+        <div class="task-stats-panel">
+          <span>Current EXP</span>
+          <strong id="memberExp">0</strong>
+          <small id="memberProgression">Member</small>
+        </div>
+      </section>
+
+      <section class="tasks-toolbar">
+        <div class="task-tabs" id="taskTabs">
+          <button class="task-tab active" data-filter="available">Available</button>
+          <button class="task-tab" data-filter="pending">Pending</button>
+          <button class="task-tab" data-filter="info">Needs Info</button>
+          <button class="task-tab" data-filter="completed">Completed</button>
+          <button class="task-tab" data-filter="rejected">Rejected</button>
+          <button class="task-tab" data-filter="history">History</button>
+        </div>
+        <div class="task-filter-row">
+          <input id="taskSearch" class="task-search" type="search" placeholder="Search tasks..." />
+          <select id="taskCategoryFilter" class="task-select">
+            <option value="all">All categories</option>
+          </select>
+        </div>
+      </section>
+
+      <section class="tasks-layout">
+        <div class="task-list" id="taskList"></div>
+        <aside class="task-detail" id="taskDetail">
+          <div class="task-empty-detail">
+            <h2>Select a task</h2>
+            <p>Choose an available task or submission to see instructions, proof requirements, and reward status.</p>
+          </div>
+        </aside>
+      </section>
+    </main>
+
+    <script src="js/utils.js?v=3"></script>
+    <script src="js/tasks.js?v=1"></script>
+  </body>
+</html>

@@ -157,14 +157,14 @@
         title: problem.title,
         type: 'Solution',
         date: problem.date,
-        impact: `+${Number(problem.winnerXP) || window.TWS.defaultImpactRewards.verifiedSolution} IP`,
+        impact: `+${Number(problem.winnerXP) || window.TWS.defaultImpactRewards.verifiedSolution} IP / +${Number(problem.winnerEXP) || window.TWS.defaultExperienceRewards.verifiedSolution} EXP`,
         status: 'Solved'
       })),
       ...attempts.map((problem) => ({
         title: problem.title,
         type: 'Discussion',
         date: problem.date,
-        impact: `+${Number(problem.attemptXP) || window.TWS.defaultImpactRewards.partialSolution} IP`,
+        impact: `+${Number(problem.attemptXP) || window.TWS.defaultImpactRewards.partialSolution} IP / +${Number(problem.attemptEXP) || window.TWS.defaultExperienceRewards.partialSolution} EXP`,
         status: problem.status
       }))
     ];

@@ -7,10 +7,14 @@
   let problems = [];
   let members = [];
   let partners = [];
+  let tasks = [];
+  let taskSubmissions = [];
+  let taskCategories = [];
   let settings = {};
   let selectedProblemId = '';
   let selectedMemberId = '';
   let selectedPartnerId = '';
+  let selectedTaskId = '';
 
   const roleAccess = {
     Founder: ['user', 'evaluator', 'superadmin', 'supportingPartner'],
@@ -72,10 +76,14 @@
     problems = await window.TWS.loadProblemsAsync([]);
     members = await window.TWS.loadMovementMembersAsync([]);
     partners = await window.TWS.loadPartnersAsync([]);
+    tasks = await window.TWS.loadCommunityTasksAsync([]);
+    taskSubmissions = await window.TWS.loadTaskSubmissionsAsync([]);
+    taskCategories = await window.TWS.loadTaskCategoriesAsync();
     settings = await window.TWS.loadSettings({
       baseFrictionXP: 50,
       baseSolutionXP: 150,
       impactRewards: window.TWS.defaultImpactRewards,
+      experienceRewards: window.TWS.defaultExperienceRewards,
       minTitleLength: 8,
       minFrictionLength: 40,
       encouragementLevel: 'medium'
@@ -104,15 +112,16 @@
   function renderStats() {
     const pending = problems.filter((item) => item.status === 'Pending Review').length;
     const evaluation = problems.filter((item) => item.status === 'Pending Evaluation' || item.status === 'Closed by Owner').length;
+    const taskEvaluation = taskSubmissions.filter((item) => ['Pending Verification', 'Information Requested', 'Flagged'].includes(item.status)).length;
     const solved = problems.filter((item) => item.status === 'Solved').length;
     document.getElementById('statPendingReviews').textContent = pending;
-    document.getElementById('statPendingVerifications').textContent = evaluation;
+    document.getElementById('statPendingVerifications').textContent = evaluation + taskEvaluation;
     document.getElementById('statTotalSolved').textContent = `${solved} Solved`;
     document.getElementById('statTotalSolvers').textContent = members.length;
     document.getElementById('statTotalXP').textContent = `${members.reduce((sum, member) => sum + window.TWS.impactPointsFromStats(member), 0).toLocaleString()} IP`;
     document.getElementById('statResolutionRate').textContent = problems.length ? `${Math.round((solved / problems.length) * 100)}%` : '0%';
     document.getElementById('badgePendingCount').textContent = pending;
-    document.getElementById('badgeVerificationCount').textContent = evaluation;
+    document.getElementById('badgeVerificationCount').textContent = evaluation + taskEvaluation;
   }
 
   function populateProgressionControls() {
@@ -190,12 +199,19 @@
 
   function awardDefaults(problem) {
     const rewards = { ...window.TWS.defaultImpactRewards, ...(settings.impactRewards || {}) };
+    const experienceRewards = {
+      ...window.TWS.defaultExperienceRewards,
+      voicedFriction: Number(settings.baseFrictionXP || window.TWS.defaultExperienceRewards.voicedFriction),
+      verifiedSolution: Number(settings.baseSolutionXP || window.TWS.defaultExperienceRewards.verifiedSolution),
+      ...(settings.experienceRewards || {})
+    };
     const contributors = (problem.contributors || []).map(contributorName).filter(Boolean);
     const poster = problem.ownerUsername || window.TWS.toUsername(problem.ownerName || problem.solver);
     const names = Array.from(new Set([poster].concat(contributors).filter(Boolean)));
     return names.map((name, index) => ({
       name,
       points: index === 0 ? rewards.verifiedProblem : name === problem.solvedBy ? rewards.verifiedSolution : rewards.partialSolution,
+      experience: index === 0 ? experienceRewards.verifiedProblem : name === problem.solvedBy ? experienceRewards.verifiedSolution : experienceRewards.partialSolution,
       keep: !(problem.suggestedRemovals || []).includes(name)
     }));
   }
@@ -205,7 +221,8 @@
     const empty = document.getElementById('verificationQueueEmpty');
     if (!grid) return;
     const queue = problems.filter((item) => item.status === 'Pending Evaluation' || item.status === 'Closed by Owner');
-    grid.innerHTML = queue.map((problem) => {
+    const taskQueue = taskSubmissions.filter((item) => ['Pending Verification', 'Information Requested', 'Flagged'].includes(item.status));
+    const problemCards = queue.map((problem) => {
       const reviews = problem.contributorReviews || [];
       const awards = problem.evaluatorAwards?.length ? problem.evaluatorAwards : awardDefaults(problem);
       return `
@@ -216,9 +233,10 @@
             ${awards.map((award) => {
               const note = reviews.find((review) => review.name === award.name);
               return `
-                <div style="display:grid;grid-template-columns:1fr 90px 90px;gap:10px;align-items:center;margin:12px 0">
+                <div style="display:grid;grid-template-columns:1fr 90px 90px 90px;gap:10px;align-items:center;margin:12px 0">
                   <div><strong>${esc(award.name)}</strong><br><small>${esc(note?.comment || 'No note')}</small></div>
-                  <input class="editor-input award-points" data-name="${esc(award.name)}" type="number" value="${Number(award.points) || 0}">
+                  <input class="editor-input award-points" data-name="${esc(award.name)}" type="number" min="0" title="Impact Points" value="${Number(award.points) || 0}">
+                  <input class="editor-input award-experience" data-name="${esc(award.name)}" type="number" min="0" title="Experience" value="${Number(award.experience) || 0}">
                   <label><input class="award-keep" data-name="${esc(award.name)}" type="checkbox" ${award.keep === false ? '' : 'checked'}> keep</label>
                 </div>
               `;
@@ -231,9 +249,63 @@
         </article>
       `;
     }).join('');
-    if (empty) empty.style.display = queue.length ? 'none' : 'flex';
+    const taskCards = taskQueue.map((submission) => taskVerificationCard(submission)).join('');
+    grid.innerHTML = problemCards + taskCards;
+    if (empty) empty.style.display = queue.length || taskQueue.length ? 'none' : 'flex';
     grid.querySelectorAll('[data-finalize]').forEach((button) => button.addEventListener('click', () => finalizeProblem(button.dataset.finalize)));
     grid.querySelectorAll('[data-reopen]').forEach((button) => button.addEventListener('click', () => updateStatus(button.dataset.reopen, 'Open')));
+    grid.querySelectorAll('[data-task-action]').forEach((button) => button.addEventListener('click', () => reviewTask(button.dataset.submission, button.dataset.taskAction)));
+  }
+
+  function taskVerificationCard(submission) {
+    const member = members.find((item) => (
+      item.uid === submission.memberUid ||
+      item.id === submission.memberUid ||
+      String(item.email || '').toLowerCase() === String(submission.memberEmail || '').toLowerCase()
+    ));
+    const completed = taskSubmissions.filter((item) => item.memberUid === submission.memberUid && item.status === 'Approved').length;
+    const attachments = (submission.attachments || []).map((item) => `<a href="${esc(item.url || '#')}" target="_blank" rel="noopener">${esc(item.name || item.type || 'Attachment')}</a>`).join('');
+    const links = (submission.links || []).map((link) => `<a href="${esc(window.TWS.safeExternalUrl(link))}" target="_blank" rel="noopener">${esc(link)}</a>`).join('');
+    return `
+      <article class="audit-card" style="padding:18px;border:1px solid var(--border-light);border-radius:8px;background:#fff">
+        <div class="audit-card-header">
+          <div>
+            <span class="audit-category">${esc(submission.category || 'Community Task')}</span>
+            <h3 class="audit-title">${esc(submission.taskTitle || 'Task submission')}</h3>
+          </div>
+          <span class="audit-date">${esc(submission.status)}</span>
+        </div>
+        <div class="audit-meta-row">
+          <span>${esc(submission.memberName || 'Member')}</span>
+          <span>${Number(submission.expReward || 0).toLocaleString()} EXP</span>
+          <span>${Number(submission.impactPointReward || 0).toLocaleString()} IP</span>
+        </div>
+        <p class="audit-summary">${esc(submission.description || 'No description submitted.')}</p>
+        ${submission.reflection ? `<div class="verification-card-resolution">${esc(submission.reflection)}</div>` : ''}
+        <div class="verification-card-detail-box">
+          <strong>Member context</strong><br>
+          Profile: <a href="${esc(window.TWS.profileUrl(submission.memberUsername || submission.memberName))}" target="_blank" rel="noopener">${esc(submission.memberName || 'Open profile')}</a><br>
+          Completed tasks: ${completed}<br>
+          Current EXP: ${Number(window.TWS.experienceFromStats(member || {})).toLocaleString()}<br>
+          Current IP: ${Number(window.TWS.impactPointsFromStats(member || {})).toLocaleString()}
+        </div>
+        <div class="attachment-list" style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0">${attachments || links ? attachments + links : '<span style="opacity:.65">No attachments or links submitted.</span>'}</div>
+        <textarea class="editor-textarea small" data-task-comment="${esc(submission.id)}" placeholder="Optional evaluator comment"></textarea>
+        <div class="audit-action-footer">
+          <button class="btn btn-primary btn-sm" data-submission="${esc(submission.id)}" data-task-action="approve">Approve</button>
+          <button class="btn btn-outline btn-sm" data-submission="${esc(submission.id)}" data-task-action="request_info">Request Info</button>
+          <button class="btn btn-outline btn-sm" data-submission="${esc(submission.id)}" data-task-action="reject">Reject</button>
+          <button class="btn btn-outline btn-sm" data-submission="${esc(submission.id)}" data-task-action="flag">Flag</button>
+        </div>
+      </article>
+    `;
+  }
+
+  async function reviewTask(submissionId, action) {
+    const comment = document.querySelector(`[data-task-comment="${CSS.escape(submissionId)}"]`)?.value || '';
+    await window.TWS.reviewTaskSubmission(submissionId, action, comment);
+    window.TWS.logSystemActivity('TASK', `${action} set for task submission ${submissionId}.`);
+    await refresh();
   }
 
   async function updateStatus(problemId, status) {
@@ -246,7 +318,13 @@
     const editor = document.querySelector(`.award-editor[data-id="${CSS.escape(problemId)}"]`);
     const awards = Array.from(editor.querySelectorAll('.award-points')).map((input) => {
       const keep = editor.querySelector(`.award-keep[data-name="${CSS.escape(input.dataset.name)}"]`)?.checked;
-      return { name: input.dataset.name, points: Number(input.value) || 0, keep };
+      const experienceInput = editor.querySelector(`.award-experience[data-name="${CSS.escape(input.dataset.name)}"]`);
+      return {
+        name: input.dataset.name,
+        points: Number(input.value) || 0,
+        experience: Number(experienceInput?.value) || 0,
+        keep
+      };
     });
     const kept = awards.filter((award) => award.keep);
     const problem = problems.find((item) => item.id === problemId);
@@ -256,28 +334,40 @@
       evaluatorAwards: awards,
       solvedBy: kept[0]?.name || problem?.solvedBy || '',
       winnerXP: kept[0]?.points || 0,
-      attemptXP: 0
+      attemptXP: 0,
+      winnerEXP: kept[0]?.experience || 0,
+      attemptEXP: 0
     });
     await Promise.all(kept.map(async (award) => {
       const member = members.find((item) => item.username === award.name || item.displayName === award.name || item.name === award.name);
       if (!member) return;
       const id = member.uid || member.id || member.username;
       const current = window.TWS.impactPointsFromStats(member);
+      const currentExperience = window.TWS.experienceFromStats(member);
       const solved = Number(member.solved || member.stats?.problemsSolved || 0) + 1;
       const history = Array.isArray(member.awardHistory) ? member.awardHistory : [];
+      const points = Number(award.points) || 0;
+      const experience = Number(award.experience) || 0;
       await window.TWS.saveUserProfile(id, {
         ...member,
         awardHistory: history.includes(problemId) ? history : history.concat(problemId),
         lastContributionAward: {
           problemId,
-          points: Number(award.points) || 0,
+          points,
+          experience,
           awardedBy: session?.uid || session?.email || '',
           awardedAt: new Date().toISOString()
         },
-        stats: { ...(member.stats || {}), impactPoints: current + award.points, totalImpactPoints: current + award.points, problemsSolved: solved }
+        stats: {
+          ...(member.stats || {}),
+          experience: currentExperience + experience,
+          impactPoints: current + points,
+          totalImpactPoints: current + points,
+          problemsSolved: solved
+        }
       });
     }));
-    window.TWS.logSystemActivity('AUDIT', `Finalized solved friction "${problem?.title || problemId}" with individual point awards.`);
+    window.TWS.logSystemActivity('AUDIT', `Finalized solved friction "${problem?.title || problemId}" with individual IP and EXP awards.`);
     await refresh();
   }
 
@@ -320,6 +410,131 @@
       </div>
     `).join('') : '<div style="padding:18px;opacity:.65">No supporting partners yet.</div>';
     list.querySelectorAll('[data-select-partner]').forEach((row) => row.addEventListener('click', () => selectPartner(row.dataset.selectPartner)));
+  }
+
+  function renderTaskCategoryOptions() {
+    const select = document.getElementById('editTaskCategory');
+    if (!select) return;
+    const current = select.value;
+    select.innerHTML = taskCategories.map((item) => `<option value="${esc(item.name)}">${esc(item.name)}</option>`).join('');
+    if (current && Array.from(select.options).some((option) => option.value === current)) select.value = current;
+  }
+
+  function renderTasksLedger() {
+    const list = document.getElementById('tasksCompactList');
+    if (!list) return;
+    const search = document.getElementById('taskListSearch')?.value.trim().toLowerCase() || '';
+    const visible = tasks.filter((task) => !search || `${task.title} ${task.category} ${task.description} ${task.status}`.toLowerCase().includes(search));
+    list.innerHTML = visible.length ? visible.map((task) => `
+      <div class="solver-list-row" data-select-task="${esc(task.id)}" style="padding:12px;border-bottom:1px solid var(--border-light)">
+        <div class="row-avatar">${esc(String(task.category || 'Task').slice(0, 2).toUpperCase())}</div>
+        <div class="row-info"><span class="row-name">${esc(task.title || 'Untitled Task')}</span><span class="row-xp">${esc(task.category)} - ${esc(task.status)} - ${Number(task.expReward).toLocaleString()} EXP</span></div>
+      </div>
+    `).join('') : '<div style="padding:18px;opacity:.65">No community tasks have been created yet.</div>';
+    list.querySelectorAll('[data-select-task]').forEach((row) => row.addEventListener('click', () => selectTask(row.dataset.selectTask)));
+  }
+
+  function selectTask(taskId) {
+    const form = document.getElementById('taskEditorForm');
+    const unselected = document.getElementById('taskUnselectedState');
+    if (!form || !unselected) return;
+    selectedTaskId = taskId;
+    const task = tasks.find((item) => item.id === taskId) || {
+      id: '',
+      title: '',
+      description: '',
+      category: taskCategories[0]?.name || 'Community Service',
+      difficulty: 'Easy',
+      cadence: 'One-time',
+      estimatedTime: '',
+      expReward: 0,
+      impactPointReward: 0,
+      verificationRequirement: 'Evaluator review required',
+      startDate: '',
+      endDate: '',
+      status: 'Draft',
+      instructions: '',
+      submissionGuidelines: ''
+    };
+    renderTaskCategoryOptions();
+    unselected.style.display = 'none';
+    form.style.display = 'block';
+    document.getElementById('taskEditorTitle').textContent = task.title || 'New Community Task';
+    document.getElementById('taskEditorMeta').textContent = `${task.status || 'Draft'} - ${task.category || 'Community Service'}`;
+    setFieldValue('editTaskTitle', task.title || '');
+    setFieldValue('editTaskDescription', task.description || '');
+    setFieldValue('editTaskCategory', task.category || taskCategories[0]?.name || 'Community Service');
+    setFieldValue('editTaskDifficulty', task.difficulty || 'Easy');
+    setFieldValue('editTaskCadence', task.cadence || 'One-time');
+    setFieldValue('editTaskTime', task.estimatedTime || '');
+    setFieldValue('editTaskExp', Number(task.expReward) || 0);
+    setFieldValue('editTaskIp', Number(task.impactPointReward) || 0);
+    setFieldValue('editTaskStart', task.startDate || '');
+    setFieldValue('editTaskEnd', task.endDate || '');
+    setFieldValue('editTaskStatus', task.status || 'Draft');
+    setFieldValue('editTaskVerification', task.verificationRequirement || 'Evaluator review required');
+    setFieldValue('editTaskInstructions', task.instructions || '');
+    setFieldValue('editTaskGuidelines', task.submissionGuidelines || '');
+  }
+
+  function taskPayload(overrides = {}) {
+    const existing = tasks.find((item) => item.id === selectedTaskId) || {};
+    return {
+      ...existing,
+      id: overrides.id || existing.id || `task_${Date.now()}`,
+      title: fieldValue('editTaskTitle').trim(),
+      description: fieldValue('editTaskDescription').trim(),
+      category: fieldValue('editTaskCategory', taskCategories[0]?.name || 'Community Service'),
+      difficulty: fieldValue('editTaskDifficulty', 'Easy'),
+      cadence: fieldValue('editTaskCadence', 'One-time'),
+      estimatedTime: fieldValue('editTaskTime').trim(),
+      expReward: Number(fieldValue('editTaskExp')) || 0,
+      impactPointReward: Number(fieldValue('editTaskIp')) || 0,
+      startDate: fieldValue('editTaskStart'),
+      endDate: fieldValue('editTaskEnd'),
+      status: overrides.status || fieldValue('editTaskStatus', 'Draft'),
+      verificationRequirement: fieldValue('editTaskVerification').trim() || 'Evaluator review required',
+      instructions: fieldValue('editTaskInstructions').trim(),
+      submissionGuidelines: fieldValue('editTaskGuidelines').trim()
+    };
+  }
+
+  async function saveSelectedTask(overrides = {}) {
+    const payload = taskPayload(overrides);
+    if (!payload.title) {
+      alert('Task title is required.');
+      return;
+    }
+    const saved = await window.TWS.saveCommunityTask(payload);
+    selectedTaskId = saved.id;
+    window.TWS.logSystemActivity('TASK', `Saved community task "${saved.title}".`);
+    await refresh();
+    selectTask(saved.id);
+  }
+
+  async function duplicateSelectedTask() {
+    if (!selectedTaskId) return;
+    await saveSelectedTask({ id: `task_${Date.now()}` });
+  }
+
+  async function deleteSelectedTask() {
+    if (!selectedTaskId || !confirm('Delete this community task? Existing submissions remain in history.')) return;
+    await window.TWS.deleteCommunityTask(selectedTaskId);
+    window.TWS.logSystemActivity('TASK', `Deleted community task ${selectedTaskId}.`);
+    selectedTaskId = '';
+    document.getElementById('taskEditorForm').style.display = 'none';
+    document.getElementById('taskUnselectedState').style.display = 'flex';
+    await refresh();
+  }
+
+  async function addTaskCategory() {
+    const name = fieldValue('newTaskCategory').trim();
+    if (!name) return;
+    await window.TWS.saveTaskCategory(name);
+    window.TWS.logSystemActivity('TASK', `Added task category ${name}.`);
+    taskCategories = await window.TWS.loadTaskCategoriesAsync();
+    renderTaskCategoryOptions();
+    setFieldValue('newTaskCategory', '');
   }
 
   function selectMember(memberId) {
@@ -571,6 +786,16 @@
     document.getElementById('solverListSearch')?.addEventListener('input', renderMembersLedger);
     document.getElementById('solverSortSelect')?.addEventListener('change', renderMembersLedger);
     document.getElementById('partnerListSearch')?.addEventListener('input', renderPartnersLedger);
+    document.getElementById('taskListSearch')?.addEventListener('input', renderTasksLedger);
+    document.getElementById('btnAddTask')?.addEventListener('click', () => {
+      selectedTaskId = '';
+      selectTask('');
+    });
+    document.getElementById('btnSaveTask')?.addEventListener('click', () => saveSelectedTask());
+    document.getElementById('btnArchiveTask')?.addEventListener('click', () => saveSelectedTask({ status: 'Archived' }));
+    document.getElementById('btnDuplicateTask')?.addEventListener('click', duplicateSelectedTask);
+    document.getElementById('btnDeleteTask')?.addEventListener('click', deleteSelectedTask);
+    document.getElementById('btnAddTaskCategory')?.addEventListener('click', addTaskCategory);
     document.getElementById('btnAddPartner')?.addEventListener('click', () => {
       selectedPartnerId = '';
       selectPartner('');
@@ -596,6 +821,7 @@
         baseFrictionXP: Number(document.getElementById('setBaseFrictionXP').value) || 50,
         baseSolutionXP: Number(document.getElementById('setBaseSolutionXP').value) || 150,
         impactRewards: settings.impactRewards || window.TWS.defaultImpactRewards,
+        experienceRewards: settings.experienceRewards || window.TWS.defaultExperienceRewards,
         minTitleLength: Number(document.getElementById('setMinTitleLen').value) || 8,
         minFrictionLength: Number(document.getElementById('setMinFrictionLen').value) || 40,
         encouragementLevel: document.getElementById('setEncouragementLevel').value
@@ -650,12 +876,17 @@
     problems = await window.TWS.loadProblemsAsync([]);
     members = await window.TWS.loadMovementMembersAsync([]);
     partners = await window.TWS.loadPartnersAsync([]);
+    tasks = await window.TWS.loadCommunityTasksAsync([]);
+    taskSubmissions = await window.TWS.loadTaskSubmissionsAsync([]);
+    taskCategories = await window.TWS.loadTaskCategoriesAsync();
     settings = await window.TWS.loadSettings(settings);
     renderStats();
     renderReviewQueue();
     renderVerificationQueue();
     renderMembersLedger();
     renderPartnersLedger();
+    renderTaskCategoryOptions();
+    renderTasksLedger();
     renderSettings();
     renderLogs();
   }
@@ -668,6 +899,8 @@
     renderVerificationQueue();
     renderMembersLedger();
     renderPartnersLedger();
+    renderTaskCategoryOptions();
+    renderTasksLedger();
     renderSettings();
     renderLogs();
     initControls();

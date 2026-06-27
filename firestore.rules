@@ -109,6 +109,10 @@ service cloud.firestore {
         'stats',
         'awardHistory',
         'lastContributionAward',
+        'taskSubmissionHistory',
+        'lastTaskAward',
+        'platformExperienceHistory',
+        'lastPlatformExperienceAward',
         'updatedAt'
       ]);
     }
@@ -118,8 +122,11 @@ service cloud.firestore {
       return award is map
         && award.problemId is string
         && award.points is number
+        && award.experience is number
         && award.points > 0
-        && award.points <= 50;
+        && award.points <= 50
+        && award.experience >= 0
+        && award.experience <= 1000;
     }
 
     function contributionAwardUpdate() {
@@ -142,7 +149,7 @@ service cloud.firestore {
         && nextStats.impactPoints == previousImpact + award.points
         && nextStats.totalImpactPoints == previousTotalImpact + award.points
         && nextStats.problemsSolved == previousSolved + 1
-        && nextStats.experience == previousExperience
+        && nextStats.experience == previousExperience + award.experience
         && exists(problemPath)
         && get(problemPath).data.status == 'Solved'
         && get(problemPath).data.contributors is list
@@ -154,6 +161,80 @@ service cloud.firestore {
         && nextHistory.hasAll(previousHistory)
         && nextHistory.hasAny([award.problemId])
         && !previousHistory.hasAny([award.problemId]);
+    }
+
+    function taskAwardShape() {
+      let award = request.resource.data.lastTaskAward;
+      return award is map
+        && award.submissionId is string
+        && award.taskId is string
+        && award.points is number
+        && award.experience is number
+        && award.points >= 0
+        && award.points <= 100
+        && award.experience >= 0
+        && award.experience <= 5000;
+    }
+
+    function taskAwardUpdate() {
+      let award = request.resource.data.lastTaskAward;
+      let previousHistory = resource.data.taskSubmissionHistory is list ? resource.data.taskSubmissionHistory : [];
+      let nextHistory = request.resource.data.taskSubmissionHistory is list ? request.resource.data.taskSubmissionHistory : [];
+      let previousStats = resource.data.stats is map ? resource.data.stats : {};
+      let nextStats = request.resource.data.stats is map ? request.resource.data.stats : {};
+      let previousImpact = previousStats.impactPoints is number ? previousStats.impactPoints : 0;
+      let previousTotalImpact = previousStats.totalImpactPoints is number ? previousStats.totalImpactPoints : 0;
+      let previousExperience = previousStats.experience is number ? previousStats.experience : 0;
+      let previousCompleted = previousStats.communityTasksCompleted is number ? previousStats.communityTasksCompleted : 0;
+      let submissionPath = /databases/$(database)/documents/taskSubmissions/$(award.submissionId);
+      return canAwardPoints()
+        && awardUserFieldsOnly()
+        && nextStats.impactPoints == previousImpact + award.points
+        && nextStats.totalImpactPoints == previousTotalImpact + award.points
+        && nextStats.experience == previousExperience + award.experience
+        && nextStats.communityTasksCompleted == previousCompleted + 1
+        && exists(submissionPath)
+        && get(submissionPath).data.status == 'Approved'
+        && get(submissionPath).data.memberUid == request.resource.data.uid
+        && get(submissionPath).data.taskId == award.taskId
+        && get(submissionPath).data.expReward == award.experience
+        && get(submissionPath).data.impactPointReward == award.points
+        && nextHistory.size() == previousHistory.size() + 1
+        && nextHistory.hasAll(previousHistory)
+        && nextHistory.hasAny([award.submissionId])
+        && !previousHistory.hasAny([award.submissionId]);
+    }
+
+    function platformExperienceAwardShape() {
+      let award = request.resource.data.lastPlatformExperienceAward;
+      return award is map
+        && award.action is string
+        && award.experience is number
+        && award.experience > 0
+        && award.experience <= 1000;
+    }
+
+    function platformExperienceAwardUpdate() {
+      let award = request.resource.data.lastPlatformExperienceAward;
+      let previousHistory = resource.data.platformExperienceHistory is list ? resource.data.platformExperienceHistory : [];
+      let nextHistory = request.resource.data.platformExperienceHistory is list ? request.resource.data.platformExperienceHistory : [];
+      let previousStats = resource.data.stats is map ? resource.data.stats : {};
+      let nextStats = request.resource.data.stats is map ? request.resource.data.stats : {};
+      let previousExperience = previousStats.experience is number ? previousStats.experience : 0;
+      return signedIn()
+        && (isSelfUser(request.auth.uid) || canAwardPoints())
+        && awardUserFieldsOnly()
+        && (!('points' in request.resource.data) || !('points' in resource.data) || request.resource.data.points == resource.data.points)
+        && (!('impactPoints' in request.resource.data) || !('impactPoints' in resource.data) || request.resource.data.impactPoints == resource.data.impactPoints)
+        && (!('solved' in request.resource.data) || !('solved' in resource.data) || request.resource.data.solved == resource.data.solved)
+        && (!('impactPoints' in nextStats) || !('impactPoints' in previousStats) || nextStats.impactPoints == previousStats.impactPoints)
+        && (!('totalImpactPoints' in nextStats) || !('totalImpactPoints' in previousStats) || nextStats.totalImpactPoints == previousStats.totalImpactPoints)
+        && (!('problemsSolved' in nextStats) || !('problemsSolved' in previousStats) || nextStats.problemsSolved == previousStats.problemsSolved)
+        && nextStats.experience == previousExperience + award.experience
+        && nextHistory.size() == previousHistory.size() + 1
+        && nextHistory.hasAll(previousHistory)
+        && nextHistory.hasAny([award.action])
+        && !previousHistory.hasAny([award.action]);
     }
 
     function validSelfCreate(userId) {
@@ -234,9 +315,79 @@ service cloud.firestore {
           'solvedBy',
           'winnerXP',
           'attemptXP',
+          'winnerEXP',
+          'attemptEXP',
           'updatedAt'
         ])
         && request.resource.data.status == 'Solved';
+    }
+
+    function taskSubmissionOwner() {
+      return signedIn() && (
+        resource.data.memberUid == request.auth.uid ||
+        resource.data.memberEmail == cleanEmail()
+      );
+    }
+
+    function taskSubmissionCreateOwner() {
+      return signedIn()
+        && request.resource.data.memberUid == request.auth.uid
+        && request.resource.data.memberEmail == cleanEmail()
+        && request.resource.data.status == 'Pending Verification'
+        && request.resource.data.taskId is string
+        && request.resource.data.description is string
+        && request.resource.data.expReward is number
+        && request.resource.data.impactPointReward is number;
+    }
+
+    function taskSubmissionOwnerUpdate() {
+      return taskSubmissionOwner()
+        && resource.data.status in ['Information Requested', 'In Progress', 'Pending Verification']
+        && request.resource.data.memberUid == resource.data.memberUid
+        && request.resource.data.memberEmail == resource.data.memberEmail
+        && request.resource.data.taskId == resource.data.taskId
+        && request.resource.data.status == 'Pending Verification'
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'description',
+          'reflection',
+          'attachments',
+          'links',
+          'proofHash',
+          'status',
+          'submittedAt',
+          'updatedAt',
+          'history'
+        ]);
+    }
+
+    function evaluatorTaskSubmissionUpdate() {
+      return canEvaluate()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'status',
+          'evaluatorComments',
+          'evaluatorUid',
+          'evaluatorName',
+          'reviewedAt',
+          'updatedAt',
+          'history'
+        ])
+        && request.resource.data.status in ['Approved', 'Rejected', 'Information Requested', 'Flagged'];
+    }
+
+    function notificationOwner() {
+      return signedIn() && (
+        resource.data.userId == request.auth.uid ||
+        resource.data.email == cleanEmail()
+      );
+    }
+
+    function notificationCreateAllowed() {
+      return signedIn() && (
+        canEvaluate() ||
+        isSuperadmin() ||
+        request.resource.data.userId == request.auth.uid ||
+        request.resource.data.email == cleanEmail()
+      );
     }
 
     match /users/{userId} {
@@ -245,6 +396,8 @@ service cloud.firestore {
       allow update: if (
         (isSelfUser(userId) && protectedUserFieldsUnchanged() && immutableIdentityUnchanged()) ||
         (contributionAwardShape() && contributionAwardUpdate()) ||
+        (taskAwardShape() && taskAwardUpdate()) ||
+        (platformExperienceAwardShape() && platformExperienceAwardUpdate()) ||
         isSuperadmin()
       );
       allow delete: if isSuperadmin();
@@ -278,6 +431,31 @@ service cloud.firestore {
     match /settings/{settingId} {
       allow read: if true;
       allow write: if isSuperadmin();
+    }
+
+    match /taskCategories/{categoryId} {
+      allow read: if true;
+      allow write: if isSuperadmin();
+    }
+
+    match /communityTasks/{taskId} {
+      allow read: if resource.data.status == 'Published' || signedIn();
+      allow write: if isSuperadmin();
+    }
+
+    match /taskSubmissions/{submissionId} {
+      allow read: if taskSubmissionOwner() || canEvaluate() || isSuperadmin();
+      allow create: if taskSubmissionCreateOwner() || canEvaluate();
+      allow update: if taskSubmissionOwnerUpdate() || evaluatorTaskSubmissionUpdate() || isSuperadmin();
+      allow delete: if isSuperadmin();
+    }
+
+    match /notifications/{notificationId} {
+      allow read: if notificationOwner() || isSuperadmin();
+      allow create: if notificationCreateAllowed();
+      allow update: if notificationOwner()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read', 'updatedAt']);
+      allow delete: if isSuperadmin();
     }
 
     match /impactPointTransactions/{transactionId} {

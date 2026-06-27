@@ -46,6 +46,11 @@
             <span class="tab-badge" id="badgeVerificationCount">0</span>
           </button>
 
+          <button class="nav-tab-btn founder-only" data-tab="tasks">
+            <span class="tab-icon">✦</span>
+            <span class="tab-label">Tasks</span>
+          </button>
+
           <button class="nav-tab-btn" data-tab="solvers">
             <span class="tab-icon">👥</span>
             <span class="tab-label">Solvers Ledger</span>
@@ -249,6 +254,63 @@
                 <span class="placeholder-icon">🛡️</span>
                 <h4>All Solutions Audited</h4>
                 <p>All proposed solutions have been verified, and solvers have been credited with their impact points.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="console-tab-panel founder-only" id="panel-tasks">
+            <div class="solvers-panel-layout">
+              <div class="solvers-list-pane">
+                <div class="pane-header search-header" style="display: flex; flex-direction: column; gap: 8px;">
+                  <h3>Community Tasks</h3>
+                  <input type="text" id="taskListSearch" class="pane-search-input" placeholder="Search tasks..." />
+                  <button type="button" class="btn btn-primary btn-sm" id="btnAddTask" style="padding: 8px 12px; font-size: 11px;">+ Create Task</button>
+                </div>
+                <div class="solvers-compact-list" id="tasksCompactList"></div>
+              </div>
+              <div class="solver-editor-pane">
+                <div class="detail-unselected-state" id="taskUnselectedState">
+                  <span class="unselected-icon">✦</span>
+                  <h3>Select a Task</h3>
+                  <p>Create, edit, archive, duplicate, or delete community tasks that members complete with evaluator-verified proof.</p>
+                </div>
+                <div class="solver-profile-form" id="taskEditorForm" style="display: none;">
+                  <div class="pane-header flex-header">
+                    <div>
+                      <h3 class="solver-profile-name" id="taskEditorTitle">Community Task</h3>
+                      <span class="solver-profile-role" id="taskEditorMeta">Verification required</span>
+                    </div>
+                  </div>
+                  <div class="solver-edit-grid">
+                    <div class="editor-field-group span-full"><label class="editor-label" for="editTaskTitle">Title</label><input id="editTaskTitle" class="editor-input" /></div>
+                    <div class="editor-field-group span-full"><label class="editor-label" for="editTaskDescription">Description</label><textarea id="editTaskDescription" class="editor-textarea"></textarea></div>
+                    <div class="editor-field-group"><label class="editor-label" for="editTaskCategory">Category</label><select id="editTaskCategory" class="editor-input select-input"></select></div>
+                    <div class="editor-field-group"><label class="editor-label" for="editTaskDifficulty">Difficulty</label><select id="editTaskDifficulty" class="editor-input select-input"><option>Easy</option><option>Medium</option><option>Hard</option><option>Expert</option></select></div>
+                    <div class="editor-field-group"><label class="editor-label" for="editTaskCadence">Cadence</label><select id="editTaskCadence" class="editor-input select-input"><option>One-time</option><option>Weekly</option><option>Monthly</option><option>Seasonal</option><option>Event-based</option></select></div>
+                    <div class="editor-field-group"><label class="editor-label" for="editTaskTime">Estimated Time</label><input id="editTaskTime" class="editor-input" /></div>
+                    <div class="editor-field-group"><label class="editor-label" for="editTaskExp">EXP Reward</label><input id="editTaskExp" class="editor-input" type="number" min="0" /></div>
+                    <div class="editor-field-group"><label class="editor-label" for="editTaskIp">Impact Point Reward</label><input id="editTaskIp" class="editor-input" type="number" min="0" /></div>
+                    <div class="editor-field-group"><label class="editor-label" for="editTaskStart">Start Date</label><input id="editTaskStart" class="editor-input" type="date" /></div>
+                    <div class="editor-field-group"><label class="editor-label" for="editTaskEnd">End Date</label><input id="editTaskEnd" class="editor-input" type="date" /></div>
+                    <div class="editor-field-group"><label class="editor-label" for="editTaskStatus">Status</label><select id="editTaskStatus" class="editor-input select-input"><option>Draft</option><option>Published</option><option>Archived</option></select></div>
+                    <div class="editor-field-group span-full"><label class="editor-label" for="editTaskVerification">Verification Requirement</label><input id="editTaskVerification" class="editor-input" /></div>
+                    <div class="editor-field-group span-full"><label class="editor-label" for="editTaskInstructions">Instructions</label><textarea id="editTaskInstructions" class="editor-textarea"></textarea></div>
+                    <div class="editor-field-group span-full"><label class="editor-label" for="editTaskGuidelines">Submission Guidelines</label><textarea id="editTaskGuidelines" class="editor-textarea"></textarea></div>
+                    <div class="settings-card span-full" style="grid-column: span 2;">
+                      <h4>Categories</h4>
+                      <div class="database-actions" style="display: flex; gap: 10px;">
+                        <input id="newTaskCategory" class="editor-input" placeholder="New category name" />
+                        <button type="button" class="btn btn-outline btn-sm" id="btnAddTaskCategory">Add Category</button>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="editor-action-footer justify-end" style="display: flex; gap: 10px; width: 100%;">
+                    <button type="button" class="btn btn-outline btn-sm" id="btnDuplicateTask">Duplicate</button>
+                    <button type="button" class="btn btn-outline btn-sm" id="btnArchiveTask">Archive</button>
+                    <button type="button" class="btn btn-outline btn-sm btn-danger" id="btnDeleteTask" style="color: #c85555; border-color: rgba(200, 85, 85, 0.25); background: transparent;">Delete Task</button>
+                    <button type="button" class="btn btn-primary btn-sm" id="btnSaveTask">Save Task</button>
+                  </div>
+                </div>
               </div>
             </div>
           </section>

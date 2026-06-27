@@ -374,7 +374,7 @@
               <p style="font-style: italic; opacity: 0.85;">"${esc(prob.ownerReview || 'Challenge successfully completed and archived.')}"</p>
               <div style="font-size: 11px; opacity: 0.6; margin-top: 10px; display: flex; gap: 15px;">
                 <span>Complexity: <strong>${esc(prob.complexity)}</strong></span>
-                <span>Council Award: <strong>+${prob.winnerXP || window.TWS.defaultImpactRewards.verifiedSolution} IP Solver, +${prob.attemptXP || window.TWS.defaultImpactRewards.partialSolution} IP Attempts</strong></span>
+                <span>Council Award: <strong>+${prob.winnerXP || window.TWS.defaultImpactRewards.verifiedSolution} IP / +${prob.winnerEXP || window.TWS.defaultExperienceRewards.verifiedSolution} EXP Solver, +${prob.attemptXP || window.TWS.defaultImpactRewards.partialSolution} IP / +${prob.attemptEXP || window.TWS.defaultExperienceRewards.partialSolution} EXP Attempts</strong></span>
               </div>
             </div>
           `;

@@ -1,0 +1,199 @@
+# Agent Instructions for Together We Solve
+
+Last updated: 2026-06-27
+
+This file is the required first read for AI agents working in this workspace. Use it to understand the project quickly. Do not scan the whole repository unless the task requires it.
+
+## Project Summary
+
+Together We Solve is a static web app for a community platform where people post problems, evaluate contributions, award points, manage roles, and browse impact/community pages.
+
+The app is built with plain HTML, CSS, and browser JavaScript. It uses Firebase Authentication and Firestore through CDN ES module imports. There is no visible package manifest, bundler, framework, or local test runner in the workspace at the time of this update.
+
+## Workspace Map
+
+- `index.html`: public landing page.
+- `home.html`: signed-in/community home page.
+- `signup.html`, `login.html`: authentication pages.
+- `post-problem.html`, `open-frictions.html`, `my-frictions.html`: problem posting and browsing flows.
+- `tasks.html`: member community task dashboard for available tasks, proof submissions, verification status, and task history.
+- `leaderboard.html`, `hall-of-fame.html`, `impact-archive.html`, `members.html`, `core-team.html`: community and impact pages.
+- `admin-dashboard.html`: superadmin management surface, including community task creation and categories.
+- `evaluator-dashboard.html`: evaluator workflow for problem and task-submission verification.
+- `supporting-partner-dashboard.html`: supporting partner workflow.
+- `user-profile.html`, `user-settings.html`: account/profile surfaces.
+- `firestore.rules`: Firestore authorization rules.
+- `js/firebase-config.js`: Firebase project config, fixed roles, and collection names.
+- `js/firebase-access.js`: role assignment helper exposed as `window.TWSAccess`.
+- `js/utils.js`: shared local data, Firebase access helpers, sessions, permissions, points, moderation, and common utilities.
+- `js/tasks.js`: member task browsing and proof submission flow.
+- `js/*.js`: page-specific behavior. Read only the file matching the page you are changing plus shared files it imports or depends on.
+- `css/styles.css`: global site styling.
+- `css/ui-polish.css`: shared polish and UI refinements.
+- `css/*.css`: page-specific styles.
+- `css/tasks.css`: member task dashboard styles.
+- `assets/`: local images and SVG assets.
+- `.agents/`: reserved for agent support material. Currently empty.
+
+## Required Reading Order
+
+For every task:
+
+1. Read this `AGENTS.md`.
+2. Read the user-requested page or feature file only.
+3. If behavior or data changes are involved, read `js/utils.js`, `js/firebase-config.js`, and relevant sections of `firestore.rules`.
+4. If role, permission, dashboard, points, or evaluator logic changes are involved, also read `js/firebase-access.js`, `js/admin-dashboard.js`, and `js/evaluator-dashboard.js` as needed.
+5. Read CSS only for the page or shared component you are changing.
+
+Do not bulk-read every file. Prefer `rg` and targeted file reads.
+
+## Environment Information
+
+Available in this workspace:
+
+- Windows PowerShell shell.
+- Git repository metadata is readable.
+- Write access inside `D:\TogetherWeSolve`.
+- Static HTML/CSS/JS app files.
+- Firebase web configuration in `js/firebase-config.js`.
+- Firestore rules in `firestore.rules`.
+- Browser-compatible Firebase CDN imports already used by the project.
+- Local assets in `assets/`.
+
+Not currently available or not assumed:
+
+- No `package.json` is visible.
+- No Node dependency install is assumed.
+- No build pipeline is visible.
+- No automated test command is visible.
+- No Firebase CLI configuration is visible.
+- No emulator setup is visible.
+- No server-side backend code is visible.
+- No private production database credentials beyond the public Firebase web config should be assumed.
+
+Network and live service access may be restricted. If a task requires current external data, verify it with an approved source or ask for access. Do not invent data.
+
+## Non-Negotiable Rules
+
+- Never create placeholder, fake, mock, invented, or guessed data.
+- Never hardcode sample users, fake counts, fake testimonials, fake partner details, fake metrics, fake problems, fake awards, or pretend live state.
+- If real data is unavailable, show an empty state, loading state, permission message, or clear error state.
+- Do not write comments inside code files. This includes JavaScript, CSS, HTML, and Firestore rules. Existing comments may be removed only when directly touching the surrounding code and doing so is safe.
+- Keep changes scoped to the requested task.
+- Do not rewrite unrelated pages, styles, or utilities.
+- Do not revert user changes.
+- Do not alter Firebase project config unless the user explicitly asks.
+- Do not weaken Firestore security rules to make UI work.
+- Preserve real authentication, role, and permission behavior.
+- Prefer existing project patterns over new abstractions.
+- Use plain browser JavaScript and existing CDN import style unless the project is intentionally migrated.
+
+## Data Freshness Rule
+
+Every agent must leave project context more up to date than they found it.
+
+At the end of any completed task, update this `AGENTS.md` if the task changes any of the following:
+
+- Project structure.
+- Available or unavailable tooling.
+- Firebase collections, fields, roles, permissions, or rules.
+- Required setup or verification steps.
+- Major page responsibilities.
+- Known constraints or required workflows.
+
+Update the `Last updated` date when changing this file. If no durable project facts changed, do not edit this file just to record activity.
+
+When a task depends on external facts, current rules, pricing, schedules, APIs, library behavior, or live data, verify those facts at task time and keep any durable project notes current. Do not rely on stale memory.
+
+## Implementation Guidance
+
+- Use `rg` or targeted PowerShell commands for discovery.
+- For static page testing, a local static server is usually enough.
+- For UI changes, inspect the matching HTML, JS, and CSS together.
+- For Firebase data changes, trace both the UI write path and `firestore.rules`.
+- For permissions, keep client-side checks and Firestore rules aligned.
+- Prefer real Firestore reads and writes where the app already uses them.
+- Local storage fallback code must not masquerade as production data.
+- Keep empty states honest and useful.
+- Keep text professional, concise, and user-facing.
+- Maintain responsive layouts for desktop and mobile.
+
+## Verification Expectations
+
+Choose verification based on the task:
+
+- HTML/CSS-only change: inspect affected page in a browser when possible.
+- JavaScript behavior change: run the page locally and exercise the changed flow when possible.
+- Firestore rules change: validate rule logic carefully and test against expected roles when tooling is available.
+- Role or permission change: check both allowed and denied paths.
+- Data display change: verify empty, loading, error, and populated states without fake content.
+
+If verification cannot be run because tooling or access is unavailable, state exactly what was not verified.
+
+## Current Known Data Model
+
+Known Firestore collections from project config and rules:
+
+- `users`
+- `roleAssignments`
+- `problems`
+- `supportingPartners`
+- `settings`
+- `communityTasks`
+- `taskSubmissions`
+- `taskCategories`
+- `notifications`
+
+Known fixed roles:
+
+- `Founder`
+- `Co-Founder`
+- `Innovator`
+- `Evaluator`
+- `Steward`
+- `Contributor`
+- `Member`
+
+Known dashboard access keys:
+
+- `user`
+- `evaluator`
+- `superadmin`
+- `supportingPartner`
+
+Known privilege keys:
+
+- `manage_system`
+- `manage_roles`
+- `manage_community`
+- `manage_dashboards`
+- `evaluate_submissions`
+- `award_points`
+- `close_verified_problems`
+- `moderate_community`
+
+Known community task fields:
+
+- `communityTasks`: `title`, `description`, `category`, `difficulty`, `estimatedTime`, `expReward`, `impactPointReward`, `verificationRequirement`, `startDate`, `endDate`, `status`, `cadence`, `instructions`, `submissionGuidelines`, `createdBy`, `createdAt`, `updatedAt`
+- `taskSubmissions`: `taskId`, `taskTitle`, `category`, `memberUid`, `memberEmail`, `memberName`, `memberUsername`, `description`, `reflection`, `attachments`, `links`, `proofHash`, `status`, `expReward`, `impactPointReward`, `evaluatorComments`, `evaluatorUid`, `evaluatorName`, `submittedAt`, `reviewedAt`, `history`
+- `taskCategories`: `name`
+- `notifications`: `userId`, `email`, `type`, `title`, `message`, `read`, `createdBy`, `createdAt`
+
+Known task statuses:
+
+- `Draft`
+- `Published`
+- `Archived`
+
+Known task submission statuses:
+
+- `In Progress`
+- `Pending Verification`
+- `Approved`
+- `Rejected`
+- `Information Requested`
+- `Flagged`
+
+Task rewards are verification-first: Community Task EXP and Impact Points are awarded only after an evaluator approves a `taskSubmissions` document. Automatic platform EXP uses `platformExperienceHistory` and `lastPlatformExperienceAward`; verified task rewards use `taskSubmissionHistory` and `lastTaskAward`.
+
+Keep this section updated if the schema changes.

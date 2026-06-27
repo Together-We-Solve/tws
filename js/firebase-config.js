@@ -23,5 +23,9 @@ export const accessCollections = {
   roleAssignments: 'roleAssignments',
   problems: 'problems',
   partners: 'supportingPartners',
-  settings: 'settings'
+  settings: 'settings',
+  communityTasks: 'communityTasks',
+  taskSubmissions: 'taskSubmissions',
+  taskCategories: 'taskCategories',
+  notifications: 'notifications'
 };
