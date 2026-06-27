@@ -22,7 +22,6 @@ The app is built with plain HTML, CSS, and browser JavaScript. It uses Firebase 
 - `evaluator-dashboard.html`: evaluator workflow for problem and task-submission verification.
 - `supporting-partner-dashboard.html`: supporting partner workflow.
 - `user-profile.html`, `user-settings.html`: account/profile surfaces.
-- `seed.html`: backend seeding and reset utility tool.
 - `firestore.rules`: Firestore authorization rules.
 - `js/firebase-config.js`: Firebase project config, fixed roles, and collection names.
 - `js/firebase-core.js`: shared Firebase CDN app/auth/Firestore initialization used by module scripts and shared data helpers.
