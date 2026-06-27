@@ -1915,9 +1915,57 @@
     }
   }
 
+  function showToast(message, type) {
+    let container = document.querySelector('.tws-toast-container');
+    if (!container) {
+      container = document.createElement('div');
+      container.className = 'tws-toast-container';
+      document.body.appendChild(container);
+    }
+    const toast = document.createElement('div');
+    let toastType = type;
+    if (!toastType) {
+      const lower = String(message || '').toLowerCase();
+      if (lower.includes('success') || lower.includes('saved') || lower.includes('approved') || lower.includes('updated') || lower.includes('sent') || lower.includes('completed') || lower.includes('welcomed')) {
+        toastType = 'success';
+      } else if (lower.includes('fail') || lower.includes('error') || lower.includes('invalid') || lower.includes('unable') || lower.includes('could not') || lower.includes('rejection') || lower.includes('revoked') || lower.includes('rejected')) {
+        toastType = 'error';
+      } else if (lower.includes('warn') || lower.includes('already') || lower.includes('require') || lower.includes('limit') || lower.includes('must') || lower.includes('please')) {
+        toastType = 'warning';
+      } else {
+        toastType = 'info';
+      }
+    }
+    toast.className = `tws-toast ${toastType}`;
+    let icon = 'ℹ';
+    if (toastType === 'success') icon = '✓';
+    else if (toastType === 'error') icon = '✕';
+    else if (toastType === 'warning') icon = '⚠';
+    toast.innerHTML = `
+      <span class="tws-toast-icon">${icon}</span>
+      <span class="tws-toast-message">${escapeHTML(message)}</span>
+      <button class="tws-toast-close">&times;</button>
+    `;
+    container.appendChild(toast);
+    const closeBtn = toast.querySelector('.tws-toast-close');
+    closeBtn.addEventListener('click', () => {
+      toast.classList.add('hide');
+      setTimeout(() => toast.remove(), 400);
+    });
+    setTimeout(() => {
+      toast.classList.add('hide');
+      setTimeout(() => toast.remove(), 400);
+    }, 4500);
+  }
+
+  window.alert = function (message) {
+    showToast(message);
+  };
+
   window.TWS = {
     ...(window.TWS || {}),
     memory,
+    getFirebaseDataApiSafe,
     escapeHTML,
     decodeProfileName,
     profileUrl,
@@ -1987,7 +2035,8 @@
     triggerReferralCelebration,
     ensureSolverProfile,
     triggerLevelUpAnimation,
-    checkLevelUpProgression
+    checkLevelUpProgression,
+    showToast
   };
 
   document.addEventListener('DOMContentLoaded', () => {
