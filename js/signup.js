@@ -1,6 +1,6 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js';
 import { getAuth, createUserWithEmailAndPassword, updateProfile } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js';
-import { getFirestore, doc, getDocs, collection, query, where, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
+import { getFirestore, doc, getDoc, getDocs, collection, query, where, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
 import { firebaseConfig, accessCollections } from './firebase-config.js';
 
 (function () {
@@ -68,13 +68,23 @@ import { firebaseConfig, accessCollections } from './firebase-config.js';
     window.addEventListener('resize', resize);
   }
 
-  async function usernameExists(username) {
+  async function identityExists({ username, email, uid = '' }) {
+    const normalized = window.TWS.toUsername(username);
+    const cleanEmail = String(email || '').trim().toLowerCase();
+    const cleanUid = String(uid || '').trim();
     try {
-      const userQuery = query(collection(db, accessCollections.users), where('username', '==', username));
-      const snapshot = await getDocs(userQuery);
-      return !snapshot.empty;
+      const usersRef = collection(db, accessCollections.users);
+      const checks = [
+        getDocs(query(usersRef, where('username', '==', normalized))),
+        getDocs(query(usersRef, where('usernameLower', '==', normalized))),
+        getDocs(query(usersRef, where('email', '==', cleanEmail)))
+      ];
+      if (cleanUid) checks.push(getDocs(query(usersRef, where('uid', '==', cleanUid))));
+      const snapshots = await Promise.all(checks);
+      const uidDoc = cleanUid ? await getDoc(doc(db, accessCollections.users, cleanUid)) : null;
+      return snapshots.some((snapshot) => !snapshot.empty) || Boolean(uidDoc?.exists());
     } catch (error) {
-      return !(await window.TWS.usernameAvailable(username));
+      return !(await window.TWS.identityAvailable({ username: normalized, email: cleanEmail, uid: cleanUid }));
     }
   }
 
@@ -101,18 +111,23 @@ import { firebaseConfig, accessCollections } from './firebase-config.js';
       submitBtn.textContent = 'Creating Account...';
 
       try {
-        if (await usernameExists(username)) {
-          throw new Error('username-taken');
+        if (await identityExists({ username, email })) {
+          throw new Error('identity-taken');
         }
 
         const credential = await createUserWithEmailAndPassword(auth, email, password);
         await updateProfile(credential.user, { displayName });
+
+        if (await identityExists({ username, email, uid: credential.user.uid })) {
+          throw new Error('identity-taken');
+        }
 
         const userDoc = {
           uid: credential.user.uid,
           email,
           displayName,
           username,
+          usernameLower: username,
           role: 'Member',
           privileges: [],
           joinedDate: new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
@@ -144,8 +159,8 @@ import { firebaseConfig, accessCollections } from './firebase-config.js';
 
         window.location.href = 'home.html';
       } catch (error) {
-        if (error.message === 'username-taken') {
-          if (errorEl) errorEl.textContent = 'That username is already taken. Please choose another one.';
+        if (error.message === 'identity-taken') {
+          if (errorEl) errorEl.textContent = 'That username, email, or user ID is already attached to another account.';
         } else if (errorEl) {
           errorEl.textContent = friendlySignupError(error);
         }

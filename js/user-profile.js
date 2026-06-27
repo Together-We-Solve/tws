@@ -64,12 +64,13 @@
 
   function normalizeUser(raw) {
     const name = raw.displayName || raw.name || raw.username || 'Together We Solve Member';
-    const username = raw.username || toSlug(name);
+    const username = window.TWS.toUsername(raw.username || raw.usernameLower || name);
     const role = fixedRoles.includes(raw.role) ? raw.role : 'Member';
     const stats = raw.stats || {};
 
     return {
       id: String(raw.id || username),
+      uid: String(raw.uid || ''),
       username,
       displayName: name,
       avatar: raw.avatar || '',
@@ -222,14 +223,14 @@
     const solvers = members;
 
     activeUser = users.find((user) => (
-      (route.id && user.id === route.id) ||
-      (route.username && (window.TWS.toUsername(user.username) === route.username || window.TWS.toUsername(user.displayName) === route.username))
+      (route.id && (user.id === route.id || user.uid === route.id)) ||
+      (route.username && window.TWS.toUsername(user.username) === route.username)
     ));
 
     if (!activeUser) {
       const solver = solvers.find((item) => (
-        (route.id && item.id === route.id) ||
-        (route.username && (window.TWS.toUsername(item.username || item.name) === route.username || window.TWS.toUsername(item.name) === route.username))
+        (route.id && (item.id === route.id || item.uid === route.id)) ||
+        (route.username && window.TWS.toUsername(item.username || item.name) === route.username)
       ));
       if (solver) activeUser = legacyUserToProfile(solver, problems);
     }
@@ -293,8 +294,7 @@
     const editBtn = document.getElementById('btnEditProfile');
     const isOwnProfile = currentUserSession && (
       currentUserSession.uid === user.id ||
-      currentUserSession.username === user.username ||
-      currentUserSession.username === user.displayName ||
+      currentUserSession.uid === user.uid ||
       window.TWS.toUsername(currentUserSession.username || currentUserSession.displayName) === user.username
     );
     if (editBtn) editBtn.style.display = isOwnProfile ? 'inline-flex' : 'none';

@@ -38,6 +38,113 @@
     return filtered.concat(item);
   }
 
+  function identityKeys(value) {
+    return [
+      value?.id,
+      value?.uid,
+      value?.email
+    ].map((item) => String(item || '').trim().toLowerCase()).filter(Boolean);
+  }
+
+  function normalizeIdentity(identity = {}) {
+    return {
+      uid: String(identity.uid || identity.id || '').trim().toLowerCase(),
+      email: String(identity.email || '').trim().toLowerCase(),
+      username: toUsername(identity.username || identity.usernameLower || '')
+    };
+  }
+
+  function sameAccount(user, identity) {
+    const normalized = normalizeIdentity(identity);
+    const userUid = String(user.uid || user.id || '').trim().toLowerCase();
+    const userEmail = String(user.email || '').trim().toLowerCase();
+    return Boolean(
+      (normalized.uid && userUid && userUid === normalized.uid) ||
+      (normalized.email && userEmail && userEmail === normalized.email)
+    );
+  }
+
+  function getPortalSession() {
+    try {
+      return JSON.parse(sessionStorage.getItem('portal_session') || 'null');
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function hasPrivilege(session, privilege) {
+    const privileges = Array.isArray(session?.privileges) ? session.privileges : [];
+    return privileges.includes(privilege);
+  }
+
+  function hasDashboard(session, dashboard) {
+    const explicit = Array.isArray(session?.dashboardAccess) ? session.dashboardAccess : [];
+    return explicit.includes(dashboard);
+  }
+
+  function canAwardPoints(session = getPortalSession()) {
+    return Boolean(
+      hasPrivilege(session, 'award_points') ||
+      hasPrivilege(session, 'manage_system') ||
+      hasPrivilege(session, 'manage_community') ||
+      hasDashboard(session, 'superadmin') ||
+      ['Founder', 'Co-Founder', 'Evaluator', 'Innovator'].includes(session?.role)
+    );
+  }
+
+  function canManageSystem(session = getPortalSession()) {
+    return Boolean(
+      hasPrivilege(session, 'manage_system') ||
+      hasDashboard(session, 'superadmin') ||
+      ['Founder', 'Co-Founder'].includes(session?.role)
+    );
+  }
+
+  function canEvaluate(session = getPortalSession()) {
+    return Boolean(
+      canAwardPoints(session) ||
+      hasPrivilege(session, 'evaluate_submissions') ||
+      hasPrivilege(session, 'close_verified_problems') ||
+      hasDashboard(session, 'evaluator')
+    );
+  }
+
+  function sessionOwnsUser(userId, data, session = getPortalSession()) {
+    const identities = identityKeys({ id: userId, uid: data?.uid, email: data?.email });
+    return Boolean(
+      (session?.uid && identities.includes(String(session.uid).toLowerCase())) ||
+      (session?.email && identities.includes(String(session.email).toLowerCase()))
+    );
+  }
+
+  function protectedUserFieldsChanged(current = {}, next = {}) {
+    const currentStats = current.stats || {};
+    const nextStats = next.stats || {};
+    const checks = [
+      ['points', current.points, next.points],
+      ['solved', current.solved, next.solved],
+      ['role', current.role, next.role],
+      ['privileges', current.privileges || [], next.privileges || []],
+      ['dashboardAccess', current.dashboardAccess || [], next.dashboardAccess || []],
+      ['isSupportingPartner', Boolean(current.isSupportingPartner), Boolean(next.isSupportingPartner)],
+      ['badges', current.badges || [], next.badges || []],
+      ['stats.totalImpactPoints', currentStats.totalImpactPoints, nextStats.totalImpactPoints],
+      ['stats.problemsSolved', currentStats.problemsSolved, nextStats.problemsSolved],
+      ['stats.problemsIdentified', currentStats.problemsIdentified, nextStats.problemsIdentified],
+      ['stats.helpfulResponses', currentStats.helpfulResponses, nextStats.helpfulResponses],
+      ['stats.knowledgeContributions', currentStats.knowledgeContributions, nextStats.knowledgeContributions]
+    ];
+    return checks.some(([, before, after]) => (
+      after !== undefined && JSON.stringify(before ?? null) !== JSON.stringify(after ?? null)
+    ));
+  }
+
+  function findCachedUser(userId, data = {}) {
+    const users = memory.users.length ? memory.users : readLocalStore().users;
+    const identities = identityKeys({ id: userId, uid: data.uid, email: data.email });
+    return users.map(normalizeMember).find((user) => identityKeys(user).some((key) => identities.includes(key))) || null;
+  }
+
   function escapeHTML(value) {
     return String(value ?? '').replace(/[&<>"']/g, (char) => ({
       '&': '&amp;',
@@ -159,6 +266,7 @@
       displayName,
       name: displayName,
       username,
+      usernameLower: toUsername(raw.usernameLower || username),
       avatar: raw.avatar || raw.profilePicture || '',
       profilePicture: raw.profilePicture || raw.avatar || '',
       banner: raw.banner || '',
@@ -274,6 +382,11 @@
 
   async function saveProblem(problem) {
     const normalized = normalizeProblem(problem);
+    const session = getPortalSession();
+    const existing = (memory.problems.length ? memory.problems : readLocalStore().problems).find((item) => item.id === normalized.id);
+    if (!existing && !session) {
+      throw new Error('auth-required');
+    }
     try {
       const { configModule } = await getFirebaseDataApiSafe();
       await saveDocument(configModule.accessCollections.problems, normalized.id, normalized);
@@ -286,6 +399,7 @@
   }
 
   async function updateProblem(problemId, patch) {
+    const session = getPortalSession();
     let remoteProblem = null;
     try {
       const { configModule } = await getFirebaseDataApiSafe();
@@ -297,6 +411,27 @@
       || readLocalStore().problems.find((item) => item.id === problemId)
       || remoteProblem
       || { id: problemId };
+    const awardFields = ['evaluatorAwards', 'winnerXP', 'attemptXP', 'solvedBy'];
+    const adminStatuses = ['Open', 'Needs Revision', 'Rejected'];
+    const nextStatus = patch.status;
+    const ownerMatch = Boolean(
+      session &&
+      (current.ownerUid === session.uid || current.ownerUsername === toUsername(session.username || session.displayName || session.email))
+    );
+    const participantPatch = Object.keys(patch).every((key) => key === 'contributors');
+    const ownerReviewPatch = Object.keys(patch).every((key) => ['status', 'ownerReview', 'contributorReviews', 'suggestedRemovals'].includes(key));
+    const touchesAwardFields = awardFields.some((field) => Object.prototype.hasOwnProperty.call(patch, field));
+    if (touchesAwardFields || nextStatus === 'Solved') {
+      if (!canAwardPoints(session)) throw new Error('permission-denied');
+    } else if (nextStatus && adminStatuses.includes(nextStatus)) {
+      if (!canEvaluate(session)) throw new Error('permission-denied');
+    } else if (nextStatus === 'Pending Evaluation' || ownerReviewPatch) {
+      if (!ownerMatch && !canEvaluate(session)) throw new Error('permission-denied');
+    } else if (participantPatch) {
+      if (!session) throw new Error('auth-required');
+    } else if (!ownerMatch && !canEvaluate(session)) {
+      throw new Error('permission-denied');
+    }
     return saveProblem({ ...current, ...patch, id: problemId });
   }
 
@@ -312,24 +447,61 @@
   }
 
   async function saveUserProfile(userId, data) {
+    const normalizedUsername = toUsername(data.username || data.displayName);
+    const payload = {
+      ...data,
+      username: normalizedUsername,
+      usernameLower: normalizedUsername
+    };
+    const session = getPortalSession();
+    const currentUser = findCachedUser(userId, payload);
+    const isCreate = !currentUser;
+    const ownProfile = sessionOwnsUser(userId, payload, session);
+    if (!isCreate && !ownProfile && !canManageSystem(session) && !canAwardPoints(session)) {
+      throw new Error('permission-denied');
+    }
+    if (!isCreate && protectedUserFieldsChanged(currentUser, payload) && !canAwardPoints(session)) {
+      throw new Error('permission-denied');
+    }
+    if (isCreate && !ownProfile && !canManageSystem(session)) {
+      throw new Error('permission-denied');
+    }
     try {
       const { configModule } = await getFirebaseDataApiSafe();
-      await saveDocument(configModule.accessCollections.users, userId, data);
+      await saveDocument(configModule.accessCollections.users, userId, payload);
     } catch (err) {
       console.warn('Saved user locally because Firebase write failed.', err);
     }
-    memory.users = replaceById(memory.users.length ? memory.users : readLocalStore().users, { id: userId, uid: userId, ...data });
+    memory.users = replaceById(memory.users.length ? memory.users : readLocalStore().users, { id: userId, uid: userId, ...payload });
     writeLocalStore({ users: memory.users });
   }
 
   async function usernameAvailable(username, currentUserId = '') {
     const normalized = toUsername(username);
-    const current = String(currentUserId || '').toLowerCase();
+    const current = String(currentUserId || '').trim().toLowerCase();
+    if (!normalized) return false;
     const users = await loadMovementMembersAsync([]);
     return !users.some((user) => {
-      const userName = toUsername(user.username || user.displayName);
-      const ids = [user.id, user.uid, user.email].map((value) => String(value || '').toLowerCase());
+      const userName = toUsername(user.usernameLower || user.username);
+      const ids = identityKeys(user);
       return userName === normalized && !ids.includes(current);
+    });
+  }
+
+  async function identityAvailable(identity = {}) {
+    const normalized = normalizeIdentity(identity);
+    if (!normalized.username || !normalized.email) return false;
+    const users = await loadMovementMembersAsync([]);
+    return !users.some((user) => {
+      if (sameAccount(user, normalized)) return false;
+      const userName = toUsername(user.usernameLower || user.username);
+      const userEmail = String(user.email || '').trim().toLowerCase();
+      const userUid = String(user.uid || user.id || '').trim().toLowerCase();
+      return (
+        userName === normalized.username ||
+        userEmail === normalized.email ||
+        (normalized.uid && userUid === normalized.uid)
+      );
     });
   }
 
@@ -508,6 +680,7 @@
     deleteProblem,
     saveUserProfile,
     usernameAvailable,
+    identityAvailable,
     deleteUserProfile,
     loadPartnersAsync,
     savePartnerProfile,

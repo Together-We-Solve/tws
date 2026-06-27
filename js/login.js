@@ -138,6 +138,9 @@ import { firebaseConfig, fixedRoles, accessCollections } from './firebase-config
   }
 
   function friendlyAuthError(error) {
+    if (error?.message === 'identity-conflict') {
+      return 'This username, email, or user ID is already attached to another account.';
+    }
     const code = error?.code || '';
     if (firebaseConfig.apiKey.startsWith('REPLACE_')) {
       return 'Firebase is not configured yet. Update js/firebase-config.js with your project details.';
@@ -179,6 +182,8 @@ import { firebaseConfig, fixedRoles, accessCollections } from './firebase-config
       role,
       privileges,
       displayName: data.displayName || user.displayName || displayNameFromUser(user),
+      username: data.username || data.usernameLower || '',
+      stats: data.stats || null,
       isSupportingPartner: Boolean(data.isSupportingPartner || data.supportingPartner),
       dashboardAccess: Array.isArray(data.dashboardAccess) ? data.dashboardAccess : []
     };
@@ -187,17 +192,21 @@ import { firebaseConfig, fixedRoles, accessCollections } from './firebase-config
   async function upsertUserProfile(user, accessProfile) {
     const username = window.TWS.toUsername(accessProfile.username || accessProfile.displayName || user.email);
     const displayName = accessProfile.displayName || displayNameFromUser(user);
+    if (!(await window.TWS.identityAvailable({ username, email: user.email, uid: user.uid }))) {
+      throw new Error('identity-conflict');
+    }
     await setDoc(doc(db, accessCollections.users, user.uid), {
       uid: user.uid,
       email: user.email,
       displayName,
       username,
+      usernameLower: username,
       role: accessProfile.role,
       isSupportingPartner: accessProfile.isSupportingPartner,
       dashboardAccess: accessProfile.dashboardAccess,
       privileges: accessProfile.privileges,
       joinedDate: new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
-      stats: {
+      stats: accessProfile.stats || {
         totalImpactPoints: 0,
         problemsSolved: 0
       },

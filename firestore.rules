@@ -1,0 +1,222 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function cleanEmail() {
+      return signedIn() && request.auth.token.email != null
+        ? request.auth.token.email
+        : '';
+    }
+
+    function roleDoc() {
+      return get(/databases/$(database)/documents/roleAssignments/$(cleanEmail()));
+    }
+
+    function roleData() {
+      return exists(/databases/$(database)/documents/roleAssignments/$(cleanEmail()))
+        ? roleDoc().data
+        : {};
+    }
+
+    function privileges() {
+      return roleData().privileges is list ? roleData().privileges : [];
+    }
+
+    function dashboards() {
+      return roleData().dashboardAccess is list ? roleData().dashboardAccess : [];
+    }
+
+    function hasPrivilege(name) {
+      return signedIn() && privileges().hasAny([name]);
+    }
+
+    function hasDashboard(name) {
+      return signedIn() && dashboards().hasAny([name]);
+    }
+
+    function isSuperadmin() {
+      return signedIn() && (
+        hasPrivilege('manage_system') ||
+        hasDashboard('superadmin') ||
+        roleData().role in ['Founder', 'Co-Founder']
+      );
+    }
+
+    function canEvaluate() {
+      return signedIn() && (
+        isSuperadmin() ||
+        hasPrivilege('evaluate_submissions') ||
+        hasPrivilege('award_points') ||
+        hasPrivilege('close_verified_problems') ||
+        hasDashboard('evaluator') ||
+        roleData().role in ['Evaluator', 'Innovator']
+      );
+    }
+
+    function canAwardPoints() {
+      return signedIn() && (
+        isSuperadmin() ||
+        hasPrivilege('award_points') ||
+        roleData().role in ['Evaluator', 'Innovator']
+      );
+    }
+
+    function isSelfUser(userId) {
+      return signedIn() && (
+        request.auth.uid == userId ||
+        request.resource.data.uid == request.auth.uid ||
+        request.resource.data.email == cleanEmail()
+      );
+    }
+
+    function immutableIdentityUnchanged() {
+      return (!('uid' in resource.data) || request.resource.data.uid == resource.data.uid)
+        && (!('email' in resource.data) || request.resource.data.email == resource.data.email);
+    }
+
+    function protectedUserFieldsUnchanged() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+        'displayName',
+        'username',
+        'usernameLower',
+        'specialty',
+        'initials',
+        'avatar',
+        'profilePicture',
+        'banner',
+        'bio',
+        'country',
+        'website',
+        'linkedin',
+        'github',
+        'portfolio',
+        'profileAccent',
+        'availability',
+        'updatedAt'
+      ]);
+    }
+
+    function validSelfCreate(userId) {
+      return isSelfUser(userId)
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.email == cleanEmail()
+        && (!('role' in request.resource.data) || request.resource.data.role == 'Member')
+        && (!('privileges' in request.resource.data) || request.resource.data.privileges == [])
+        && (!('dashboardAccess' in request.resource.data) || request.resource.data.dashboardAccess == [])
+        && (!('points' in request.resource.data) || request.resource.data.points == 0)
+        && (!('solved' in request.resource.data) || request.resource.data.solved == 0)
+        && (!('stats' in request.resource.data) || (
+          (!('totalImpactPoints' in request.resource.data.stats) || request.resource.data.stats.totalImpactPoints == 0) &&
+          (!('problemsSolved' in request.resource.data.stats) || request.resource.data.stats.problemsSolved == 0)
+        ));
+    }
+
+    function isProblemOwner() {
+      return signedIn() && resource.data.ownerUid == request.auth.uid;
+    }
+
+    function validProblemCreate(problemId) {
+      return signedIn()
+        && request.resource.data.ownerUid == request.auth.uid
+        && request.resource.data.status == 'Pending Review'
+        && (!('winnerXP' in request.resource.data) || request.resource.data.winnerXP == 0)
+        && (!('attemptXP' in request.resource.data) || request.resource.data.attemptXP == 0)
+        && (!('evaluatorAwards' in request.resource.data));
+    }
+
+    function participantOnlyUpdate() {
+      return signedIn()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['contributors', 'updatedAt'])
+        && resource.data.status == 'Open';
+    }
+
+    function ownerReviewUpdate() {
+      return isProblemOwner()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'status',
+          'ownerReview',
+          'contributorReviews',
+          'suggestedRemovals',
+          'updatedAt'
+        ])
+        && request.resource.data.status == 'Pending Evaluation';
+    }
+
+    function evaluatorProblemUpdate() {
+      return canEvaluate()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'title',
+          'friction',
+          'tried',
+          'ripple',
+          'resolution',
+          'status',
+          'updatedAt'
+        ]);
+    }
+
+    function awardProblemUpdate() {
+      return canAwardPoints()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'status',
+          'contributors',
+          'evaluatorAwards',
+          'solvedBy',
+          'winnerXP',
+          'attemptXP',
+          'updatedAt'
+        ])
+        && request.resource.data.status == 'Solved';
+    }
+
+    match /users/{userId} {
+      allow read: if true;
+      allow create: if validSelfCreate(userId) || isSuperadmin();
+      allow update: if (
+        (isSelfUser(userId) && protectedUserFieldsUnchanged() && immutableIdentityUnchanged()) ||
+        canAwardPoints() ||
+        isSuperadmin()
+      );
+      allow delete: if isSuperadmin();
+    }
+
+    match /problems/{problemId} {
+      allow read: if true;
+      allow create: if validProblemCreate(problemId) || canEvaluate();
+      allow update: if participantOnlyUpdate()
+        || ownerReviewUpdate()
+        || evaluatorProblemUpdate()
+        || awardProblemUpdate()
+        || isSuperadmin();
+      allow delete: if isSuperadmin();
+    }
+
+    match /roleAssignments/{email} {
+      allow read: if signedIn() && (cleanEmail() == email || isSuperadmin());
+      allow write: if isSuperadmin();
+    }
+
+    match /supportingPartners/{partnerId} {
+      allow read: if true;
+      allow write: if isSuperadmin()
+        || (signedIn() && (
+          request.auth.uid == partnerId ||
+          request.resource.data.ownerUid == request.auth.uid ||
+          hasDashboard('supportingPartner')
+        ));
+    }
+
+    match /settings/{settingId} {
+      allow read: if true;
+      allow write: if isSuperadmin();
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

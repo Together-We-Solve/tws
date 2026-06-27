@@ -10,7 +10,23 @@
   }
 
   function activeUserId() {
-    return session?.uid || session?.email || session?.username || window.TWS.toUsername(session?.displayName || 'member');
+    return session?.uid || session?.email || profile?.id || profile?.uid || '';
+  }
+
+  function sameIdentity(member) {
+    const sessionUid = String(session?.uid || '').toLowerCase();
+    const sessionEmail = String(session?.email || '').toLowerCase();
+    return Boolean(
+      (sessionUid && String(member.uid || member.id || '').toLowerCase() === sessionUid) ||
+      (sessionEmail && String(member.email || '').toLowerCase() === sessionEmail)
+    );
+  }
+
+  function syncPublicProfileLink() {
+    const link = document.getElementById('viewPublicProfileLink');
+    if (!link) return;
+    const username = document.getElementById('displayUsername')?.value || profile?.username || session?.username || '';
+    link.href = window.TWS.profileUrl(username);
   }
 
   async function load() {
@@ -20,7 +36,7 @@
       return;
     }
     const members = await window.TWS.loadMovementMembersAsync([]);
-    profile = members.find((member) => member.uid === session.uid || member.email === session.email || member.username === session.username)
+    profile = members.find(sameIdentity)
       || window.TWS.ensureSolverProfile(session);
   }
 
@@ -59,11 +75,13 @@
     document.getElementById('credPoints').textContent = `${points.toLocaleString()} pts`;
     document.getElementById('credSolved').textContent = `${Number(profile?.solved || profile?.stats?.problemsSolved || 0)} solved`;
     document.getElementById('credRank').textContent = `${window.TWS.memberPrefix(points)} ${profile?.role || session.role || 'Member'}`;
+    syncPublicProfileLink();
   }
 
   function initProfileForm() {
     const initialsInput = document.getElementById('avatarInitials');
     initialsInput?.addEventListener('input', () => document.getElementById('avatarPreview').textContent = initialsInput.value.toUpperCase().slice(0, 2));
+    document.getElementById('displayUsername')?.addEventListener('input', syncPublicProfileLink);
     initImageInput('profilePictureFile', 'profilePictureUrl');
     initImageInput('profileBannerFile', 'profileBannerUrl');
     document.getElementById('identityForm')?.addEventListener('submit', async (event) => {
@@ -78,15 +96,21 @@
         alert('Use a valid display name and a username with lowercase letters, numbers, or underscores.');
         return;
       }
-      if (!(await window.TWS.usernameAvailable(username, activeUserId()))) {
-        alert('That username is already taken. Please choose a different one.');
+      const userId = activeUserId();
+      if (!userId) {
+        alert('Could not identify your account. Please sign in again.');
         return;
       }
-      await window.TWS.saveUserProfile(activeUserId(), {
+      if (!(await window.TWS.identityAvailable({ username, email: session.email, uid: session.uid || userId }))) {
+        alert('That username, email, or user ID is already attached to another account.');
+        return;
+      }
+      await window.TWS.saveUserProfile(userId, {
         uid: session.uid || '',
         email: session.email || '',
         displayName,
         username,
+        usernameLower: username,
         specialty,
         initials,
         avatar,
@@ -108,6 +132,8 @@
       session.username = username;
       session.avatar = avatar;
       sessionStorage.setItem('portal_session', JSON.stringify(session));
+      profile = { ...profile, displayName, username, usernameLower: username, avatar, profilePicture: avatar };
+      syncPublicProfileLink();
       alert('Profile updated.');
     });
   }

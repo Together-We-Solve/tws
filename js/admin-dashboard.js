@@ -310,13 +310,13 @@
   async function recruitMember() {
     const displayName = prompt('Display name for the new member?');
     if (!displayName) return;
-    const email = prompt('Email for this member?') || '';
+    const email = String(prompt('Email for this member?') || '').trim().toLowerCase();
     const username = window.TWS.toUsername(prompt('Username for this member?') || displayName);
-    if (!(await window.TWS.usernameAvailable(username))) {
-      alert('That username is already taken. Choose another one.');
+    const id = `manual_${Date.now()}`;
+    if (!(await window.TWS.identityAvailable({ username, email, uid: id }))) {
+      alert('That username, email, or user ID is already attached to another account.');
       return;
     }
-    const id = `manual_${Date.now()}`;
     await window.TWS.saveUserProfile(id, {
       id,
       email,

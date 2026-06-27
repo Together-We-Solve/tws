@@ -21,7 +21,10 @@
       window.TWS.loadProblemsAsync([]),
       window.TWS.loadMovementMembersAsync([])
     ]);
-    const profile = members.find((member) => member.uid === session.uid || member.email === session.email || member.username === session.username)
+    const profile = members.find((member) => (
+      (session.uid && (member.uid === session.uid || member.id === session.uid)) ||
+      (session.email && String(member.email || '').toLowerCase() === String(session.email).toLowerCase())
+    ))
       || window.TWS.ensureSolverProfile(session);
     const points = Number(profile?.points || profile?.stats?.totalImpactPoints || 0);
     const mine = problems.filter((problem) => (
