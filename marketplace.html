@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cosmetics Marketplace — Together We Solve</title>
+    <meta name="description" content="Acquire unique avatars, banners, and overlays in the Together We Solve Marketplace using your Impact Points." />
+    <link rel="stylesheet" href="css/ui-polish.css" />
+    <link rel="stylesheet" href="css/marketplace.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://www.gstatic.com" crossorigin />
+    <link rel="modulepreload" href="js/firebase-core.js" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap"
+      rel="stylesheet" />
+  </head>
+  <body class="marketplace-body">
+
+    <nav class="nav" id="nav">
+      <div class="nav-inner">
+        <a href="home.html" class="nav-logo">Together We Solve</a>
+        <div class="nav-links">
+          <a href="open-frictions.html" class="nav-link">Open Frictions</a>
+          <a href="my-frictions.html" class="nav-link">My Frictions</a>
+          <a href="tasks.html" class="nav-link">Tasks</a>
+          <a href="referrals.html" class="nav-link">Referrals</a>
+          <a href="marketplace.html" class="nav-link active">Marketplace</a>
+        </div>
+        <button class="nav-cta" id="signOutBtn">Sign Out <span class="nav-cta-arrow">&nearr;</span></button>
+      </div>
+    </nav>
+
+    <header class="marketplace-hero">
+      <div class="container hero-content">
+        <div class="hero-eyebrow">
+          <span class="hero-eyebrow-text">Rewards Hub</span>
+          <div class="hero-eyebrow-line"></div>
+        </div>
+        <h1 class="hero-headline">Cosmetics Marketplace</h1>
+        <p class="hero-tagline">Acquire unique cosmetics, banners, and layered avatar parts with your spendable Impact Points.</p>
+        <div class="user-balance-card">
+          <div class="balance-info">
+            <span class="balance-label">Your Spendable Balance</span>
+            <span class="balance-value" id="userBalanceText">0 IP</span>
+          </div>
+          <a href="inventory.html" class="btn btn-outline btn-sm">View My Inventory</a>
+        </div>
+      </div>
+    </header>
+
+    <section class="section marketplace-section">
+      <div class="container">
+        <div class="filter-controls-row">
+          <div class="filter-group">
+            <label for="filterCategory" class="filter-label">Category</label>
+            <select id="filterCategory" class="form-input">
+              <option value="all">All Categories</option>
+              <option value="face">Face Shape</option>
+              <option value="skinTone">Skin Tone</option>
+              <option value="hair">Hairstyle</option>
+              <option value="hairColor">Hair Color</option>
+              <option value="eyes">Eyes</option>
+              <option value="eyeColor">Eye Color</option>
+              <option value="mouth">Mouth or Expression</option>
+              <option value="facialHair">Facial Hair</option>
+              <option value="glasses">Glasses</option>
+              <option value="hat">Hats</option>
+              <option value="accessories">Accessories</option>
+              <option value="clothing">Clothing</option>
+              <option value="clothingColor">Clothing Color</option>
+              <option value="jacket">Jackets</option>
+              <option value="backpack">Backpacks</option>
+              <option value="background">Backgrounds</option>
+              <option value="backgroundColor">Background Color</option>
+              <option value="effect">Effects</option>
+              <option value="frame">Frames</option>
+              <option value="banner">Banners</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label for="filterRarity" class="filter-label">Rarity</label>
+            <select id="filterRarity" class="form-input">
+              <option value="all">All Rarities</option>
+              <option value="Common">Common</option>
+              <option value="Uncommon">Uncommon</option>
+              <option value="Rare">Rare</option>
+              <option value="Epic">Epic</option>
+              <option value="Legendary">Legendary</option>
+              <option value="Mythic">Mythic</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label for="sortItems" class="filter-label">Sort By</label>
+            <select id="sortItems" class="form-input">
+              <option value="newest">Newest Additions</option>
+              <option value="price-asc">Price: Low to High</option>
+              <option value="price-desc">Price: High to Low</option>
+              <option value="alphabetical">Alphabetical</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="marketplaceGrid" class="marketplace-grid"></div>
+      </div>
+    </section>
+
+    <div id="purchaseModal" class="modal-overlay" style="display: none;">
+      <div class="modal-card">
+        <button type="button" class="modal-close-btn" id="btnClosePurchase">&times;</button>
+        <div class="modal-header">
+          <span class="modal-eyebrow">Confirm Transaction</span>
+          <h2 class="modal-title">Confirm Purchase</h2>
+        </div>
+        <div class="purchase-confirmation-body">
+          <div class="purchase-item-summary">
+            <div id="purchaseItemPreviewContainer" class="purchase-preview-box"></div>
+            <div class="purchase-item-details">
+              <div id="purchaseItemName" class="purchase-name"></div>
+              <div id="purchaseItemCategory" class="purchase-category"></div>
+              <div id="purchaseItemRarity" class="purchase-rarity"></div>
+            </div>
+          </div>
+          <div class="purchase-math-box">
+            <div class="math-row">
+              <span>Item Cost:</span>
+              <span id="purchaseItemCost" class="math-cost"></span>
+            </div>
+            <div class="math-row">
+              <span>Your Spendable Points:</span>
+              <span id="purchaseUserBalance"></span>
+            </div>
+            <div class="math-divider"></div>
+            <div class="math-row final-row">
+              <span>New Balance:</span>
+              <span id="purchaseNewBalance" class="math-new-balance"></span>
+            </div>
+          </div>
+        </div>
+        <div class="modal-action-footer">
+          <button type="button" class="btn btn-outline" id="btnCancelPurchase">Cancel</button>
+          <button type="button" class="btn btn-primary" id="btnConfirmPurchase">Acquire Item</button>
+        </div>
+      </div>
+    </div>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        <div class="footer-top">
+          <div class="footer-brand">
+            <p class="footer-name">Together We Solve</p>
+            <p class="footer-tagline">No problem too small. No challenge too big.</p>
+          </div>
+          <nav class="footer-nav">
+            <a href="leaderboard.html">Leaderboard</a>
+            <a href="hall-of-fame.html">Hall of Fame</a>
+            <a href="impact-archive.html">Impact Archive</a>
+          </nav>
+        </div>
+        <div class="footer-bottom">
+          <p class="footer-copy">A movement built on the belief that people can solve more together than they ever could alone.</p>
+          <a href="post-problem.html" class="btn btn-ghost btn-sm">Share a Problem</a>
+        </div>
+      </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <script src="https://unpkg.com/lenis@1.1.13/dist/lenis.min.js"></script>
+    <script src="js/utils.js?v=4"></script>
+    <script src="js/marketplace.js"></script>
+  </body>
+</html>

@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Profile Settings — Together We Solve</title>
     <link rel="stylesheet" href="css/user-settings.css" />
+    <link rel="stylesheet" href="css/avatar-builder.css" />
     <link rel="stylesheet" href="css/ui-polish.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -76,18 +77,19 @@
                   <textarea id="profileBioInput" class="form-textarea" placeholder="Share what you care about, how you help, and what people can ask you about."></textarea>
                 </div>
 
-                <div class="form-field-group">
-                  <label for="profilePictureUrl" class="form-label">Profile Picture URL</label>
-                  <input type="url" id="profilePictureUrl" class="form-input" placeholder="https://example.com/photo.jpg" />
-                  <input type="file" id="profilePictureFile" class="form-input" accept="image/*" />
-                  <p class="field-help">Paste an image URL or upload a small image from this device.</p>
-                </div>
-
-                <div class="form-field-group">
-                  <label for="profileBannerUrl" class="form-label">Banner Image URL</label>
-                  <input type="url" id="profileBannerUrl" class="form-input" placeholder="https://example.com/banner.jpg" />
-                  <input type="file" id="profileBannerFile" class="form-input" accept="image/*" />
-                  <p class="field-help">Wide images work best for public profile banners.</p>
+                <div class="form-field-group span-full">
+                  <label class="form-label">Appearance (Avatar & Profile Banner)</label>
+                  <div class="appearance-card-editor">
+                    <div id="settingsBannerPreview" class="profile-banner-preview">
+                      <div class="avatar-preview-wrapper">
+                        <div id="settingsAvatarPreview" class="avatar-preview-container"></div>
+                      </div>
+                    </div>
+                    <div class="appearance-editor-actions">
+                      <button type="button" id="btnOpenAvatarBuilder" class="btn btn-primary btn-sm">Customize Avatar</button>
+                      <button type="button" id="btnOpenBannerPicker" class="btn btn-secondary btn-sm">Select Banner</button>
+                    </div>
+                  </div>
                 </div>
 
                 <div class="form-field-group">
@@ -232,6 +234,73 @@
         </div>
       </div>
     </footer>
+
+    <div id="avatarBuilderModal" class="modal-overlay" style="display: none;">
+      <div class="modal-card large-modal appearance-modal">
+        <button type="button" class="modal-close-btn" id="btnCloseAvatarBuilder">&times;</button>
+        <div class="modal-header">
+          <span class="modal-eyebrow">Appearance</span>
+          <h2 class="modal-title">Avatar Customizer</h2>
+        </div>
+        <div class="avatar-builder-workspace">
+          <div class="builder-preview-pane">
+            <div class="builder-preview-wrapper">
+              <div id="builderAvatarPreview" class="avatar-preview-container"></div>
+            </div>
+            <p class="builder-preview-help">Layered SVG Live Preview</p>
+          </div>
+          <div class="builder-control-pane">
+            <div class="builder-tabs-container">
+              <select id="avatarCategorySelect" class="form-input select-category-dropdown">
+                <option value="face">Face Shape</option>
+                <option value="skinTone">Skin Tone</option>
+                <option value="hair">Hairstyle</option>
+                <option value="hairColor">Hair Color</option>
+                <option value="eyebrows">Eyebrows</option>
+                <option value="eyes">Eyes</option>
+                <option value="eyeColor">Eye Color</option>
+                <option value="mouth">Mouth or Expression</option>
+                <option value="facialHair">Facial Hair</option>
+                <option value="glasses">Glasses</option>
+                <option value="hat">Hats & Headwear</option>
+                <option value="accessories">Accessories</option>
+                <option value="clothing">Clothing Type</option>
+                <option value="clothingColor">Clothing Color</option>
+                <option value="jacket">Jackets</option>
+                <option value="backpack">Backpacks / Back items</option>
+                <option value="background">Background Pattern</option>
+                <option value="backgroundColor">Background Color</option>
+                <option value="effect">Screen Overlays</option>
+                <option value="frame">Profile Frame</option>
+              </select>
+            </div>
+            <div class="builder-options-grid" id="builderOptionsGrid"></div>
+          </div>
+        </div>
+        <div class="modal-action-footer">
+          <button type="button" class="btn btn-outline" id="btnCancelAvatarChange">Cancel</button>
+          <button type="button" class="btn btn-primary" id="btnSaveAvatarChange">Equip & Save</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="bannerPickerModal" class="modal-overlay" style="display: none;">
+      <div class="modal-card appearance-modal">
+        <button type="button" class="modal-close-btn" id="btnCloseBannerPicker">&times;</button>
+        <div class="modal-header">
+          <span class="modal-eyebrow">Appearance</span>
+          <h2 class="modal-title">Profile Banner Picker</h2>
+        </div>
+        <div class="banner-picker-workspace">
+          <div class="banner-picker-preview" id="pickerBannerPreview"></div>
+          <div class="banner-options-grid" id="bannerOptionsGrid"></div>
+        </div>
+        <div class="modal-action-footer">
+          <button type="button" class="btn btn-outline" id="btnCancelBannerChange">Cancel</button>
+          <button type="button" class="btn btn-primary" id="btnSaveBannerChange">Equip & Save</button>
+        </div>
+      </div>
+    </div>
 
     <!-- SCRIPTS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>

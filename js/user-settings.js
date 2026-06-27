@@ -4,6 +4,32 @@
   const esc = window.TWS.escapeHTML;
   let session = null;
   let profile = null;
+  let editedAvatar = '';
+  let editedBanner = '';
+  let tempAvatarConfig = {};
+  let tempBannerValue = '';
+  const DEFAULT_AVATAR = {
+    face: 'face-round',
+    skinTone: 'skin-peach',
+    hair: 'hair-none',
+    hairColor: 'hair-black',
+    eyebrows: 'eyebrows-flat',
+    eyes: 'eyes-classic',
+    eyeColor: 'eye-brown',
+    mouth: 'mouth-neutral',
+    facialHair: 'facialHair-none',
+    glasses: 'glasses-none',
+    hat: 'hat-none',
+    accessories: 'accessories-none',
+    clothing: 'clothing-tshirt',
+    clothingColor: 'clothing-gray',
+    jacket: 'jacket-none',
+    backpack: 'backpack-none',
+    background: 'bg-solid',
+    backgroundColor: 'color-gray',
+    effect: 'effect-none',
+    frame: 'frame-none'
+  };
 
   function getSession() {
     return JSON.parse(sessionStorage.getItem('portal_session') || 'null');
@@ -38,6 +64,7 @@
     const members = await window.TWS.loadMovementMembersAsync([]);
     profile = members.find(sameIdentity)
       || window.TWS.ensureSolverProfile(session);
+    await window.TWS.loadCosmeticsAsync();
     if (profile && !profile.referralCode) {
       profile.referralCode = window.TWS.generateReferralCode();
       await window.TWS.saveUserProfile(profile.uid || session.uid, profile);
@@ -60,14 +87,21 @@
     if (subtitle) subtitle.textContent = 'Your role is assigned by superadmins. Prefixes are earned from impact score.';
   }
 
+  function parseAvatarConfig(avatarStr) {
+    if (avatarStr && avatarStr.startsWith('avatar:config:')) {
+      try {
+        return JSON.parse(avatarStr.slice('avatar:config:'.length));
+      } catch (e) {}
+    }
+    return { ...DEFAULT_AVATAR };
+  }
+
   function renderProfile() {
     const points = window.TWS.impactPointsFromStats(profile);
     document.getElementById('displayName').value = profile?.displayName || profile?.name || session.displayName || '';
     document.getElementById('displayUsername').value = profile?.username || session.username || '';
     document.getElementById('displaySpecialty').value = profile?.specialty || '';
     document.getElementById('profileBioInput').value = profile?.bio || '';
-    document.getElementById('profilePictureUrl').value = profile?.avatar || profile?.profilePicture || '';
-    document.getElementById('profileBannerUrl').value = profile?.banner || '';
     document.getElementById('profileCountry').value = profile?.country || '';
     document.getElementById('profileWebsite').value = profile?.website || '';
     document.getElementById('profileLinkedin').value = profile?.linkedin || '';
@@ -79,23 +113,185 @@
     document.getElementById('credPoints').textContent = `${points.toLocaleString()} IP`;
     document.getElementById('credSolved').textContent = `${Number(profile?.solved || profile?.stats?.problemsSolved || 0)} solved`;
     document.getElementById('credRank').textContent = `${window.TWS.memberPrefix(profile)}${profile?.adminRole ? ` • ${profile.adminRole}` : ''}`;
+    
+    editedAvatar = profile?.avatar || '';
+    editedBanner = profile?.banner || '';
+    
+    const bannerPreview = document.getElementById('settingsBannerPreview');
+    const avatarPreview = document.getElementById('settingsAvatarPreview');
+    if (bannerPreview) {
+      window.TWS.renderProfileBanner(editedBanner, bannerPreview);
+    }
+    if (avatarPreview) {
+      avatarPreview.innerHTML = window.TWS.renderAvatarHTML(profile);
+    }
+    
     syncPublicProfileLink();
+  }
+
+  function renderBuilderOptions(category) {
+    const grid = document.getElementById('builderOptionsGrid');
+    if (!grid) return;
+    grid.innerHTML = '';
+    const cosmetics = window.TWS.memory.cosmetics || [];
+    const categoryCosmetics = cosmetics.filter(c => c.category === category);
+    categoryCosmetics.forEach(item => {
+      const isUnlocked = window.TWS.isCosmeticUnlocked(item, profile);
+      const isSelected = tempAvatarConfig[category] === item.id;
+      const card = document.createElement('div');
+      card.className = `option-card ${isUnlocked ? 'unlocked' : 'locked'} ${isSelected ? 'active' : ''} rarity-${item.rarity.toLowerCase()}`;
+      let text = '';
+      if (!isUnlocked) {
+        if (item.acquisition === 'Level') {
+          text = `Lv. ${item.reqLevel}`;
+        } else if (item.acquisition === 'Achievement') {
+          text = 'Reward';
+        } else {
+          text = 'Store';
+        }
+      }
+      card.innerHTML = `
+        <div class="option-icon-wrapper">
+          <div class="option-preview-badge">${text || item.rarity}</div>
+          <div class="option-item-name">${esc(item.name)}</div>
+        </div>
+      `;
+      card.addEventListener('click', () => {
+        if (!isUnlocked) {
+          window.TWS.showToast(`Locked: ${item.description || 'Unavailable'}`);
+          return;
+        }
+        tempAvatarConfig[category] = item.id;
+        document.getElementById('builderAvatarPreview').innerHTML = window.TWS.renderAvatarSVG(tempAvatarConfig);
+        renderBuilderOptions(category);
+      });
+      grid.appendChild(card);
+    });
+  }
+
+  function renderBannerOptions() {
+    const grid = document.getElementById('bannerOptionsGrid');
+    if (!grid) return;
+    grid.innerHTML = '';
+    const cosmetics = window.TWS.memory.cosmetics || [];
+    const bannerCosmetics = cosmetics.filter(c => c.category === 'banner');
+    bannerCosmetics.forEach(item => {
+      const isUnlocked = window.TWS.isCosmeticUnlocked(item, profile);
+      const isSelected = tempBannerValue === item.id;
+      const card = document.createElement('div');
+      card.className = `banner-option-card ${isUnlocked ? 'unlocked' : 'locked'} ${isSelected ? 'active' : ''} rarity-${item.rarity.toLowerCase()}`;
+      let text = '';
+      if (!isUnlocked) {
+        if (item.acquisition === 'Level') {
+          text = `Lv. ${item.reqLevel}`;
+        } else if (item.acquisition === 'Achievement') {
+          text = 'Reward';
+        } else {
+          text = 'Store';
+        }
+      }
+      card.innerHTML = `
+        <div class="banner-preview-box" id="picker-preview-${item.id}"></div>
+        <div class="banner-option-info">
+          <div class="banner-option-name">${esc(item.name)}</div>
+          <div class="banner-option-locked-msg">${text || item.rarity}</div>
+        </div>
+      `;
+      grid.appendChild(card);
+      const previewBox = card.querySelector(`#picker-preview-${item.id}`);
+      window.TWS.renderProfileBanner(item.id, previewBox);
+      card.addEventListener('click', () => {
+        if (!isUnlocked) {
+          window.TWS.showToast(`Locked: ${item.description || 'Unavailable'}`);
+          return;
+        }
+        tempBannerValue = item.id;
+        window.TWS.renderProfileBanner(tempBannerValue, document.getElementById('pickerBannerPreview'));
+        renderBannerOptions();
+      });
+    });
+  }
+
+  function initAppearanceEditor() {
+    const btnOpenAvatar = document.getElementById('btnOpenAvatarBuilder');
+    const btnOpenBanner = document.getElementById('btnOpenBannerPicker');
+    const modalAvatar = document.getElementById('avatarBuilderModal');
+    const modalBanner = document.getElementById('bannerPickerModal');
+    const btnCloseAvatar = document.getElementById('btnCloseAvatarBuilder');
+    const btnCloseBanner = document.getElementById('btnCloseBannerPicker');
+    const btnCancelAvatar = document.getElementById('btnCancelAvatarChange');
+    const btnCancelBanner = document.getElementById('btnCancelBannerChange');
+    const btnSaveAvatar = document.getElementById('btnSaveAvatarChange');
+    const btnSaveBanner = document.getElementById('btnSaveBannerChange');
+    const selectCategory = document.getElementById('avatarCategorySelect');
+    
+    if (btnOpenAvatar && modalAvatar) {
+      btnOpenAvatar.addEventListener('click', () => {
+        tempAvatarConfig = parseAvatarConfig(editedAvatar);
+        modalAvatar.style.display = 'flex';
+        document.getElementById('builderAvatarPreview').innerHTML = window.TWS.renderAvatarSVG(tempAvatarConfig);
+        selectCategory.value = 'face';
+        renderBuilderOptions('face');
+      });
+    }
+    
+    if (btnOpenBanner && modalBanner) {
+      btnOpenBanner.addEventListener('click', () => {
+        tempBannerValue = editedBanner || 'banner-community';
+        modalBanner.style.display = 'flex';
+        window.TWS.renderProfileBanner(tempBannerValue, document.getElementById('pickerBannerPreview'));
+        renderBannerOptions();
+      });
+    }
+    
+    if (btnCloseAvatar) btnCloseAvatar.addEventListener('click', () => modalAvatar.style.display = 'none');
+    if (btnCancelAvatar) btnCancelAvatar.addEventListener('click', () => modalAvatar.style.display = 'none');
+    
+    if (btnCloseBanner) btnCloseBanner.addEventListener('click', () => modalBanner.style.display = 'none');
+    if (btnCancelBanner) btnCancelBanner.addEventListener('click', () => modalBanner.style.display = 'none');
+    
+    if (selectCategory) {
+      selectCategory.addEventListener('change', () => {
+        renderBuilderOptions(selectCategory.value);
+      });
+    }
+    
+    if (btnSaveAvatar) {
+      btnSaveAvatar.addEventListener('click', () => {
+        editedAvatar = 'avatar:config:' + JSON.stringify(tempAvatarConfig);
+        const avatarPreview = document.getElementById('settingsAvatarPreview');
+        if (avatarPreview) {
+          avatarPreview.innerHTML = window.TWS.renderAvatarSVG(tempAvatarConfig);
+        }
+        modalAvatar.style.display = 'none';
+      });
+    }
+    
+    if (btnSaveBanner) {
+      btnSaveBanner.addEventListener('click', () => {
+        editedBanner = tempBannerValue;
+        const bannerPreview = document.getElementById('settingsBannerPreview');
+        if (bannerPreview) {
+          window.TWS.renderProfileBanner(editedBanner, bannerPreview);
+        }
+        modalBanner.style.display = 'none';
+      });
+    }
   }
 
   function initProfileForm() {
     const initialsInput = document.getElementById('avatarInitials');
     initialsInput?.addEventListener('input', () => document.getElementById('avatarPreview').textContent = initialsInput.value.toUpperCase().slice(0, 2));
     document.getElementById('displayUsername')?.addEventListener('input', syncPublicProfileLink);
-    initImageInput('profilePictureFile', 'profilePictureUrl');
-    initImageInput('profileBannerFile', 'profileBannerUrl');
+    initAppearanceEditor();
     document.getElementById('identityForm')?.addEventListener('submit', async (event) => {
       event.preventDefault();
       const displayName = document.getElementById('displayName').value.trim();
       const username = window.TWS.toUsername(document.getElementById('displayUsername').value);
       const specialty = document.getElementById('displaySpecialty').value.trim();
       const initials = document.getElementById('avatarInitials').value.toUpperCase().slice(0, 2);
-      const avatar = document.getElementById('profilePictureUrl').value.trim();
-      const banner = document.getElementById('profileBannerUrl').value.trim();
+      const avatar = editedAvatar;
+      const banner = editedBanner;
       if (displayName.length < 3 || !window.TWS.validUsername(username)) {
         alert('Use a valid display name and a username with lowercase letters, numbers, or underscores.');
         return;
@@ -141,34 +337,9 @@
       session.username = username;
       session.avatar = avatar;
       sessionStorage.setItem('portal_session', JSON.stringify(session));
-      profile = { ...profile, displayName, username, usernameLower: username, avatar, profilePicture: avatar };
+      profile = { ...profile, displayName, username, usernameLower: username, avatar, profilePicture: avatar, banner };
       syncPublicProfileLink();
       alert('Profile updated.');
-    });
-  }
-
-  function initImageInput(fileInputId, urlInputId) {
-    const fileInput = document.getElementById(fileInputId);
-    const urlInput = document.getElementById(urlInputId);
-    if (!fileInput || !urlInput) return;
-    fileInput.addEventListener('change', () => {
-      const file = fileInput.files?.[0];
-      if (!file) return;
-      if (!file.type.startsWith('image/')) {
-        alert('Please choose an image file.');
-        fileInput.value = '';
-        return;
-      }
-      if (file.size > 650 * 1024) {
-        alert('Please choose an image smaller than 650 KB, or paste an external image URL.');
-        fileInput.value = '';
-        return;
-      }
-      const reader = new FileReader();
-      reader.addEventListener('load', () => {
-        urlInput.value = reader.result;
-      });
-      reader.readAsDataURL(file);
     });
   }
 

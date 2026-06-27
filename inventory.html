@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cosmetics Inventory — Together We Solve</title>
+    <meta name="description" content="View your unlocked cosmetic assets, check progression levels, and track upcoming reward milestones." />
+    <link rel="stylesheet" href="css/ui-polish.css" />
+    <link rel="stylesheet" href="css/inventory.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://www.gstatic.com" crossorigin />
+    <link rel="modulepreload" href="js/firebase-core.js" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap"
+      rel="stylesheet" />
+  </head>
+  <body class="inventory-body">
+
+    <nav class="nav" id="nav">
+      <div class="nav-inner">
+        <a href="home.html" class="nav-logo">Together We Solve</a>
+        <div class="nav-links">
+          <a href="open-frictions.html" class="nav-link">Open Frictions</a>
+          <a href="my-frictions.html" class="nav-link">My Frictions</a>
+          <a href="tasks.html" class="nav-link">Tasks</a>
+          <a href="referrals.html" class="nav-link">Referrals</a>
+          <a href="marketplace.html" class="nav-link">Marketplace</a>
+        </div>
+        <button class="nav-cta" id="signOutBtn">Sign Out <span class="nav-cta-arrow">&nearr;</span></button>
+      </div>
+    </nav>
+
+    <header class="inventory-hero">
+      <div class="container hero-content">
+        <div class="hero-eyebrow">
+          <span class="hero-eyebrow-text">Progression Hub</span>
+          <div class="hero-eyebrow-line"></div>
+        </div>
+        <h1 class="hero-headline">My Cosmetics & Progression</h1>
+        <p class="hero-tagline">View your unlocked base parts, achievements, and upcoming milestones on the journey.</p>
+        
+        <div class="inventory-progression-card">
+          <div class="progression-header">
+            <span class="level-badge" id="userLevelBadge">Level 1</span>
+            <span class="rank-name" id="userRankText">Member</span>
+          </div>
+          <div class="progression-bar-container">
+            <div class="progression-bar-fill" id="userExpFill" style="width: 0%;"></div>
+          </div>
+          <div class="progression-footer">
+            <span class="exp-values" id="userExpText">0 / 0 EXP</span>
+            <span class="next-level-label">to Next Level</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <section class="section inventory-tabs-section">
+      <div class="container">
+        <div class="inventory-tabs">
+          <button type="button" class="tab-btn active" id="tabBtnCollection">My Collection</button>
+          <button type="button" class="tab-btn" id="tabBtnRoad">Progression Road</button>
+        </div>
+
+        <div id="collectionTabContent" class="tab-content-pane">
+          <div class="collection-filter-bar">
+            <div class="filter-group">
+              <label for="collectionCategory" class="filter-label">Filter Category</label>
+              <select id="collectionCategory" class="form-input">
+                <option value="all">All Items</option>
+                <option value="face">Face Shape</option>
+                <option value="skinTone">Skin Tone</option>
+                <option value="hair">Hairstyle</option>
+                <option value="hairColor">Hair Color</option>
+                <option value="eyes">Eyes</option>
+                <option value="eyeColor">Eye Color</option>
+                <option value="mouth">Mouth or Expression</option>
+                <option value="facialHair">Facial Hair</option>
+                <option value="glasses">Glasses</option>
+                <option value="hat">Hats</option>
+                <option value="accessories">Accessories</option>
+                <option value="clothing">Clothing</option>
+                <option value="clothingColor">Clothing Color</option>
+                <option value="jacket">Jackets</option>
+                <option value="backpack">Backpacks</option>
+                <option value="background">Backgrounds</option>
+                <option value="backgroundColor">Background Color</option>
+                <option value="effect">Effects</option>
+                <option value="frame">Frames</option>
+                <option value="banner">Banners</option>
+              </select>
+            </div>
+            <a href="user-settings.html" class="btn btn-primary btn-sm btn-customize-avatar">Equip Items in Settings</a>
+          </div>
+
+          <div id="collectionGrid" class="inventory-grid"></div>
+        </div>
+
+        <div id="roadTabContent" class="tab-content-pane" style="display: none;">
+          <div class="progression-road-timeline" id="roadTimeline"></div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        <div class="footer-top">
+          <div class="footer-brand">
+            <p class="footer-name">Together We Solve</p>
+            <p class="footer-tagline">No problem too small. No challenge too big.</p>
+          </div>
+          <nav class="footer-nav">
+            <a href="leaderboard.html">Leaderboard</a>
+            <a href="hall-of-fame.html">Hall of Fame</a>
+            <a href="impact-archive.html">Impact Archive</a>
+          </nav>
+        </div>
+        <div class="footer-bottom">
+          <p class="footer-copy">A movement built on the belief that people can solve more together than they ever could alone.</p>
+          <a href="post-problem.html" class="btn btn-ghost btn-sm">Share a Problem</a>
+        </div>
+      </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <script src="https://unpkg.com/lenis@1.1.13/dist/lenis.min.js"></script>
+    <script src="js/utils.js?v=4"></script>
+    <script src="js/inventory.js"></script>
+  </body>
+</html>

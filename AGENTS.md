@@ -1,6 +1,6 @@
 # Agent Instructions for Together We Solve
 
-Last updated: 2026-06-27
+Last updated: 2026-06-27 (Avatar & Marketplace system added)
 
 This file is the required first read for AI agents working in this workspace. Use it to understand the project quickly. Do not scan the whole repository unless the task requires it.
 
@@ -18,23 +18,28 @@ The app is built with plain HTML, CSS, and browser JavaScript. It uses Firebase 
 - `post-problem.html`, `open-frictions.html`, `my-frictions.html`: problem posting and browsing flows.
 - `tasks.html`: member community task dashboard for available tasks, proof submissions, verification status, and task history.
 - `leaderboard.html`, `hall-of-fame.html`, `impact-archive.html`, `members.html`, `core-team.html`: community and impact pages.
-- `admin-dashboard.html`: superadmin management surface, including community task creation and categories, plus referrals auditing.
+- `admin-dashboard.html`: superadmin management surface, including community task creation, categories, referrals auditing, and Cosmetics Manager panel.
 - `evaluator-dashboard.html`: evaluator workflow for problem and task-submission verification.
 - `referrals.html`: member referrals center and invitations hub.
 - `supporting-partner-dashboard.html`: supporting partner workflow.
-- `user-profile.html`, `user-settings.html`: account/profile surfaces.
+- `user-profile.html`, `user-settings.html`: account/profile surfaces. `user-settings.html` hosts the Avatar Builder and Banner Picker modals instead of image upload inputs.
+- `marketplace.html`: cosmetics marketplace where members spend spendable Impact Points to acquire cosmetic items. Logic in `js/marketplace.js` and styles in `css/marketplace.css`.
+- `inventory.html`: member cosmetics collection and progression road. Shows owned items and level-gated unlocks. Logic in `js/inventory.js` and styles in `css/inventory.css`.
 - `firestore.rules`: Firestore authorization rules.
-- `js/firebase-config.js`: Firebase project config, fixed roles, and collection names.
+- `js/firebase-config.js`: Firebase project config, fixed roles, and collection names (includes `cosmetics` collection).
 - `js/firebase-core.js`: shared Firebase CDN app/auth/Firestore initialization used by module scripts and shared data helpers.
 - `js/firebase-access.js`: role assignment helper exposed as `window.TWSAccess`.
-- `js/utils.js`: shared local data, Firebase access helpers, sessions, permissions, points, moderation, and common utilities.
+- `js/utils.js`: shared local data, Firebase access helpers, sessions, permissions, points, moderation, common utilities, avatar SVG rendering (`renderAvatarSVG`, `renderAvatarHTML`), banner rendering (`renderProfileBanner`), and all cosmetics Firestore operations (`loadCosmeticsAsync`, `saveCosmetic`, `deleteCosmetic`, `purchaseCosmetic`, `isCosmeticUnlocked`).
 - `js/tasks.js`: member task browsing and proof submission flow.
 - `js/*.js`: page-specific behavior. Read only the file matching the page you are changing plus shared files it imports or depends on.
 - `css/styles.css`: global site styling.
 - `css/ui-polish.css`: shared polish and UI refinements.
 - `css/*.css`: page-specific styles.
 - `css/tasks.css`: member task dashboard styles.
-- `assets/`: local images and SVG assets.
+- `css/avatar-builder.css`: Avatar Builder and Banner Picker modal styles used by `user-settings.html`.
+- `css/marketplace.css`: Marketplace page styles.
+- `css/inventory.css`: Inventory and progression road styles.
+- `assets/avatars/`: generated avatar PNG assets for the initial phase (founder, innovator, steward).
 - `.agents/`: reserved for agent support material. Currently empty.
 
 ## Required Reading Order
@@ -148,6 +153,7 @@ Known Firestore collections from project config and rules:
 - `taskCategories`
 - `notifications`
 - `referrals`
+- `cosmetics`
 
 Known fixed roles:
 
@@ -232,5 +238,15 @@ Known task submission statuses:
 - `Flagged`
 
 Task rewards are verification-first: Community Task EXP and Impact Points are awarded only after an evaluator approves a `taskSubmissions` document. Automatic platform EXP uses `platformExperienceHistory` and `lastPlatformExperienceAward`; verified task rewards use `taskSubmissionHistory` and `lastTaskAward`.
+
+Known `cosmetics` collection fields: `id`, `name`, `category`, `rarity`, `acquisition`, `reqLevel`, `reqAchievement`, `price`, `description`, `enabled`, `releaseDate`.
+
+Known cosmetic acquisition types: `Level`, `Achievement`, `Marketplace`.
+
+Known cosmetic rarity values: `Common`, `Uncommon`, `Rare`, `Epic`, `Legendary`, `Mythic`.
+
+Known cosmetic categories: `face`, `skinTone`, `hair`, `hairColor`, `eyebrows`, `eyes`, `eyeColor`, `mouth`, `facialHair`, `glasses`, `hat`, `accessories`, `clothing`, `clothingColor`, `jacket`, `backpack`, `background`, `backgroundColor`, `effect`, `frame`, `banner`.
+
+Dual Impact Points model: `users.stats.totalImpactPoints` is the lifetime accumulated value and is never decreased — it controls leaderboard ranking. `users.stats.impactPoints` (and `users.points`) is the spendable balance, which decreases on marketplace purchases. The marketplace Firestore rules validate that a purchase deducts exactly the cost of the purchased cosmetic from the spendable balance and records the purchase in `users.ownedCosmetics`. Leaderboard sorting uses `totalImpactPoints`, not the spendable balance.
 
 Keep this section updated if the schema changes.

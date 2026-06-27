@@ -70,9 +70,8 @@
     }
 
     grid.innerHTML = members.map((member) => {
-      const avatar = member.avatar
-        ? `<img class="member-avatar" src="${esc(member.avatar)}" alt="${esc(member.displayName)} profile picture" />`
-        : `<div class="member-avatar">${esc(initials(member.displayName))}</div>`;
+      const avatarHtml = window.TWS.renderAvatarHTML(member);
+      const avatar = `<div class="member-avatar" style="display:flex;align-items:center;justify-content:center;overflow:hidden;padding:0;">${avatarHtml}</div>`;
       const profileHref = `user-profile.html?username=${encodeURIComponent(member.username)}`;
       return `
         <a class="member-card" href="${profileHref}" data-search="${esc(`${member.displayName} ${member.username} ${member.role} ${member.specialty}`.toLowerCase())}">

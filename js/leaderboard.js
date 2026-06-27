@@ -159,12 +159,13 @@
 
   /* ─── DYNAMIC LEADERBOARD GENERATION ───────── */
   function boardValue(member, board) {
+    const totalImpactPoints = Number(member.stats?.totalImpactPoints ?? member.totalImpactPoints ?? member.impactPoints ?? member.points) || 0;
     if (board === 'posted') return Number(member.stats?.problemsIdentified || member.problemsPosted || 0);
     if (board === 'solved') return Number(member.stats?.problemsSolved || member.solved || 0);
     if (board === 'experience') return Number(member.experience || member.stats?.experience || 0);
     if (board === 'referrals') return Number(member.stats?.successfulReferrals || 0);
-    if (board === 'hall') return member.hallOfFame ? member.impactPoints : -1;
-    return member.impactPoints;
+    if (board === 'hall') return member.hallOfFame ? totalImpactPoints : -1;
+    return totalImpactPoints;
   }
 
   function boardLabel(board) {
@@ -252,10 +253,11 @@
           statDisplayVal = `${solved} solved`;
         }
 
+        const avatarHtml = window.TWS.renderAvatarHTML(solver);
         card.innerHTML = `
           <div class="podium-badge">${rankNum}</div>
-          <div class="avatar-wrap">
-            <div class="avatar-initials">${esc(solver.initials)}</div>
+          <div class="avatar-wrap" style="display:flex;align-items:center;justify-content:center;overflow:hidden;border-radius:50%;padding:0;">
+            ${avatarHtml}
           </div>
           <h3 class="podium-name">${esc(solver.name)}</h3>
           <span class="podium-title">${esc(solver.progression.label)}</span>
@@ -299,11 +301,12 @@
 
         const displayVal = boardValue(solver, board);
 
+        const avatarHtml = window.TWS.renderAvatarHTML(solver);
         row.innerHTML = `
           <td class="col-rank"><span class="rank-number">${rankStr}</span></td>
           <td class="col-solver">
             <div class="solver-profile" style="cursor: pointer;">
-              <div class="solver-avatar">${esc(solver.initials)}</div>
+              <div class="solver-avatar" style="display:flex;align-items:center;justify-content:center;overflow:hidden;border-radius:50%;padding:0;">${avatarHtml}</div>
               <div class="solver-info">
                 <span class="solver-name">${esc(solver.name)}</span>
                 <span class="solver-sub">${esc(solver.progression.label)}${solver.adminRole ? ` • ${esc(solver.adminRole)}` : ''}</span>

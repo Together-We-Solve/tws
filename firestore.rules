@@ -303,6 +303,43 @@ service cloud.firestore {
         && !previousHistory.hasAny([award.action]);
     }
 
+    function marketplacePurchaseShape() {
+      let purchase = request.resource.data.lastCosmeticPurchase;
+      return purchase is map
+        && purchase.cosmeticId is string
+        && purchase.price is number
+        && purchase.price >= 0;
+    }
+
+    function marketplacePurchaseUpdate() {
+      let purchase = request.resource.data.lastCosmeticPurchase;
+      let previousStats = resource.data.stats is map ? resource.data.stats : {};
+      let nextStats = request.resource.data.stats is map ? request.resource.data.stats : {};
+      let previousImpact = previousStats.impactPoints is number ? previousStats.impactPoints : 0;
+      let previousTotalImpact = previousStats.totalImpactPoints is number ? previousStats.totalImpactPoints : 0;
+      let nextTotalImpact = nextStats.totalImpactPoints is number ? nextStats.totalImpactPoints : 0;
+      let previousOwned = ('ownedCosmetics' in resource.data) && (resource.data.ownedCosmetics is list) ? resource.data.ownedCosmetics : [];
+      let nextOwned = ('ownedCosmetics' in request.resource.data) && (request.resource.data.ownedCosmetics is list) ? request.resource.data.ownedCosmetics : [];
+      let cosmeticPath = /databases/$(database)/documents/cosmetics/$(purchase.cosmeticId);
+      return signedIn()
+        && (request.auth.uid == resource.data.uid || request.auth.uid == resource.data.id)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+             'points', 'impactPoints', 'stats', 'ownedCosmetics', 'lastCosmeticPurchase', 'updatedAt', 'avatar', 'banner'
+           ])
+        && nextStats.impactPoints == previousImpact - purchase.price
+        && (!('points' in request.resource.data) || request.resource.data.points == previousImpact - purchase.price)
+        && (!('impactPoints' in request.resource.data) || request.resource.data.impactPoints == previousImpact - purchase.price)
+        && nextTotalImpact == previousTotalImpact
+        && exists(cosmeticPath)
+        && get(cosmeticPath).data.acquisition == 'Marketplace'
+        && get(cosmeticPath).data.price == purchase.price
+        && get(cosmeticPath).data.enabled == true
+        && nextOwned.size() == previousOwned.size() + 1
+        && nextOwned.hasAll(previousOwned)
+        && nextOwned.hasAny([purchase.cosmeticId])
+        && !previousOwned.hasAny([purchase.cosmeticId]);
+    }
+
     function validSelfCreate(userId) {
       return userId == request.auth.uid
         && userCreateFieldsOnly()
@@ -555,6 +592,7 @@ service cloud.firestore {
         (contributionAwardShape() && contributionAwardUpdate()) ||
         (taskAwardShape() && taskAwardUpdate()) ||
         (platformExperienceAwardShape() && platformExperienceAwardUpdate()) ||
+        (marketplacePurchaseShape() && marketplacePurchaseUpdate()) ||
         isSuperadmin()
       );
       allow delete: if isSuperadmin();
@@ -656,6 +694,11 @@ service cloud.firestore {
       allow read: if signedIn() && (resource.data.inviterUid == request.auth.uid || resource.data.inviteeUid == request.auth.uid || isSuperadmin());
       allow create: if signedIn() && (request.resource.data.inviteeUid == request.auth.uid || isSuperadmin()) && request.resource.data.inviterUid != request.resource.data.inviteeUid;
       allow update, delete: if isSuperadmin();
+    }
+
+    match /cosmetics/{cosmeticId} {
+      allow read: if true;
+      allow write: if isSuperadmin();
     }
 
     match /{document=**} {

@@ -1260,6 +1260,165 @@
     initRoleAssignment();
     initReferralTab();
     initSignOut();
+    initCosmeticsManager();
+  }
+
+  function initCosmeticsManager() {
+    let cosmeticsList = [];
+    let editingId = null;
+
+    const grid = document.getElementById('cosmeticsAdminGrid');
+    const modal = document.getElementById('cosmeticEditorModal');
+    const filterCat = document.getElementById('cosmeticsFilterCategory');
+    const filterAcq = document.getElementById('cosmeticsFilterAcquisition');
+    const titleEl = document.getElementById('cosmeticEditorTitle');
+    const acqSelect = document.getElementById('cosmeticEditAcquisition');
+    const reqLevelGroup = document.getElementById('cosmeticEditReqLevelGroup');
+    const reqAchievementGroup = document.getElementById('cosmeticEditReqAchievementGroup');
+    const priceGroup = document.getElementById('cosmeticEditPriceGroup');
+
+    if (!grid || !modal) return;
+
+    function showModal(cosmetic) {
+      editingId = cosmetic ? cosmetic.id : null;
+      if (titleEl) titleEl.textContent = cosmetic ? 'Edit Cosmetic' : 'Add Cosmetic';
+      document.getElementById('cosmeticEditId').value = cosmetic?.id || '';
+      document.getElementById('cosmeticEditIdInput').value = cosmetic?.id || '';
+      document.getElementById('cosmeticEditIdInput').disabled = Boolean(cosmetic);
+      document.getElementById('cosmeticEditName').value = cosmetic?.name || '';
+      document.getElementById('cosmeticEditCategory').value = cosmetic?.category || 'face';
+      document.getElementById('cosmeticEditRarity').value = cosmetic?.rarity || 'Common';
+      document.getElementById('cosmeticEditAcquisition').value = cosmetic?.acquisition || 'Level';
+      document.getElementById('cosmeticEditReqLevel').value = cosmetic?.reqLevel || 1;
+      document.getElementById('cosmeticEditReqAchievement').value = cosmetic?.reqAchievement || '';
+      document.getElementById('cosmeticEditPrice').value = cosmetic?.price || 10;
+      document.getElementById('cosmeticEditDescription').value = cosmetic?.description || '';
+      document.getElementById('cosmeticEditEnabled').checked = cosmetic ? Boolean(cosmetic.enabled) : true;
+      updateAcquisitionFields();
+      modal.style.display = 'flex';
+    }
+
+    function hideModal() {
+      modal.style.display = 'none';
+      editingId = null;
+    }
+
+    function updateAcquisitionFields() {
+      const acq = document.getElementById('cosmeticEditAcquisition')?.value;
+      if (reqLevelGroup) reqLevelGroup.style.display = acq === 'Level' ? 'block' : 'none';
+      if (reqAchievementGroup) reqAchievementGroup.style.display = acq === 'Achievement' ? 'block' : 'none';
+      if (priceGroup) priceGroup.style.display = acq === 'Marketplace' ? 'block' : 'none';
+    }
+
+    acqSelect?.addEventListener('change', updateAcquisitionFields);
+
+    async function loadAndRender() {
+      try {
+        cosmeticsList = await window.TWS.loadCosmeticsAsync();
+      } catch (_) {
+        cosmeticsList = [];
+      }
+      renderCosmeticsGrid();
+    }
+
+    function renderCosmeticsGrid() {
+      if (!grid) return;
+      const catVal = filterCat?.value || 'all';
+      const acqVal = filterAcq?.value || 'all';
+      let items = cosmeticsList;
+      if (catVal !== 'all') items = items.filter((c) => c.category === catVal);
+      if (acqVal !== 'all') items = items.filter((c) => c.acquisition === acqVal);
+
+      if (items.length === 0) {
+        grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;opacity:0.5;padding:40px;">No cosmetics found. Click "+ Add Cosmetic" to create one.</div>`;
+        return;
+      }
+
+      grid.innerHTML = '';
+      items.forEach((item) => {
+        const card = document.createElement('div');
+        card.style.cssText = 'background:var(--bg-fog);border:1px solid var(--border-light);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:10px;';
+        card.innerHTML = `
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
+            <div>
+              <span style="font-size:10px;text-transform:uppercase;letter-spacing:.05em;opacity:.5;">${esc(item.category)}</span>
+              <h4 style="font-family:var(--font-display);font-size:15px;margin:2px 0;">${esc(item.name)}</h4>
+            </div>
+            <span style="font-size:9px;font-weight:700;text-transform:uppercase;padding:2px 8px;border-radius:4px;background:var(--bg-warm);border:1px solid var(--border-light);">${esc(item.rarity)}</span>
+          </div>
+          <div style="font-size:11px;opacity:.7;">Acquisition: <strong>${esc(item.acquisition)}</strong>${item.acquisition === 'Marketplace' ? ` &middot; ${item.price} IP` : ''}${item.acquisition === 'Level' ? ` &middot; Level ${item.reqLevel}` : ''}</div>
+          <div style="font-size:11px;opacity:.55;">${esc(item.description || '—')}</div>
+          <div style="display:flex;align-items:center;gap:8px;margin-top:auto;">
+            <span style="font-size:10px;padding:2px 8px;border-radius:20px;${item.enabled ? 'background:rgba(61,90,69,.1);color:var(--accent-moss);' : 'background:var(--bg-fog);opacity:.5;'}">${item.enabled ? 'Enabled' : 'Disabled'}</span>
+            <button type="button" class="btn btn-outline btn-sm btn-edit-cosmetic" data-id="${esc(item.id)}" style="margin-left:auto;">Edit</button>
+            <button type="button" class="btn btn-sm btn-delete-cosmetic" data-id="${esc(item.id)}" style="color:#c85555;border:1px solid rgba(200,85,85,.25);background:transparent;border-radius:6px;padding:6px 10px;font-size:11px;cursor:pointer;">Delete</button>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+
+      grid.querySelectorAll('.btn-edit-cosmetic').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const c = cosmeticsList.find((x) => x.id === btn.dataset.id);
+          if (c) showModal(c);
+        });
+      });
+
+      grid.querySelectorAll('.btn-delete-cosmetic').forEach((btn) => {
+        btn.addEventListener('click', async () => {
+          const id = btn.dataset.id;
+          if (!window.confirm(`Delete cosmetic "${id}"? This cannot be undone.`)) return;
+          try {
+            await window.TWS.deleteCosmetic(id);
+            window.TWS.logAction(`Deleted cosmetic: ${id}`);
+            await loadAndRender();
+          } catch (err) {
+            window.TWS.showToast(`Error: ${err.message}`);
+          }
+        });
+      });
+    }
+
+    document.getElementById('btnAddCosmetic')?.addEventListener('click', () => showModal(null));
+    document.getElementById('btnCloseCosmeticEditor')?.addEventListener('click', hideModal);
+    document.getElementById('btnCancelCosmeticEditor')?.addEventListener('click', hideModal);
+
+    document.getElementById('btnSaveCosmeticEditor')?.addEventListener('click', async () => {
+      const idField = document.getElementById('cosmeticEditIdInput').value.trim();
+      const name = document.getElementById('cosmeticEditName').value.trim();
+      if (!idField || !name) {
+        window.TWS.showToast('Cosmetic ID and Name are required.');
+        return;
+      }
+      const acq = document.getElementById('cosmeticEditAcquisition').value;
+      const cosmetic = {
+        id: idField,
+        name,
+        category: document.getElementById('cosmeticEditCategory').value,
+        rarity: document.getElementById('cosmeticEditRarity').value,
+        acquisition: acq,
+        reqLevel: acq === 'Level' ? Number(document.getElementById('cosmeticEditReqLevel').value) || 1 : null,
+        reqAchievement: acq === 'Achievement' ? document.getElementById('cosmeticEditReqAchievement').value.trim() : null,
+        price: acq === 'Marketplace' ? Number(document.getElementById('cosmeticEditPrice').value) || 10 : null,
+        description: document.getElementById('cosmeticEditDescription').value.trim(),
+        enabled: document.getElementById('cosmeticEditEnabled').checked
+      };
+      try {
+        await window.TWS.saveCosmetic(cosmetic.id, cosmetic);
+        window.TWS.logAction(`Saved cosmetic: ${cosmetic.id}`);
+        hideModal();
+        await loadAndRender();
+      } catch (err) {
+        window.TWS.showToast(`Error: ${err.message}`);
+      }
+    });
+
+    filterCat?.addEventListener('change', renderCosmeticsGrid);
+    filterAcq?.addEventListener('change', renderCosmeticsGrid);
+
+    document.querySelector('.nav-tab-btn[data-tab="cosmetics"]')?.addEventListener('click', () => {
+      if (cosmeticsList.length === 0) loadAndRender();
+    });
   }
 
   document.addEventListener('DOMContentLoaded', init);

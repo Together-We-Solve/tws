@@ -281,7 +281,7 @@
         <a class="legend-card hall-profile-card" href="${window.TWS.profileUrl(member.username || member.displayName)}">
           <div class="legend-accent-bar"></div>
           <div class="legend-year">Hall of Fame</div>
-          <div class="avatar-circle">${esc(member.initials || window.TWS.initialsFromName(member.displayName))}</div>
+          <div class="avatar-circle" style="display:flex;align-items:center;justify-content:center;overflow:hidden;padding:0;">${window.TWS.renderAvatarHTML(member)}</div>
           <h3 class="legend-name">${esc(member.displayName || member.name || member.username)}</h3>
           <span class="legend-role">${esc(member.progression?.label || 'Contributor Level 10')}</span>
           ${member.adminRole ? `<span class="legend-admin-role">${esc(member.adminRole)}</span>` : ''}

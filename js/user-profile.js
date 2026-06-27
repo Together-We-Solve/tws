@@ -93,7 +93,7 @@
         knowledgeContributions: Number(stats.knowledgeContributions) || 0,
         helpfulResponses: Number(stats.helpfulResponses) || 0,
         experience,
-        totalImpactPoints: impactPoints,
+        totalImpactPoints: Number(raw.stats?.totalImpactPoints ?? raw.totalImpactPoints ?? impactPoints) || 0,
         impactPoints,
         badgesEarned: Number(stats.badgesEarned) || 0,
         currentRank: progression.label,
@@ -269,25 +269,31 @@
 
     const avatar = document.getElementById('profileAvatar');
     const fallback = document.getElementById('profileAvatarFallback');
-    if (user.avatar && avatar && fallback) {
-      avatar.src = user.avatar;
-      avatar.alt = `${user.displayName} profile picture`;
-      avatar.style.display = 'block';
-      fallback.style.display = 'none';
-    } else if (fallback) {
-      fallback.textContent = initials(user.displayName);
+    if (fallback) {
+      fallback.innerHTML = window.TWS.renderAvatarHTML(user);
+      fallback.style.background = 'none';
+      fallback.style.border = 'none';
+      fallback.style.display = 'flex';
+      fallback.style.alignItems = 'center';
+      fallback.style.justifyContent = 'center';
+      fallback.style.width = '96px';
+      fallback.style.height = '96px';
+    }
+    if (avatar) {
+      avatar.style.display = 'none';
     }
 
     const banner = document.getElementById('profileBanner');
-    if (user.banner && banner) {
-      banner.style.backgroundImage = `url("${user.banner}")`;
+    if (banner) {
+      window.TWS.renderProfileBanner(user.banner || '', banner);
       banner.style.display = 'block';
     }
 
     const metaItems = [
       `Progression: ${user.progression.label}`,
       `EXP: ${user.stats.experience.toLocaleString()}${user.progression.hallOfFame ? '' : ` / +${Math.max(0, user.progression.experienceForNextLevel - user.progression.experienceIntoLevel).toLocaleString()} to next level`}`,
-      `Impact Points: ${user.stats.impactPoints.toLocaleString()}`,
+      `Lifetime Impact Points: ${user.stats.totalImpactPoints.toLocaleString()}`,
+      `Spendable Balance: ${user.stats.impactPoints.toLocaleString()} IP`,
       user.progression.hallOfFame ? 'Hall of Fame: Inducted' : '',
       user.availability ? `Status: ${user.availability}` : '',
       user.country ? `Country: ${user.country}` : '',
