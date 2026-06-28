@@ -256,7 +256,7 @@
         const avatarHtml = window.TWS.renderAvatarHTML(solver);
         card.innerHTML = `
           <div class="podium-badge">${rankNum}</div>
-          <div class="avatar-wrap" style="display:flex;align-items:center;justify-content:center;overflow:hidden;border-radius:50%;padding:0;">
+          <div class="avatar-wrap" style="display:flex;align-items:center;justify-content:center;overflow:hidden;border-radius:16px;padding:0;">
             ${avatarHtml}
           </div>
           <h3 class="podium-name">${esc(solver.name)}</h3>
@@ -306,7 +306,7 @@
           <td class="col-rank"><span class="rank-number">${rankStr}</span></td>
           <td class="col-solver">
             <div class="solver-profile" style="cursor: pointer;">
-              <div class="solver-avatar" style="display:flex;align-items:center;justify-content:center;overflow:hidden;border-radius:50%;padding:0;">${avatarHtml}</div>
+              <div class="solver-avatar" style="display:flex;align-items:center;justify-content:center;overflow:hidden;border-radius:16px;padding:0;">${avatarHtml}</div>
               <div class="solver-info">
                 <span class="solver-name">${esc(solver.name)}</span>
                 <span class="solver-sub">${esc(solver.progression.label)}${solver.adminRole ? ` • ${esc(solver.adminRole)}` : ''}</span>

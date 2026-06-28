@@ -1256,3 +1256,9 @@ body {
 .complexity-indicator.low { background: rgba(35, 56, 43, 0.06); color: var(--accent-moss); }
 .complexity-indicator.medium { background: rgba(61, 90, 108, 0.08); color: var(--accent-ocean); }
 .complexity-indicator.high { background: rgba(200, 125, 85, 0.1); color: var(--accent-clay); }
+
+@media (max-width: 768px) {
+  .audit-card {
+    padding: 20px !important;
+  }
+}

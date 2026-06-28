@@ -11,22 +11,22 @@
   const DEFAULT_AVATAR = {
     face: 'face-round',
     skinTone: 'skin-peach',
-    hair: 'hair-none',
+    hair: 'hair-sidepart',
     hairColor: 'hair-black',
     eyebrows: 'eyebrows-flat',
     eyes: 'eyes-classic',
     eyeColor: 'eye-brown',
-    mouth: 'mouth-neutral',
+    mouth: 'mouth-smile',
     facialHair: 'facialHair-none',
     glasses: 'glasses-none',
     hat: 'hat-none',
     accessories: 'accessories-none',
     clothing: 'clothing-tshirt',
-    clothingColor: 'clothing-gray',
+    clothingColor: 'clothing-moss',
     jacket: 'jacket-none',
     backpack: 'backpack-none',
     background: 'bg-solid',
-    backgroundColor: 'color-gray',
+    backgroundColor: 'color-teal',
     effect: 'effect-none',
     frame: 'frame-none'
   };
@@ -151,11 +151,67 @@
         }
       }
       card.innerHTML = `
-        <div class="option-icon-wrapper">
+        <div class="option-preview-area" id="option-preview-${item.id}"></div>
+        <div class="option-info-wrapper">
           <div class="option-preview-badge">${text || item.rarity}</div>
           <div class="option-item-name">${esc(item.name)}</div>
         </div>
       `;
+
+      const previewArea = card.querySelector(`#option-preview-${item.id}`);
+      if (previewArea) {
+        if (category === 'skinTone') {
+          const skinColorMap = {
+            'skin-peach': '#ffd8b3',
+            'skin-tan': '#e0a96d',
+            'skin-olive': '#d4b285',
+            'skin-bronze': '#ba825a',
+            'skin-dark': '#6b462b',
+            'skin-cyan': '#00bcd4',
+            'skin-obsidian': '#1e293b',
+            'skin-gold': '#eab308'
+          };
+          previewArea.innerHTML = `<div style="width:28px;height:28px;border-radius:50%;background:${skinColorMap[item.id] || '#ccc'};border:2px solid var(--border-light);box-shadow:inset 0 2px 4px rgba(0,0,0,0.1)"></div>`;
+        } else if (category === 'hairColor') {
+          const hairColorMap = {
+            'hair-black': '#0f0f0f',
+            'hair-brown': '#4a311b',
+            'hair-blonde': '#ca8a04',
+            'hair-red': '#991b1b',
+            'hair-silver': '#94a3b8',
+            'hair-green': '#166534',
+            'hair-rainbow': 'linear-gradient(135deg, #ef4444, #f97316, #eab308, #22c55e, #3b82f6, #a855f7)'
+          };
+          previewArea.innerHTML = `<div style="width:28px;height:28px;border-radius:50%;background:${hairColorMap[item.id] || '#ccc'};border:2px solid var(--border-light);box-shadow:inset 0 2px 4px rgba(0,0,0,0.1)"></div>`;
+        } else if (category === 'clothingColor') {
+          const clothingColorMap = {
+            'clothing-gray': '#4b5563',
+            'clothing-moss': '#23382b',
+            'clothing-clay': '#c87d55',
+            'clothing-ocean': '#3d5a6c',
+            'clothing-royal': '#312e81',
+            'clothing-orange': '#ea580c'
+          };
+          previewArea.innerHTML = `<div style="width:28px;height:28px;border-radius:4px;background:${clothingColorMap[item.id] || '#ccc'};border:2px solid var(--border-light);box-shadow:inset 0 2px 4px rgba(0,0,0,0.1)"></div>`;
+        } else if (category === 'backgroundColor') {
+          const bgColorMap = {
+            'color-gray': '#1e293b',
+            'color-teal': '#0f766e',
+            'color-clay': '#9a3412',
+            'color-violet': '#581c87',
+            'color-gold': '#78350f',
+            'color-slate': '#0f172a',
+            'color-blue': '#1e3a8a',
+            'color-green': '#064e3b',
+            'color-rose': '#881337'
+          };
+          previewArea.innerHTML = `<div style="width:28px;height:28px;border-radius:4px;background:${bgColorMap[item.id] || '#ccc'};border:2px solid var(--border-light);box-shadow:inset 0 2px 4px rgba(0,0,0,0.1)"></div>`;
+        } else {
+          const config = { ...tempAvatarConfig, [category]: item.id };
+          previewArea.innerHTML = window.TWS.renderAvatarSVG(config);
+        }
+      }
+
       card.addEventListener('click', () => {
         if (!isUnlocked) {
           window.TWS.showToast(`Locked: ${item.description || 'Unavailable'}`);

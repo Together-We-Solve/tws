@@ -55,6 +55,12 @@
         meta: 'Resolved work'
       },
       {
+        title: 'Cosmetics Marketplace',
+        body: 'Spend your Impact Points to unlock high-quality avatar items and banners.',
+        href: 'marketplace.html',
+        meta: 'Rewards Store'
+      },
+      {
         title: 'Profile Settings',
         body: 'Update your public identity, username, specialty, and avatar initials.',
         href: 'user-settings.html',

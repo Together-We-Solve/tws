@@ -1,6 +1,6 @@
 # Agent Instructions for Together We Solve
 
-Last updated: 2026-06-27 (Avatar & Marketplace system added)
+Last updated: 2026-06-28 (Avatar shapes changed from circles to rounded rectangles and more accent colors added)
 
 This file is the required first read for AI agents working in this workspace. Use it to understand the project quickly. Do not scan the whole repository unless the task requires it.
 

@@ -466,7 +466,12 @@
 
   function impactPointsFromStats(raw = {}) {
     const stats = raw.stats || {};
-    return Number(stats.impactPoints ?? raw.impactPoints ?? stats.totalImpactPoints ?? raw.points) || 0;
+    return Number(stats.totalImpactPoints ?? stats.impactPoints ?? raw.points ?? raw.impactPoints ?? 0) || 0;
+  }
+
+  function spendablePointsFromStats(raw = {}) {
+    const stats = raw.stats || {};
+    return Number(stats.impactPoints ?? raw.points ?? raw.impactPoints ?? stats.totalImpactPoints ?? 0) || 0;
   }
 
   function experienceFromStats(raw = {}) {
@@ -616,6 +621,7 @@
     const displayName = raw.displayName || raw.name || raw.username || 'Together We Solve Member';
     const username = toUsername(raw.username || displayName);
     const totalImpactPoints = impactPointsFromStats(raw);
+    const spendablePoints = spendablePointsFromStats(raw);
     const experience = experienceFromStats(raw);
     const progression = raw.progression || progressionFromExperience(experience);
     const adminRole = adminRoleFor(raw);
@@ -651,12 +657,13 @@
       profileAccent: raw.profileAccent || 'moss',
       availability: raw.availability || '',
       experience,
-      impactPoints: totalImpactPoints,
-      points: totalImpactPoints,
+      impactPoints: spendablePoints,
+      points: spendablePoints,
+      totalImpactPoints: totalImpactPoints,
       solved: problemsSolved,
       initials: raw.initials || initialsFromName(displayName),
       badges: normalizeBadges(raw.badges, raw),
-      stats: { ...stats, experience, impactPoints: totalImpactPoints, totalImpactPoints, problemsSolved }
+      stats: { ...stats, experience, impactPoints: spendablePoints, totalImpactPoints, problemsSolved }
     };
   }
 
@@ -1170,7 +1177,8 @@
     if (history.includes(submission.id)) return member;
     const points = Number(submission.impactPointReward) || 0;
     const experience = Number(submission.expReward) || 0;
-    const currentPoints = impactPointsFromStats(member);
+    const currentPoints = spendablePointsFromStats(member);
+    const previousTotalPoints = impactPointsFromStats(member);
     const currentExperience = experienceFromStats(member);
     const completedTasks = Number(member.stats?.communityTasksCompleted || 0) + 1;
     const nextProfile = {
@@ -1191,7 +1199,7 @@
         ...(member.stats || {}),
         experience: currentExperience + experience,
         impactPoints: currentPoints + points,
-        totalImpactPoints: currentPoints + points,
+        totalImpactPoints: previousTotalPoints + points,
         communityTasksCompleted: completedTasks
       }
     };
@@ -1990,6 +1998,9 @@
       { id: 'hair-silver', name: 'Silver Hair', category: 'hairColor', rarity: 'Rare', acquisition: 'Level', reqLevel: 4, description: 'Sleek silver hair color.', enabled: true, releaseDate: '2026-06-27' },
       { id: 'hair-green', name: 'Neon Green', category: 'hairColor', rarity: 'Epic', acquisition: 'Marketplace', price: 5, description: 'Glow in the dark neon green hair color.', enabled: true, releaseDate: '2026-06-27' },
       { id: 'hair-rainbow', name: 'Rainbow Glow', category: 'hairColor', rarity: 'Mythic', acquisition: 'Achievement', reqAchievement: 'golden-heart', description: 'An animated rainbow color palette.', enabled: true, releaseDate: '2026-06-27' },
+      { id: 'hair-purple', name: 'Plum Purple', category: 'hairColor', rarity: 'Uncommon', acquisition: 'Level', reqLevel: 2, description: 'A rich plum purple hair color.', enabled: true, releaseDate: '2026-06-27' },
+      { id: 'hair-pink', name: 'Bubblegum Pink', category: 'hairColor', rarity: 'Rare', acquisition: 'Level', reqLevel: 3, description: 'A cute bubblegum pink hair color.', enabled: true, releaseDate: '2026-06-27' },
+      { id: 'hair-cyan', name: 'Cyber Cyan', category: 'hairColor', rarity: 'Epic', acquisition: 'Marketplace', price: 6, description: 'A glowing cybernetic cyan hair color.', enabled: true, releaseDate: '2026-06-27' },
       { id: 'eyes-classic', name: 'Classic Eyes', category: 'eyes', rarity: 'Common', acquisition: 'Level', reqLevel: 1, description: 'Simple expressive eyes.', enabled: true, releaseDate: '2026-06-27' },
       { id: 'eyes-happy', name: 'Happy Eyes', category: 'eyes', rarity: 'Common', acquisition: 'Level', reqLevel: 1, description: 'Cheerful squinting eyes.', enabled: true, releaseDate: '2026-06-27' },
       { id: 'eyes-serious', name: 'Serious Eyes', category: 'eyes', rarity: 'Uncommon', acquisition: 'Level', reqLevel: 2, description: 'Determined focused gaze.', enabled: true, releaseDate: '2026-06-27' },
@@ -1999,6 +2010,9 @@
       { id: 'eye-blue', name: 'Blue Eyes', category: 'eyeColor', rarity: 'Common', acquisition: 'Level', reqLevel: 1, description: 'Cool blue eyes.', enabled: true, releaseDate: '2026-06-27' },
       { id: 'eye-green', name: 'Green Eyes', category: 'eyeColor', rarity: 'Uncommon', acquisition: 'Level', reqLevel: 2, description: 'Rich green eyes.', enabled: true, releaseDate: '2026-06-27' },
       { id: 'eye-purple', name: 'Purple Glow', category: 'eyeColor', rarity: 'Epic', acquisition: 'Marketplace', price: 8, description: 'Mystical purple glowing eyes.', enabled: true, releaseDate: '2026-06-27' },
+      { id: 'eye-amber', name: 'Amber Gold', category: 'eyeColor', rarity: 'Uncommon', acquisition: 'Level', reqLevel: 2, description: 'Warm amber gold eyes.', enabled: true, releaseDate: '2026-06-27' },
+      { id: 'eye-gray', name: 'Steel Gray', category: 'eyeColor', rarity: 'Common', acquisition: 'Level', reqLevel: 1, description: 'Cool steel gray eyes.', enabled: true, releaseDate: '2026-06-27' },
+      { id: 'eye-pink', name: 'Rose Pink', category: 'eyeColor', rarity: 'Rare', acquisition: 'Marketplace', price: 5, description: 'Glowing rose pink eyes.', enabled: true, releaseDate: '2026-06-27' },
       { id: 'eyebrows-flat', name: 'Flat Eyebrows', category: 'eyebrows', rarity: 'Common', acquisition: 'Level', reqLevel: 1, description: 'Simple flat eyebrows.', enabled: true, releaseDate: '2026-06-27' },
       { id: 'eyebrows-curved', name: 'Curved Eyebrows', category: 'eyebrows', rarity: 'Common', acquisition: 'Level', reqLevel: 1, description: 'Arched eyebrows.', enabled: true, releaseDate: '2026-06-27' },
       { id: 'eyebrows-angry', name: 'Angry Eyebrows', category: 'eyebrows', rarity: 'Uncommon', acquisition: 'Level', reqLevel: 2, description: 'Slanted angry eyebrows.', enabled: true, releaseDate: '2026-06-27' },
@@ -2036,6 +2050,10 @@
       { id: 'clothing-ocean', name: 'Ocean Blue', category: 'clothingColor', rarity: 'Common', acquisition: 'Level', reqLevel: 1, description: 'Ocean blue clothing color.', enabled: true, releaseDate: '2026-06-27' },
       { id: 'clothing-royal', name: 'Royal Indigo', category: 'clothingColor', rarity: 'Rare', acquisition: 'Level', reqLevel: 4, description: 'Deep royal blue clothing color.', enabled: true, releaseDate: '2026-06-27' },
       { id: 'clothing-orange', name: 'Neon Orange', category: 'clothingColor', rarity: 'Epic', acquisition: 'Marketplace', price: 6, description: 'Glowing orange clothing color.', enabled: true, releaseDate: '2026-06-27' },
+      { id: 'clothing-gold', name: 'Golden Thread', category: 'clothingColor', rarity: 'Uncommon', acquisition: 'Level', reqLevel: 3, description: 'An elegant golden thread clothing color.', enabled: true, releaseDate: '2026-06-27' },
+      { id: 'clothing-purple', name: 'Plum Velvet', category: 'clothingColor', rarity: 'Uncommon', acquisition: 'Level', reqLevel: 2, description: 'A cozy plum velvet clothing color.', enabled: true, releaseDate: '2026-06-27' },
+      { id: 'clothing-emerald', name: 'Emerald Satin', category: 'clothingColor', rarity: 'Rare', acquisition: 'Level', reqLevel: 4, description: 'A rich emerald satin clothing color.', enabled: true, releaseDate: '2026-06-27' },
+      { id: 'clothing-crimson', name: 'Crimson Wool', category: 'clothingColor', rarity: 'Rare', acquisition: 'Marketplace', price: 4, description: 'A classic crimson wool clothing color.', enabled: true, releaseDate: '2026-06-27' },
       { id: 'jacket-none', name: 'No Jacket', category: 'jacket', rarity: 'Common', acquisition: 'Level', reqLevel: 1, description: 'No jacket.', enabled: true, releaseDate: '2026-06-27' },
       { id: 'jacket-denim', name: 'Denim Vest', category: 'jacket', rarity: 'Uncommon', acquisition: 'Level', reqLevel: 3, description: 'A rugged denim outer vest.', enabled: true, releaseDate: '2026-06-27' },
       { id: 'jacket-leather', name: 'Bomber Jacket', category: 'jacket', rarity: 'Rare', acquisition: 'Marketplace', price: 12, description: 'A premium leather bomber jacket.', enabled: true, releaseDate: '2026-06-27' },
@@ -2053,6 +2071,11 @@
       { id: 'color-teal', name: 'Soft Teal', category: 'backgroundColor', rarity: 'Common', acquisition: 'Level', reqLevel: 1, description: 'Teal background color.', enabled: true, releaseDate: '2026-06-27' },
       { id: 'color-clay', name: 'Soft Clay', category: 'backgroundColor', rarity: 'Common', acquisition: 'Level', reqLevel: 1, description: 'Clay background color.', enabled: true, releaseDate: '2026-06-27' },
       { id: 'color-violet', name: 'Neon Violet', category: 'backgroundColor', rarity: 'Epic', acquisition: 'Marketplace', price: 5, description: 'Vibrant neon purple background color.', enabled: true, releaseDate: '2026-06-27' },
+      { id: 'color-slate', name: 'Midnight Slate', category: 'backgroundColor', rarity: 'Common', acquisition: 'Level', reqLevel: 1, description: 'A deep midnight slate background color.', enabled: true, releaseDate: '2026-06-27' },
+      { id: 'color-blue', name: 'Ocean Blue', category: 'backgroundColor', rarity: 'Common', acquisition: 'Level', reqLevel: 2, description: 'A cool ocean blue background color.', enabled: true, releaseDate: '2026-06-27' },
+      { id: 'color-green', name: 'Forest Green', category: 'backgroundColor', rarity: 'Common', acquisition: 'Level', reqLevel: 3, description: 'A deep forest green background color.', enabled: true, releaseDate: '2026-06-27' },
+      { id: 'color-rose', name: 'Rose Red', category: 'backgroundColor', rarity: 'Uncommon', acquisition: 'Level', reqLevel: 4, description: 'A soft rose red background color.', enabled: true, releaseDate: '2026-06-27' },
+      { id: 'color-gold', name: 'Golden Glow', category: 'backgroundColor', rarity: 'Rare', acquisition: 'Marketplace', price: 5, description: 'A premium golden glow background color.', enabled: true, releaseDate: '2026-06-27' },
       { id: 'effect-none', name: 'No Effect', category: 'effect', rarity: 'Common', acquisition: 'Level', reqLevel: 1, description: 'No screen overlays.', enabled: true, releaseDate: '2026-06-27' },
       { id: 'effect-leaves', name: 'Falling Leaves', category: 'effect', rarity: 'Uncommon', acquisition: 'Level', reqLevel: 3, description: 'Serene leaves floating down.', enabled: true, releaseDate: '2026-06-27' },
       { id: 'effect-sparkles', name: 'Sparkles', category: 'effect', rarity: 'Rare', acquisition: 'Level', reqLevel: 6, description: 'Golden sparkles floating around.', enabled: true, releaseDate: '2026-06-27' },
@@ -2244,13 +2267,19 @@
       'hair-red': 'url(#grad-hair-red)',
       'hair-silver': 'url(#grad-hair-silver)',
       'hair-green': 'url(#grad-hair-green)',
+      'hair-purple': 'url(#grad-hair-purple)',
+      'hair-pink': 'url(#grad-hair-pink)',
+      'hair-cyan': 'url(#grad-hair-cyan)',
       'hair-rainbow': 'url(#rainbow-hair)'
     };
     const eyeColorMap = {
       'eye-brown': 'url(#grad-eye-brown)',
       'eye-blue': 'url(#grad-eye-blue)',
       'eye-green': 'url(#grad-eye-green)',
-      'eye-purple': 'url(#grad-eye-purple)'
+      'eye-purple': 'url(#grad-eye-purple)',
+      'eye-amber': 'url(#grad-eye-amber)',
+      'eye-gray': 'url(#grad-eye-gray)',
+      'eye-pink': 'url(#grad-eye-pink)'
     };
     const clothingColorMap = {
       'clothing-gray': '#4b5563',
@@ -2258,7 +2287,11 @@
       'clothing-clay': '#c87d55',
       'clothing-ocean': '#3d5a6c',
       'clothing-royal': '#312e81',
-      'clothing-orange': '#ea580c'
+      'clothing-orange': '#ea580c',
+      'clothing-gold': '#d97706',
+      'clothing-purple': '#581c87',
+      'clothing-emerald': '#059669',
+      'clothing-crimson': '#be123c'
     };
     const bgColorMap = {
       'color-gray': '#1e293b',
@@ -2281,6 +2314,7 @@
 
     let svg = `<svg viewBox="0 0 200 200" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">`;
     svg += `<defs>`;
+    svg += `<clipPath id="avatar-clip"><rect width="200" height="200" rx="20" /></clipPath>`;
     
     svg += `<linearGradient id="grad-skin-peach" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#fff5eb"/><stop offset="40%" stop-color="#ffd8b3"/><stop offset="100%" stop-color="#f2b280"/></linearGradient>`;
     svg += `<linearGradient id="grad-skin-tan" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ffe3cc"/><stop offset="50%" stop-color="#e0a96d"/><stop offset="100%" stop-color="#bc7c41"/></linearGradient>`;
@@ -2297,34 +2331,90 @@
     svg += `<linearGradient id="grad-hair-red" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#f87171"/><stop offset="100%" stop-color="#991b1b"/></linearGradient>`;
     svg += `<linearGradient id="grad-hair-silver" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#f1f5f9"/><stop offset="100%" stop-color="#94a3b8"/></linearGradient>`;
     svg += `<linearGradient id="grad-hair-green" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#4ade80"/><stop offset="100%" stop-color="#166534"/></linearGradient>`;
+    svg += `<linearGradient id="grad-hair-purple" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#a855f7"/><stop offset="100%" stop-color="#581c87"/></linearGradient>`;
+    svg += `<linearGradient id="grad-hair-pink" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#f472b6"/><stop offset="100%" stop-color="#be123c"/></linearGradient>`;
+    svg += `<linearGradient id="grad-hair-cyan" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#22d3ee"/><stop offset="100%" stop-color="#0891b2"/></linearGradient>`;
     
     svg += `<linearGradient id="grad-eye-brown" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#b45309"/><stop offset="100%" stop-color="#451a03"/></linearGradient>`;
     svg += `<linearGradient id="grad-eye-blue" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#60a5fa"/><stop offset="100%" stop-color="#1d4ed8"/></linearGradient>`;
     svg += `<linearGradient id="grad-eye-green" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#34d399"/><stop offset="100%" stop-color="#065f46"/></linearGradient>`;
     svg += `<linearGradient id="grad-eye-purple" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#c084fc"/><stop offset="100%" stop-color="#6b21a8"/></linearGradient>`;
+    svg += `<linearGradient id="grad-eye-amber" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#facc15"/><stop offset="100%" stop-color="#ca8a04"/></linearGradient>`;
+    svg += `<linearGradient id="grad-eye-gray" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#94a3b8"/><stop offset="100%" stop-color="#475569"/></linearGradient>`;
+    svg += `<linearGradient id="grad-eye-pink" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#f472b6"/><stop offset="100%" stop-color="#9d174d"/></linearGradient>`;
 
     svg += `<linearGradient id="rainbow-hair" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ef4444"/><stop offset="20%" stop-color="#f97316"/><stop offset="40%" stop-color="#eab308"/><stop offset="60%" stop-color="#22c55e"/><stop offset="80%" stop-color="#3b82f6"/><stop offset="100%" stop-color="#a855f7"/></linearGradient>`;
     svg += `<linearGradient id="grad-neck-shadow" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="rgba(0,0,0,0.25)"/><stop offset="100%" stop-color="rgba(0,0,0,0)"/></linearGradient>`;
     svg += `<linearGradient id="grad-cyborg-plating" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#cbd5e1"/><stop offset="50%" stop-color="#64748b"/><stop offset="100%" stop-color="#334155"/></linearGradient>`;
+    svg += `<linearGradient id="grad-wing-gold" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#fbbf24"/><stop offset="100%" stop-color="#b45309"/></linearGradient>`;
+    svg += `<linearGradient id="grad-jetpack-body" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#94a3b8"/><stop offset="50%" stop-color="#475569"/><stop offset="100%" stop-color="#334155"/></linearGradient>`;
+    svg += `<linearGradient id="grad-thrust-fire" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#facc15"/><stop offset="40%" stop-color="#f97316"/><stop offset="100%" stop-color="#ef4444" stop-opacity="0"/></linearGradient>`;
+    svg += `<linearGradient id="grad-space-suit" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#ffffff"/><stop offset="100%" stop-color="#e2e8f0"/></linearGradient>`;
+    svg += `<linearGradient id="grad-crown-gold" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#fbbf24"/><stop offset="50%" stop-color="#f59e0b"/><stop offset="100%" stop-color="#d97706"/></linearGradient>`;
+    svg += `<radialGradient id="grad-crown-velvet" cx="50%" cy="40%" r="60%"><stop offset="0%" stop-color="#b91c1c"/><stop offset="100%" stop-color="#450a0a"/></radialGradient>`;
     
     svg += `<radialGradient id="bg-radial-grad" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#ffffff" stop-opacity="0.25"/><stop offset="100%" stop-color="#000000" stop-opacity="0.4"/></radialGradient>`;
     svg += `<pattern id="grid-pattern" width="16" height="16" patternUnits="userSpaceOnUse"><path d="M 16 0 L 0 0 0 16" fill="none" stroke="#ffffff" stroke-width="0.5" opacity="0.12"/></pattern>`;
     svg += `<pattern id="matrix-pattern" width="20" height="20" patternUnits="userSpaceOnUse"><text x="2" y="12" fill="#22c55e" font-family="monospace" font-size="8" opacity="0.25">0</text><text x="12" y="18" fill="#22c55e" font-family="monospace" font-size="8" opacity="0.2">1</text></pattern>`;
     svg += `</defs>`;
+    svg += `<g clip-path="url(#avatar-clip)">`;
 
     const bgMap = {
-      'bg-solid': `<rect width="200" height="200" fill="${bgColor}" />`,
-      'bg-radial': `<rect width="200" height="200" fill="${bgColor}" /><rect width="200" height="200" fill="url(#bg-radial-grad)" />`,
-      'bg-grid': `<rect width="200" height="200" fill="${bgColor}" /><rect width="200" height="200" fill="url(#grid-pattern)" />`,
-      'bg-starfield': `<rect width="200" height="200" fill="${bgColor}" /><g fill="#ffffff"><circle cx="25" cy="35" r="1.5" opacity="0.8"/><circle cx="170" cy="45" r="1.2" opacity="0.9"/><circle cx="100" cy="25" r="1" opacity="0.7"/><circle cx="45" cy="95" r="1.8" opacity="0.8"/><circle cx="185" cy="125" r="1.2" opacity="0.6"/><circle cx="35" cy="155" r="1.5" opacity="0.9"/><circle cx="155" cy="165" r="2" opacity="0.8"/></g>`,
-      'bg-matrix': `<rect width="200" height="200" fill="#020617" /><rect width="200" height="200" fill="url(#matrix-pattern)" />`
+      'bg-solid': `<rect width="200" height="200" rx="20" fill="${bgColor}" />`,
+      'bg-radial': `<rect width="200" height="200" rx="20" fill="${bgColor}" /><rect width="200" height="200" rx="20" fill="url(#bg-radial-grad)" />`,
+      'bg-grid': `<rect width="200" height="200" rx="20" fill="${bgColor}" /><rect width="200" height="200" rx="20" fill="url(#grid-pattern)" />`,
+      'bg-starfield': `<rect width="200" height="200" rx="20" fill="${bgColor}" /><g fill="#ffffff"><circle cx="25" cy="35" r="1.5" opacity="0.8"/><circle cx="170" cy="45" r="1.2" opacity="0.9"/><circle cx="100" cy="25" r="1" opacity="0.7"/><circle cx="45" cy="95" r="1.8" opacity="0.8"/><circle cx="185" cy="125" r="1.2" opacity="0.6"/><circle cx="35" cy="155" r="1.5" opacity="0.9"/><circle cx="155" cy="165" r="2" opacity="0.8"/></g>`,
+      'bg-matrix': `<rect width="200" height="200" rx="20" fill="#020617" /><rect width="200" height="200" rx="20" fill="url(#matrix-pattern)" />`
     };
-    svg += bgMap[config.background] || `<rect width="200" height="200" fill="${bgColor}" />`;
+    svg += bgMap[config.background] || `<rect width="200" height="200" rx="20" fill="${bgColor}" />`;
 
     const bpMap = {
       'canvas-straps': `<path d="M55 135 L60 175 M145 135 L140 175" stroke="#451a03" stroke-width="7" stroke-linecap="round" /><path d="M55 135 L60 175 M145 135 L140 175" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-dasharray="3 3" />`,
-      'angel-wings': `<path d="M60 140 C45 110, 5 70, 20 50 C35 30, 65 60, 60 110 C58 120, 60 140, 60 140" fill="#ffffff" stroke="#e2e8f0" stroke-width="2" /><path d="M140 140 C155 110, 195 70, 180 50 C165 30, 135 60, 140 110 C142 120, 140 140, 140 140" fill="#ffffff" stroke="#e2e8f0" stroke-width="2" /><path d="M60 140 C50 120, 20 90, 30 75" fill="none" stroke="#e2e8f0" stroke-width="1.5" /><path d="M140 140 C150 120, 180 90, 170 75" fill="none" stroke="#e2e8f0" stroke-width="1.5" />`,
-      'jetpack-boosters': `<rect x="30" y="110" width="22" height="65" rx="6" fill="#475569" stroke="#334155" stroke-width="2" /><rect x="148" y="110" width="22" height="65" rx="6" fill="#475569" stroke="#334155" stroke-width="2" /><path d="M41 175 L36 195 L46 195 Z" fill="#ea580c" /><path d="M41 175 L38 188 L44 188 Z" fill="#facc15" /><path d="M159 175 L154 195 L164 195 Z" fill="#ea580c" /><path d="M159 175 L156 188 L162 188 Z" fill="#facc15" />`
+      'angel-wings': `
+        <filter id="wing-glow" x="-20%" y="-20%" width="140%" height="140%">
+          <feGaussianBlur stdDeviation="3" result="blur" />
+          <feComposite in="SourceGraphic" in2="blur" operator="over" />
+        </filter>
+        <!-- Left Wing -->
+        <g filter="url(#wing-glow)">
+          <path d="M 60 140 C 40 100, -5 60, 10 35 C 20 20, 50 40, 60 80 C 65 95, 60 140, 60 140" fill="url(#grad-wing-gold)" opacity="0.65" />
+          <path d="M 60 140 C 45 105, 5 70, 18 50 C 30 35, 55 55, 60 95 C 62 105, 60 140, 60 140" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5" />
+          <path d="M 58 135 C 48 110, 20 85, 28 70 C 36 58, 52 75, 56 105" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.2" />
+          <path d="M 56 130 C 50 115, 35 95, 38 85 C 42 77, 50 88, 52 110" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1" />
+          <path d="M 18 50 C 30 35, 55 55, 60 95" fill="none" stroke="#fbbf24" stroke-width="1.5" opacity="0.85" />
+        </g>
+        <!-- Right Wing -->
+        <g filter="url(#wing-glow)">
+          <path d="M 140 140 C 160 100, 205 60, 190 35 C 180 20, 150 40, 140 80 C 135 95, 140 140, 140 140" fill="url(#grad-wing-gold)" opacity="0.65" />
+          <path d="M 140 140 C 155 105, 195 70, 182 50 C 170 35, 145 55, 140 95 C 138 105, 140 140, 140 140" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5" />
+          <path d="M 142 135 C 152 110, 180 85, 172 70 C 164 58, 148 75, 144 105" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.2" />
+          <path d="M 144 130 C 150 115, 165 95, 162 85 C 158 77, 150 88, 148 110" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1" />
+          <path d="M 182 50 C 170 35, 145 55, 140 95" fill="none" stroke="#fbbf24" stroke-width="1.5" opacity="0.85" />
+        </g>
+      `,
+      'jetpack-boosters': `
+        <!-- Left Rocket -->
+        <rect x="28" y="105" width="26" height="70" rx="8" fill="url(#grad-jetpack-body)" stroke="#1e293b" stroke-width="2" />
+        <rect x="28" y="118" width="26" height="6" fill="#94a3b8" />
+        <rect x="28" y="148" width="26" height="6" fill="#94a3b8" />
+        <line x1="54" y1="125" x2="62" y2="135" stroke="#cbd5e1" stroke-width="1.5" />
+        <circle cx="41" cy="133" r="5" fill="#f1f5f9" stroke="#0f172a" stroke-width="1" />
+        <line x1="41" y1="133" x2="44" y2="130" stroke="#ef4444" stroke-width="1" />
+        <path d="M33 175 L49 175 L52 183 L30 183 Z" fill="#334155" stroke="#1e293b" stroke-width="1.5" />
+        <path d="M41 183 L28 205 L54 205 Z" fill="url(#grad-thrust-fire)" opacity="0.95" />
+        <path d="M41 183 L34 198 L48 198 Z" fill="#fde047" />
+
+        <!-- Right Rocket -->
+        <rect x="146" y="105" width="26" height="70" rx="8" fill="url(#grad-jetpack-body)" stroke="#1e293b" stroke-width="2" />
+        <rect x="146" y="118" width="26" height="6" fill="#94a3b8" />
+        <rect x="146" y="148" width="26" height="6" fill="#94a3b8" />
+        <line x1="146" y1="125" x2="138" y2="135" stroke="#cbd5e1" stroke-width="1.5" />
+        <circle cx="159" cy="133" r="5" fill="#f1f5f9" stroke="#0f172a" stroke-width="1" />
+        <line x1="159" y1="133" x2="162" y2="130" stroke="#ef4444" stroke-width="1" />
+        <path d="M151 175 L167 175 L170 183 L148 183 Z" fill="#334155" stroke="#1e293b" stroke-width="1.5" />
+        <path d="M159 183 L146 205 L172 205 Z" fill="url(#grad-thrust-fire)" opacity="0.95" />
+        <path d="M159 183 L152 198 L166 198 Z" fill="#fde047" />
+      `
     };
     svg += bpMap[config.backpack] || '';
 
@@ -2332,12 +2422,23 @@
     svg += `<rect x="90" y="110" width="20" height="15" fill="url(#grad-neck-shadow)" />`;
 
     const faceMap = {
-      'face-round': `<ellipse cx="100" cy="85" rx="36" ry="39" fill="${skinColor}" /><ellipse cx="100" cy="95" rx="30" ry="12" fill="url(#grad-neck-shadow)" opacity="0.3"/>`,
-      'face-oval': `<ellipse cx="100" cy="85" rx="33" ry="43" fill="${skinColor}" /><ellipse cx="100" cy="98" rx="27" ry="12" fill="url(#grad-neck-shadow)" opacity="0.3"/>`,
-      'face-square': `<rect x="66" y="46" width="68" height="76" rx="16" fill="${skinColor}" /><rect x="72" y="98" width="56" height="18" fill="url(#grad-neck-shadow)" opacity="0.3"/>`,
-      'face-heart': `<path d="M100 126 C66 103 58 71 68 56 C78 41 95 49 100 61 C105 49 122 41 132 56 C142 71 134 103 100 126 Z" fill="${skinColor}" />`,
-      'face-chiseled': `<path d="M100 128 L66 90 L66 58 C66 43, 134 43, 134 58 L134 90 Z" fill="${skinColor}" /><path d="M100 128 L66 90 L100 85 Z" fill="url(#grad-neck-shadow)" opacity="0.15"/>`,
-      'face-cyborg': `<ellipse cx="100" cy="85" rx="36" ry="39" fill="${skinColor}" /><path d="M100 46 C120 46, 136 63, 136 85 C136 107, 120 124, 100 124 Z" fill="url(#grad-cyborg-plating)" /><path d="M104 55 H120 V59 H104 Z" fill="#ef4444" /><path d="M110 95 H126 V99 H110 Z" fill="#ef4444" /><line x1="100" y1="46" x2="100" y2="124" stroke="#1e293b" stroke-width="1.5" />`
+      'face-round': `<ellipse cx="100" cy="85" rx="36" ry="39" fill="${skinColor}" /><ellipse cx="100" cy="95" rx="30" ry="12" fill="url(#grad-neck-shadow)" opacity="0.3"/><circle cx="76" cy="94" r="5" fill="#f87171" opacity="0.2" /><circle cx="124" cy="94" r="5" fill="#f87171" opacity="0.2" />`,
+      'face-oval': `<ellipse cx="100" cy="85" rx="33" ry="43" fill="${skinColor}" /><ellipse cx="100" cy="98" rx="27" ry="12" fill="url(#grad-neck-shadow)" opacity="0.3"/><circle cx="78" cy="95" r="4.5" fill="#f87171" opacity="0.25" /><circle cx="122" cy="95" r="4.5" fill="#f87171" opacity="0.25" />`,
+      'face-square': `<rect x="66" y="46" width="68" height="76" rx="16" fill="${skinColor}" /><rect x="72" y="98" width="56" height="18" fill="url(#grad-neck-shadow)" opacity="0.3"/><circle cx="78" cy="96" r="4.5" fill="#f87171" opacity="0.2" /><circle cx="122" cy="96" r="4.5" fill="#f87171" opacity="0.2" />`,
+      'face-heart': `<path d="M100 126 C66 103 58 71 68 56 C78 41 95 49 100 61 C105 49 122 41 132 56 C142 71 134 103 100 126 Z" fill="${skinColor}" /><circle cx="80" cy="90" r="4.5" fill="#f87171" opacity="0.2" /><circle cx="120" cy="90" r="4.5" fill="#f87171" opacity="0.2" />`,
+      'face-chiseled': `<path d="M100 128 L66 90 L66 58 C66 43, 134 43, 134 58 L134 90 Z" fill="${skinColor}" /><path d="M100 128 L66 90 L100 85 Z" fill="url(#grad-neck-shadow)" opacity="0.15"/><circle cx="78" cy="93" r="4" fill="#f87171" opacity="0.2" /><circle cx="122" cy="93" r="4" fill="#f87171" opacity="0.2" />`,
+      'face-cyborg': `
+        <ellipse cx="100" cy="85" rx="36" ry="39" fill="${skinColor}" />
+        <path d="M100 46 C120 46, 136 63, 136 85 C136 107, 120 124, 100 124 Z" fill="url(#grad-cyborg-plating)" stroke="#1e293b" stroke-width="1.5" />
+        <path d="M100 46 Q108 85 100 124" fill="none" stroke="#1e293b" stroke-width="2" />
+        <path d="M108 60 H124" stroke="#00f2fe" stroke-width="2.5" stroke-linecap="round" />
+        <path d="M106 95 H128" stroke="#00f2fe" stroke-width="2.5" stroke-linecap="round" />
+        <circle cx="120" cy="74" r="2.5" fill="#f43f5e" />
+        <circle cx="114" cy="110" r="2.5" fill="#10b981" />
+        <circle cx="122" cy="94" r="3.5" fill="#00f2fe" opacity="0.5" />
+        <path d="M120 74 L128 78" stroke="#1e293b" stroke-width="1" />
+        <rect x="131" y="76" width="6" height="12" rx="2" fill="#475569" stroke="#1e293b" stroke-width="1" />
+      `
     };
     svg += faceMap[config.face] || `<ellipse cx="100" cy="85" rx="36" ry="39" fill="${skinColor}" />`;
 
@@ -2346,12 +2447,39 @@
       'clothing-polo': `<path d="M45 135 C45 135, 58 133, 75 133 L125 133 C142 133, 155 135, 155 135 C172 143, 182 168, 182 200 L18 200 C18 168, 28 143, 45 135 Z" fill="${clothingColor}" /><path d="M85 133 L100 158 L115 133 Z" fill="#ffffff" /><path d="M76 133 L100 152 L100 133 Z" fill="${clothingColor}" /><path d="M124 133 L100 152 L100 133 Z" fill="${clothingColor}" /><circle cx="100" cy="165" r="1.5" fill="#1e293b" />`,
       'clothing-hoodie': `<path d="M45 135 C45 135, 58 133, 75 133 L125 133 C142 133, 155 135, 155 135 C172 143, 182 168, 182 200 L18 200 C18 168, 28 143, 45 135 Z" fill="${clothingColor}" /><path d="M72 133 Q100 162 128 133 Z" fill="#1e293b" /><path d="M96 160 L96 182 M104 160 L104 182" stroke="#e2e8f0" stroke-width="1.5" stroke-linecap="round" />`,
       'clothing-suit': `<path d="M45 135 C45 135, 58 133, 75 133 L125 133 C142 133, 155 135, 155 135 C172 143, 182 168, 182 200 L18 200 C18 168, 28 143, 45 135 Z" fill="#0f172a" /><path d="M85 133 L100 172 L115 133 Z" fill="#ffffff" /><path d="M96 137 L104 137 L100 170 Z" fill="#991b1b" /><path d="M45 135 L90 185 L90 133 Z" fill="#1e293b" /><path d="M155 135 L110 185 L110 133 Z" fill="#1e293b" />`,
-      'clothing-space': `<path d="M45 135 C45 135, 58 133, 75 133 L125 133 C142 133, 155 135, 155 135 C172 143, 182 168, 182 200 L18 200 C18 168, 28 143, 45 135 Z" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2" /><rect x="76" y="145" width="48" height="32" rx="4" fill="#334155" /><circle cx="88" cy="161" r="3.5" fill="#ef4444" /><circle cx="100" cy="161" r="3.5" fill="#22c55e" /><circle cx="112" cy="161" r="3.5" fill="#3b82f6" /><path d="M45 135 L70 162 M155 135 L130 162" stroke="#e2e8f0" stroke-width="3" />`
+      'clothing-space': `
+        <path d="M45 135 C45 135, 58 133, 75 133 L125 133 C142 133, 155 135, 155 135 C172 143, 182 168, 182 200 L18 200 C18 168, 28 143, 45 135 Z" fill="url(#grad-space-suit)" stroke="#cbd5e1" stroke-width="2.5" />
+        <path d="M80 133 A20 20 0 0 0 120 133 Z" fill="#0f172a" />
+        <path d="M83 133 A17 17 0 0 0 117 133 Z" fill="${skinColor}" />
+        <rect x="74" y="145" width="52" height="34" rx="6" fill="#1e293b" stroke="#cbd5e1" stroke-width="2" />
+        <circle cx="86" cy="155" r="3" fill="#f43f5e" />
+        <circle cx="100" cy="155" r="3" fill="#10b981" />
+        <circle cx="114" cy="155" r="3" fill="#3b82f6" />
+        <rect x="83" y="165" width="34" height="8" rx="2" fill="#020617" />
+        <line x1="86" y1="169" x2="114" y2="169" stroke="#22c55e" stroke-width="1.5" stroke-dasharray="2 1" />
+        <path d="M48 136 L68 178" stroke="#334155" stroke-width="4.5" stroke-linecap="round" />
+        <path d="M152 136 L132 178" stroke="#334155" stroke-width="4.5" stroke-linecap="round" />
+        <circle cx="68" cy="178" r="4.5" fill="#94a3b8" stroke="#1e293b" stroke-width="1.5" />
+        <circle cx="132" cy="178" r="4.5" fill="#94a3b8" stroke="#1e293b" stroke-width="1.5" />
+        <path d="M50 190 Q70 195 74 175" fill="none" stroke="#cbd5e1" stroke-width="3" stroke-linecap="round" />
+        <path d="M150 190 Q130 195 126 175" fill="none" stroke="#cbd5e1" stroke-width="3" stroke-linecap="round" />
+      `
     };
-    svg += clothingMap[config.clothing] || `<path d="M45 135 C45 135, 58 133, 75 133 L125 133 C142 133, 155 135, 155 135 C172 143, 182 168, 182 200 L18 200 C18 168, 28 143, 45 135 Z" fill="${clothingColor}" />`;
+    svg += clothingMap[config.clothing] || `<path d="M45 135 C45 135, 58 133, 75 133 L125 133 C142 133, 155 135, 155 135 C172 143, 182 168, 182 200 L18 200 C18 168, 28 143, 45 135 Z" fill="${clothingColor}" />;`;
     const jacketMap = {
       'jacket-denim': `<path d="M45 135 L68 200 L38 200 C38 168, 28 143, 45 135 Z" fill="#2563eb" /><path d="M155 135 L132 200 L162 200 C162 168, 172 143, 155 135 Z" fill="#2563eb" /><path d="M45 135 L72 168 L72 133 Z" fill="#1d4ed8" /><path d="M155 135 L128 168 L128 133 Z" fill="#1d4ed8" />`,
-      'jacket-leather': `<path d="M45 135 L68 200 L38 200 C38 168, 28 143, 45 135 Z" fill="#18181b" /><path d="M155 135 L132 200 L162 200 C162 168, 172 143, 155 135 Z" fill="#18181b" /><path d="M45 135 L72 168 L72 133 Z" fill="#27272a" /><path d="M155 135 L128 168 L128 133 Z" fill="#27272a" /><circle cx="55" cy="155" r="2" fill="#cbd5e1" /><circle cx="145" cy="155" r="2" fill="#cbd5e1" />`,
+      'jacket-leather': `
+        <path d="M45 135 L68 200 L38 200 C38 168, 28 143, 45 135 Z" fill="#1e1b4b" stroke="#0f172a" stroke-width="1.5" />
+        <path d="M155 135 L132 200 L162 200 C162 168, 172 143, 155 135 Z" fill="#1e1b4b" stroke="#0f172a" stroke-width="1.5" />
+        <path d="M45 135 L72 168 L72 133 Z" fill="#312e81" stroke="#0f172a" stroke-width="1" />
+        <path d="M155 135 L128 168 L128 133 Z" fill="#312e81" stroke="#0f172a" stroke-width="1" />
+        <circle cx="56" cy="144" r="2.5" fill="#e2e8f0" stroke="#0f172a" stroke-width="1" />
+        <circle cx="144" cy="144" r="2.5" fill="#e2e8f0" stroke="#0f172a" stroke-width="1" />
+        <path d="M72 155 L75 168 M75 168 L71 168" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" />
+        <path d="M128 155 L125 168 M125 168 L129 168" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" />
+        <path d="M38 170 C38 170, 48 185, 68 190" fill="none" stroke="#4338ca" stroke-width="1" stroke-dasharray="2 2" />
+        <path d="M162 170 C162 170, 152 185, 132 190" fill="none" stroke="#4338ca" stroke-width="1" stroke-dasharray="2 2" />
+      `,
       'jacket-cape': `<path d="M42 135 C25 145, 10 170, 10 200 L190 200 C190 170, 175 145, 158 135 Z" fill="#991b1b" /><path d="M42 135 C35 150, 30 180, 25 200" fill="none" stroke="#7f1d1d" stroke-width="2" /><path d="M158 135 C165 150, 170 180, 175 200" fill="none" stroke="#7f1d1d" stroke-width="2" /><circle cx="100" cy="136" r="4.5" fill="#f59e0b" />`
     };
     svg += jacketMap[config.jacket] || '';
@@ -2415,7 +2543,18 @@
       'hat-beanie': `<path d="M61 58 C61 31, 139 31, 139 58 Z" fill="#b91c1c" /><rect x="55" y="53" width="90" height="14" rx="5" fill="#991b1b" /><circle cx="100" cy="27" r="7" fill="#ffffff" /><path d="M70 45 L70 53 M100 40 L100 53 M130 45 L130 53" stroke="rgba(0,0,0,0.15)" stroke-width="1" />`,
       'hat-cap': `<path d="M62 58 C62 31, 138 31, 138 58 Z" fill="#1d4ed8" /><path d="M125 53 L178 53 C178 53, 172 65, 125 65 Z" fill="#1e40af" /><ellipse cx="100" cy="30" rx="3" ry="1.5" fill="#f59e0b" />`,
       'hat-fedora': `<path d="M66 53 C68 26, 132 26, 134 53 Z" fill="#18181b" /><rect x="70" y="45" width="60" height="8" fill="#b91c1c" /><ellipse cx="100" cy="53" rx="58" ry="7" fill="#09090b" /><line x1="70" y1="49" x2="130" y2="49" stroke="#ef4444" stroke-width="0.5" />`,
-      'hat-crown': `<path d="M65 60 L78 35 L92 52 L100 30 L108 52 L122 35 L135 60 Z" fill="#facc15" stroke="#ca8a04" stroke-width="2.5" /><circle cx="78" cy="33" r="3.5" fill="#ef4444" /><circle cx="100" cy="28" r="3.5" fill="#3b82f6" /><circle cx="122" cy="33" r="3.5" fill="#10b981" />`
+      'hat-crown': `
+        <path d="M65 60 L78 32 L92 50 L100 25 L108 50 L122 32 L135 60 Z" fill="url(#grad-crown-gold)" stroke="#b45309" stroke-width="2" />
+        <path d="M71 58 Q100 38 129 58 Z" fill="url(#grad-crown-velvet)" />
+        <path d="M65 60 L78 32 L92 50 L100 25 L108 50 L122 32 L135 60 Z" fill="none" stroke="#fef08a" stroke-width="1.2" />
+        <rect x="68" y="55" width="64" height="6" fill="#d97706" rx="2" />
+        <circle cx="78" cy="32" r="4.5" fill="#ef4444" stroke="#7f1d1d" stroke-width="1" />
+        <circle cx="100" cy="25" r="5" fill="#3b82f6" stroke="#1e3a8a" stroke-width="1" />
+        <circle cx="122" cy="32" r="4.5" fill="#10b981" stroke="#064e3b" stroke-width="1" />
+        <rect x="76" y="56" width="4" height="4" transform="rotate(45 78 58)" fill="#ffffff" />
+        <rect x="100" y="56" width="4" height="4" transform="rotate(45 102 58)" fill="#ffffff" />
+        <rect x="120" y="56" width="4" height="4" transform="rotate(45 122 58)" fill="#ffffff" />
+      `
     };
     let activeHat = config.hat || 'none';
     if (memory.cosmetics) {
@@ -2442,18 +2581,19 @@
     };
     svg += effectMap[config.effect] || '';
     const frameMap = {
-      'frame-silver': `<circle cx="100" cy="100" r="97" fill="none" stroke="#cbd5e1" stroke-width="5" /><circle cx="100" cy="100" r="96" fill="none" stroke="#94a3b8" stroke-width="1.5" />`,
-      'frame-laurel': `<circle cx="100" cy="100" r="97" fill="none" stroke="#fbbf24" stroke-width="4" /><g fill="#fbbf24"><path d="M15 100 Q3 78 15 56 A97 97 0 0 1 15 100 Z"/><path d="M185 100 Q197 78 185 56 A97 97 0 0 0 185 100 Z"/></g>`,
-      'frame-neon': `<circle cx="100" cy="100" r="97" fill="none" stroke="#06b6d4" stroke-width="5" stroke-linecap="round" stroke-dasharray="60 30" /><circle cx="100" cy="100" r="97" fill="none" stroke="#3b82f6" stroke-width="5" stroke-linecap="round" stroke-dasharray="30 60" opacity="0.6"/>`,
-      'frame-diamond': `<circle cx="100" cy="100" r="97" fill="none" stroke="#c084fc" stroke-width="4.5" /><g fill="#a855f7"><polygon points="100,2 106,8 100,14 94,8" /><polygon points="100,198 106,192 100,186 94,192" /><polygon points="2,100 8,106 14,100 8,94" /><polygon points="198,100 192,106 186,100 192,94" /></g>`
+      'frame-silver': `<rect x="4" y="4" width="192" height="192" rx="20" fill="none" stroke="#cbd5e1" stroke-width="5" /><rect x="5.5" y="5.5" width="189" height="189" rx="18.5" fill="none" stroke="#94a3b8" stroke-width="1.5" />`,
+      'frame-laurel': `<rect x="4" y="4" width="192" height="192" rx="20" fill="none" stroke="#fbbf24" stroke-width="4" /><g fill="#fbbf24"><path d="M14 60 Q4 52 14 44 Z"/><path d="M14 100 Q4 92 14 84 Z"/><path d="M14 140 Q4 132 14 124 Z"/><path d="M186 60 Q196 52 186 44 Z"/><path d="M186 100 Q196 92 186 84 Z"/><path d="M186 140 Q196 132 186 124 Z"/></g>`,
+      'frame-neon': `<rect x="4" y="4" width="192" height="192" rx="20" fill="none" stroke="#06b6d4" stroke-width="5" stroke-linecap="round" stroke-dasharray="60 30" /><rect x="4" y="4" width="192" height="192" rx="20" fill="none" stroke="#3b82f6" stroke-width="5" stroke-linecap="round" stroke-dasharray="30 60" opacity="0.6"/>`,
+      'frame-diamond': `<rect x="4" y="4" width="192" height="192" rx="20" fill="none" stroke="#c084fc" stroke-width="4.5" /><g fill="#a855f7"><polygon points="100,2 106,8 100,14 94,8" /><polygon points="100,198 106,192 100,186 94,192" /><polygon points="2,100 8,106 14,100 8,94" /><polygon points="198,100 192,106 186,100 192,94" /></g>`
     };
     svg += frameMap[config.frame] || '';
+    svg += `</g>`;
     svg += `</svg>`;
     return svg;
   }
 
   function renderAvatarHTML(user) {
-    if (!user) return `<div class="avatar-initials">TW</div>`;
+    if (!user) return `<div class="avatar-initials" style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; font-family: var(--font-display); font-weight: 500; background: linear-gradient(135deg, var(--accent-moss) 0%, var(--accent-ocean) 100%); color: var(--bg-warm); font-size: 1.25rem; text-transform: uppercase; letter-spacing: 0.05em; border-radius: 16px;">TW</div>`;
     const avatarStr = user.avatar || user.profilePicture || '';
     if (avatarStr.startsWith('avatar:config:')) {
       try {
@@ -2466,7 +2606,7 @@
       return `<img src="${escapeHTML(avatarStr)}" alt="${escapeHTML(user.displayName || 'Avatar')}" style="width: 100%; height: 100%; object-fit: cover;" />`;
     }
     const initials = user.initials || initialsFromName(user.displayName || user.name || 'TW');
-    return `<div class="avatar-initials" style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; font-family: var(--font-display); font-weight: 500;">${escapeHTML(initials)}</div>`;
+    return `<div class="avatar-initials" style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; font-family: var(--font-display); font-weight: 500; background: linear-gradient(135deg, var(--accent-moss) 0%, var(--accent-ocean) 100%); color: var(--bg-warm); font-size: 1.25rem; text-transform: uppercase; letter-spacing: 0.05em; border-radius: 16px;">${escapeHTML(initials)}</div>`;
   }
 
   function renderProfileBanner(bannerValue, bannerElement) {
@@ -2488,36 +2628,36 @@
     }
     const bannerThemes = {
       'banner-tech': {
-        bg: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
-        svg: `<svg style="position:absolute;width:100%;height:100%;left:0;top:0" xmlns="http://www.w3.org/2000/svg"><pattern id="techPattern" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M0 40 L40 0 M0 0 L40 40" fill="none" stroke="#38bdf8" stroke-width="0.5" opacity="0.12"/><circle cx="20" cy="20" r="4" fill="#38bdf8" opacity="0.15"/></pattern><rect width="100%" height="100%" fill="url(#techPattern)"/></svg>`
+        bg: 'linear-gradient(135deg, #090d16 0%, #111827 100%)',
+        svg: `<svg style="position:absolute;width:100%;height:100%;left:0;top:0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 200" preserveAspectRatio="none"><defs><linearGradient id="glow-cyan" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#06b6d4" stop-opacity="0.8"/><stop offset="100%" stop-color="#3b82f6" stop-opacity="0.1"/></linearGradient><pattern id="gridPattern" width="30" height="30" patternUnits="userSpaceOnUse"><path d="M 30 0 L 0 0 0 30" fill="none" stroke="#0891b2" stroke-width="0.5" opacity="0.08"/></pattern></defs><rect width="100%" height="100%" fill="url(#gridPattern)"/><path d="M 50 100 H 150 L 180 130 H 300 L 320 110 H 450" fill="none" stroke="url(#glow-cyan)" stroke-width="1.5"/><path d="M 200 40 H 350 L 380 70 H 500 L 530 40 H 680" fill="none" stroke="url(#glow-cyan)" stroke-width="1" opacity="0.6"/><circle cx="150" cy="100" r="3" fill="#22d55e"/><circle cx="180" cy="130" r="2.5" fill="#06b6d4"/><circle cx="300" cy="130" r="3" fill="#3b82f6"/><circle cx="350" cy="40" r="2" fill="#06b6d4"/><circle cx="530" cy="40" r="3" fill="#a855f7"/><rect x="50" y="40" width="40" height="15" fill="none" stroke="#0891b2" stroke-width="1" opacity="0.3"/><line x1="55" y1="47" x2="85" y2="47" stroke="#06b6d4" stroke-width="2" opacity="0.5"/><line x1="55" y1="52" x2="75" y2="52" stroke="#06b6d4" stroke-width="2" opacity="0.5"/><text x="790" y="25" fill="#0891b2" font-family="monospace" font-size="9" opacity="0.4" text-anchor="end">SYS.STATUS: ACTIVE</text></svg>`
       },
       'banner-nature': {
-        bg: 'linear-gradient(135deg, #064e3b 0%, #047857 100%)',
-        svg: `<svg style="position:absolute;width:100%;height:100%;left:0;top:0" xmlns="http://www.w3.org/2000/svg"><g fill="#10b981" opacity="0.08"><path d="M20 40 C10 60, 40 80, 50 60 C60 40, 30 20, 20 40 Z"/><path d="M220 50 C210 70, 240 90, 250 70 C260 50, 230 30, 220 50 Z"/></g></svg>`
+        bg: 'linear-gradient(135deg, #022c22 0%, #064e3b 100%)',
+        svg: `<svg style="position:absolute;width:100%;height:100%;left:0;top:0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 200" preserveAspectRatio="none"><defs><linearGradient id="leafGrad1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#10b981"/><stop offset="100%" stop-color="#047857"/></linearGradient><linearGradient id="leafGrad2" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#34d399"/><stop offset="100%" stop-color="#065f46"/></linearGradient><linearGradient id="sunRay" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#fef08a" stop-opacity="0.15"/><stop offset="100%" stop-color="#fef08a" stop-opacity="0"/></linearGradient></defs><polygon points="100,-20 200,-20 450,220 300,220" fill="url(#sunRay)"/><polygon points="400,-20 500,-20 700,220 550,220" fill="url(#sunRay)"/><g transform="translate(-20, 40) scale(1.2)"><path d="M 0 160 C 20 120, 60 110, 100 130 C 90 90, 70 50, 40 40 C 20 60, 10 110, 0 160 Z" fill="url(#leafGrad1)" opacity="0.85"/><path d="M 0 160 C 40 140, 90 120, 120 160 C 100 110, 60 70, 30 70 C 15 90, 5 130, 0 160 Z" fill="url(#leafGrad2)" opacity="0.7"/></g><g transform="translate(680, 20) scale(1.3)"><path d="M 120 160 C 100 120, 60 110, 20 130 C 30 90, 50 50, 80 40 C 100 60, 110 110, 120 160 Z" fill="url(#leafGrad1)" opacity="0.85"/><path d="M 120 160 C 80 140, 30 120, 0 160 C 20 110, 60 70, 90 70 C 105 90, 115 130, 120 160 Z" fill="url(#leafGrad2)" opacity="0.75"/></g><g fill="#eab308"><circle cx="200" cy="80" r="2.5" opacity="0.8"/><circle cx="205" cy="82" r="6" fill="#fef08a" opacity="0.2"/><circle cx="480" cy="140" r="1.5" opacity="0.7"/><circle cx="610" cy="60" r="3" opacity="0.9"/><circle cx="613" cy="62" r="7" fill="#fef08a" opacity="0.25"/></g></svg>`
       },
       'banner-space': {
-        bg: 'radial-gradient(circle, #1e1b4b 0%, #020617 100%)',
-        svg: `<svg style="position:absolute;width:100%;height:100%;left:0;top:0" xmlns="http://www.w3.org/2000/svg"><g fill="#ffffff" opacity="0.45"><circle cx="40" cy="50" r="1.5"/><circle cx="120" cy="30" r="1"/><circle cx="280" cy="80" r="2"/><circle cx="340" cy="40" r="1"/><circle cx="460" cy="70" r="1.5"/><circle cx="580" cy="30" r="1"/></g></svg>`
+        bg: 'radial-gradient(circle, #0c0a24 0%, #030008 100%)',
+        svg: `<svg style="position:absolute;width:100%;height:100%;left:0;top:0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 200" preserveAspectRatio="none"><defs><radialGradient id="nebulaGrad" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#7c3aed" stop-opacity="0.35"/><stop offset="50%" stop-color="#2563eb" stop-opacity="0.15"/><stop offset="100%" stop-color="#000000" stop-opacity="0"/></radialGradient><radialGradient id="nebulaGrad2" cx="30%" cy="40%" r="40%"><stop offset="0%" stop-color="#db2777" stop-opacity="0.25"/><stop offset="100%" stop-color="#000000" stop-opacity="0"/></radialGradient></defs><rect width="100%" height="100%" fill="url(#nebulaGrad)"/><rect width="100%" height="100%" fill="url(#nebulaGrad2)"/><g fill="#ffffff"><circle cx="40" cy="50" r="1" opacity="0.8"/><circle cx="120" cy="30" r="1.2" opacity="0.6"/><circle cx="122" cy="32" r="4" fill="#6366f1" opacity="0.3"/><circle cx="280" cy="80" r="1.5" opacity="0.7"/><circle cx="340" cy="40" r="1" opacity="0.9"/><circle cx="420" cy="150" r="1.2" opacity="0.5"/><circle cx="510" cy="25" r="1.8" opacity="0.9"/><circle cx="580" cy="110" r="1" opacity="0.6"/><circle cx="690" cy="70" r="2" opacity="0.8"/><circle cx="730" cy="130" r="1" opacity="0.5"/></g><line x1="120" y1="30" x2="280" y2="80" stroke="#818cf8" stroke-width="0.5" opacity="0.25"/><line x1="280" y1="80" x2="340" y2="40" stroke="#818cf8" stroke-width="0.5" opacity="0.2"/><line x1="510" y1="25" x2="580" y2="110" stroke="#c084fc" stroke-width="0.5" opacity="0.2"/><circle cx="720" cy="40" r="24" fill="#1e1b4b"/><path d="M 720 16 A 24 24 0 0 1 720 64 A 20 24 0 0 0 720 16" fill="#f43f5e" opacity="0.6"/></svg>`
       },
       'banner-sea': {
         bg: 'linear-gradient(135deg, #0c4a6e 0%, #0369a1 100%)',
-        svg: `<svg style="position:absolute;width:100%;height:100%;left:0;top:0" xmlns="http://www.w3.org/2000/svg"><path d="M0 60 Q150 35, 300 60 T600 60 L600 120 L0 120 Z" fill="#38bdf8" opacity="0.12"/></svg>`
+        svg: `<svg style="position:absolute;width:100%;height:100%;left:0;top:0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 200" preserveAspectRatio="none"><path d="M0 120 Q160 85, 360 130 T800 110 L800 200 L0 200 Z" fill="#0284c7" opacity="0.4"/><path d="M0 150 Q200 125, 450 160 T800 145 L800 200 L0 200 Z" fill="#38bdf8" opacity="0.2"/><path d="M0 170 Q240 155, 520 180 T800 170 L800 200 L0 200 Z" fill="#e0f2fe" opacity="0.1"/><g fill="#38bdf8"><circle cx="120" cy="150" r="2" opacity="0.7"/><circle cx="340" cy="170" r="1.5" opacity="0.6"/><circle cx="560" cy="130" r="2.5" opacity="0.8"/><circle cx="680" cy="160" r="1" opacity="0.5"/></g></svg>`
       },
       'banner-abstract': {
-        bg: 'linear-gradient(135deg, #4c1d95 0%, #312e81 100%)',
-        svg: `<svg style="position:absolute;width:100%;height:100%;left:0;top:0" xmlns="http://www.w3.org/2000/svg"><circle cx="20%" cy="40%" r="90" fill="#a855f7" opacity="0.2" filter="blur(25px)"/><circle cx="75%" cy="30%" r="110" fill="#6366f1" opacity="0.25" filter="blur(35px)"/></svg>`
+        bg: 'linear-gradient(135deg, #2e1065 0%, #1e1b4b 100%)',
+        svg: `<svg style="position:absolute;width:100%;height:100%;left:0;top:0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 200" preserveAspectRatio="none"><defs><radialGradient id="abstractGrad1" cx="30%" cy="30%" r="50%"><stop offset="0%" stop-color="#a855f7" stop-opacity="0.4"/><stop offset="100%" stop-color="#000000" stop-opacity="0"/></radialGradient><radialGradient id="abstractGrad2" cx="70%" cy="60%" r="50%"><stop offset="0%" stop-color="#ec4899" stop-opacity="0.3"/><stop offset="100%" stop-color="#000000" stop-opacity="0"/></radialGradient></defs><rect width="100%" height="100%" fill="url(#abstractGrad1)"/><rect width="100%" height="100%" fill="url(#abstractGrad2)"/><path d="M -50 80 C 150 140, 250 -20, 500 80 C 650 140, 750 20, 850 80" fill="none" stroke="#f472b6" stroke-width="6" opacity="0.3" stroke-linecap="round"/><path d="M -50 100 C 180 160, 220 0, 480 100 C 620 160, 780 0, 850 100" fill="none" stroke="#c084fc" stroke-width="4" opacity="0.35" stroke-linecap="round"/><rect x="500" y="30" width="180" height="70" rx="12" fill="#ffffff" fill-opacity="0.04" stroke="#ffffff" stroke-opacity="0.1" stroke-width="1.5" style="backdrop-filter: blur(10px);"/></svg>`
       },
       'banner-founder': {
-        bg: 'linear-gradient(135deg, #451a03 0%, #78350f 100%)',
-        svg: `<svg style="position:absolute;width:100%;height:100%;left:0;top:0" xmlns="http://www.w3.org/2000/svg"><g fill="#fbbf24" opacity="0.12"><polygon points="0,0 60,0 30,60"/><polygon points="200,0 260,0 230,60"/></g></svg>`
+        bg: 'linear-gradient(135deg, #271406 0%, #451a03 100%)',
+        svg: `<svg style="position:absolute;width:100%;height:100%;left:0;top:0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 200" preserveAspectRatio="none"><defs><linearGradient id="goldCrest" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#fbbf24" stop-opacity="0.15"/><stop offset="100%" stop-color="#d97706" stop-opacity="0.03"/></linearGradient></defs><polygon points="0,0 200,0 100,160" fill="url(#goldCrest)" stroke="#fbbf24" stroke-width="0.5" opacity="0.3"/><polygon points="800,0 600,0 700,160" fill="url(#goldCrest)" stroke="#fbbf24" stroke-width="0.5" opacity="0.3"/><path d="M 300 40 L 302 48 L 310 50 L 302 52 L 300 60 L 298 52 L 290 50 L 298 48 Z" fill="#fbbf24" opacity="0.6"/><path d="M 500 120 L 501 125 L 506 126 L 501 127 L 500 132 L 499 127 L 494 126 L 499 125 Z" fill="#fbbf24" opacity="0.5"/><path d="M 120 100 L 121 104 L 125 105 L 121 106 L 120 110 L 119 106 L 115 105 L 119 104 Z" fill="#fef08a" opacity="0.7"/></svg>`
       },
       'banner-referrals': {
-        bg: 'linear-gradient(135deg, #134e4a 0%, #0f766e 100%)',
-        svg: `<svg style="position:absolute;width:100%;height:100%;left:0;top:0" xmlns="http://www.w3.org/2000/svg"><pattern id="refPattern" width="30" height="30" patternUnits="userSpaceOnUse"><circle cx="15" cy="15" r="3" fill="#2dd4bf" stroke="none" opacity="0.2"/></pattern><rect width="100%" height="100%" fill="url(#refPattern)"/></svg>`
+        bg: 'linear-gradient(135deg, #042f2e 0%, #115e59 100%)',
+        svg: `<svg style="position:absolute;width:100%;height:100%;left:0;top:0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 200" preserveAspectRatio="none"><defs><linearGradient id="networkLine" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#2dd4bf" stop-opacity="0.3"/><stop offset="100%" stop-color="#0f766e" stop-opacity="0.05"/></linearGradient></defs><line x1="80" y1="100" x2="220" y2="60" stroke="url(#networkLine)" stroke-width="1.5"/><line x1="220" y1="60" x2="360" y2="120" stroke="url(#networkLine)" stroke-width="1.5"/><line x1="360" y1="120" x2="480" y2="50" stroke="url(#networkLine)" stroke-width="1.5"/><line x1="480" y1="50" x2="620" y2="140" stroke="url(#networkLine)" stroke-width="1.5"/><line x1="620" y1="140" x2="740" y2="80" stroke="url(#networkLine)" stroke-width="1.5"/><line x1="220" y1="60" x2="480" y2="50" stroke="url(#networkLine)" stroke-width="1" opacity="0.3"/><line x1="360" y1="120" x2="620" y2="140" stroke="url(#networkLine)" stroke-width="1" opacity="0.3"/><g fill="#2dd4bf"><circle cx="80" cy="100" r="6" stroke="#115e59" stroke-width="2"/><circle cx="220" cy="60" r="7" stroke="#115e59" stroke-width="2"/><circle cx="360" cy="120" r="9" stroke="#115e59" stroke-width="3"/><circle cx="360" cy="120" r="18" fill="none" stroke="#2dd4bf" stroke-width="1" opacity="0.2"/><circle cx="480" cy="50" r="8" stroke="#115e59" stroke-width="2"/><circle cx="620" cy="140" r="7" stroke="#115e59" stroke-width="2"/><circle cx="740" cy="80" r="6" stroke="#115e59" stroke-width="2"/></g></svg>`
       },
       'banner-community': {
-        bg: 'linear-gradient(135deg, #4c0519 0%, #881337 100%)',
-        svg: `<svg style="position:absolute;width:100%;height:100%;left:0;top:0" xmlns="http://www.w3.org/2000/svg"><g stroke="#f43f5e" stroke-width="1" fill="none" opacity="0.18"><circle cx="100" cy="50" r="30"/><circle cx="130" cy="50" r="30"/><circle cx="160" cy="50" r="30"/></g></svg>`
+        bg: 'linear-gradient(135deg, #450a0a 0%, #881337 100%)',
+        svg: `<svg style="position:absolute;width:100%;height:100%;left:0;top:0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 200" preserveAspectRatio="none"><defs><radialGradient id="fireGlow" cx="50%" cy="90%" r="50%"><stop offset="0%" stop-color="#f59e0b" stop-opacity="0.45"/><stop offset="60%" stop-color="#b91c1c" stop-opacity="0.15"/><stop offset="100%" stop-color="#000000" stop-opacity="0"/></radialGradient></defs><rect width="100%" height="100%" fill="url(#fireGlow)"/><path d="M 390 200 Q 400 160 410 200" fill="#f59e0b" opacity="0.8"/><path d="M 395 200 Q 400 175 405 200" fill="#fde047"/><g fill="#1e1b4b" opacity="0.85"><circle cx="280" cy="165" r="9"/><path d="M 270 178 Q 280 185 290 178 L 292 200 H 268 Z"/><circle cx="320" cy="155" r="10"/><path d="M 308 170 Q 320 178 332 170 L 335 200 H 305 Z"/><circle cx="360" cy="150" r="11"/><path d="M 346 166 Q 360 175 374 166 L 378 200 H 342 Z"/><circle cx="440" cy="150" r="11"/><path d="M 426 166 Q 440 175 454 166 L 458 200 H 422 Z"/><circle cx="480" cy="155" r="10"/><path d="M 468 170 Q 480 178 492 170 L 495 200 H 465 Z"/><circle cx="520" cy="165" r="9"/><path d="M 510 178 Q 520 185 530 178 L 532 200 H 508 Z"/></g><path d="M 288 185 Q 300 190 312 181" stroke="#f43f5e" stroke-width="1.5" fill="none" opacity="0.3"/><path d="M 328 179 Q 340 183 352 175" stroke="#f43f5e" stroke-width="1.5" fill="none" opacity="0.3"/><path d="M 448 175 Q 460 183 472 179" stroke="#f43f5e" stroke-width="1.5" fill="none" opacity="0.3"/><path d="M 488 181 Q 500 190 512 185" stroke="#f43f5e" stroke-width="1.5" fill="none" opacity="0.3"/></svg>`
       }
     };
     const theme = bannerThemes[bannerValue] || {

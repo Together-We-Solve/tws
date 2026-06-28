@@ -324,7 +324,7 @@ service cloud.firestore {
       return signedIn()
         && (request.auth.uid == resource.data.uid || request.auth.uid == resource.data.id)
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-             'points', 'impactPoints', 'stats', 'ownedCosmetics', 'lastCosmeticPurchase', 'updatedAt', 'avatar', 'banner'
+             'points', 'impactPoints', 'stats', 'ownedCosmetics', 'lastCosmeticPurchase', 'updatedAt', 'avatar', 'banner', 'badges'
            ])
         && nextStats.impactPoints == previousImpact - purchase.price
         && (!('points' in request.resource.data) || request.resource.data.points == previousImpact - purchase.price)

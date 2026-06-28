@@ -21,7 +21,7 @@
   left: 24px;
   width: 80px;
   height: 80px;
-  border-radius: 50%;
+  border-radius: 16px;
   border: 4px solid var(--bg-warm);
   background: var(--bg-warm);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
@@ -82,7 +82,7 @@
 .builder-preview-wrapper {
   width: 180px;
   height: 180px;
-  border-radius: 50%;
+  border-radius: 16px;
   border: 4px solid var(--bg-warm);
   background: var(--bg-warm);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
@@ -120,17 +120,47 @@
   background: var(--bg-warm);
   border: 1px solid var(--border-light);
   border-radius: 12px;
-  padding: 12px;
+  padding: 16px 12px;
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
+  justify-content: space-between;
+  min-height: 135px;
+}
+
+.option-preview-area {
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
   justify-content: center;
-  min-height: 80px;
+  margin-bottom: 8px;
+  overflow: hidden;
+  border-radius: 8px;
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.option-card:hover .option-preview-area {
+  transform: scale(1.1);
+}
+
+.option-preview-area svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.option-info-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
 }
 
 .option-card:hover {

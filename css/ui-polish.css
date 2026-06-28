@@ -374,12 +374,32 @@ input[type="radio"] {
   color: rgba(28, 30, 29, 0.66);
 }
 
+/* ─── NAVIGATION DESKTOP SCALING (1151px - 1350px) ─── */
+@media (min-width: 1151px) and (max-width: 1350px) {
+  .nav {
+    padding: 20px clamp(24px, 3vw, 48px) !important;
+  }
+  .nav.scrolled {
+    padding: 12px clamp(24px, 3vw, 48px) !important;
+  }
+  .nav-links {
+    gap: clamp(12px, 1.8vw, 24px) !important;
+  }
+  .nav-link {
+    font-size: 13px !important;
+  }
+  .nav-cta {
+    padding: 10px 22px !important;
+    font-size: 12px !important;
+  }
+}
+
 /* ─── NAVIGATION MOBILE LAYOUT ─── */
 .nav-mobile-toggle {
   display: none;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1150px) {
   .nav-inner {
     align-items: center !important;
     flex-direction: row !important;
@@ -443,11 +463,13 @@ input[type="radio"] {
     backdrop-filter: blur(24px) !important;
     -webkit-backdrop-filter: blur(24px) !important;
     z-index: 1000 !important;
-    justify-content: center !important;
+    justify-content: flex-start !important;
     align-items: center !important;
-    gap: 32px !important;
-    padding: 100px 32px 32px !important;
+    gap: 20px !important;
+    padding: 110px 32px 140px 32px !important;
     margin: 0 !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
     animation: menuFadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
 
@@ -471,7 +493,7 @@ input[type="radio"] {
   .nav.menu-open .nav-cta {
     display: inline-flex !important;
     position: fixed !important;
-    bottom: 80px !important;
+    bottom: 40px !important;
     left: 50% !important;
     transform: translate(-50%, 0) !important;
     z-index: 1001 !important;
@@ -503,6 +525,7 @@ input[type="radio"] {
   }
 }
 
+@media (max-width: 1024px) {
   .admin-app-shell {
     flex-direction: column;
     height: auto !important;
@@ -601,12 +624,24 @@ input[type="radio"] {
     padding: 24px !important;
   }
 
+  .modal-close-btn {
+    top: 16px !important;
+    right: 16px !important;
+  }
+
   .modal-action-footer,
   .form-action-footer,
   .footer-bottom,
   .footer-top {
     align-items: stretch !important;
     flex-direction: column;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
   }
 }
 
@@ -1026,5 +1061,24 @@ label:focus-within {
   100% {
     background-position: -200% 0;
   }
+}
+
+/* ─── GLOBAL AVATAR RECTANGLE BORDERS ─── */
+.admin-avatar,
+.row-avatar,
+.builder-preview-wrapper,
+.avatar-circle,
+.avatar-wrap,
+.solver-avatar,
+.purchase-preview-box,
+.member-avatar,
+.profile-avatar,
+.profile-avatar-fallback,
+.settingsAvatarPreview,
+#avatarPreview,
+#profileAvatar,
+#profileAvatarFallback {
+  border-radius: 16px !important;
+  overflow: hidden !important;
 }
 
