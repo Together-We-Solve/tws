@@ -140,12 +140,14 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  transition: all 0.25s ease;
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+  box-shadow: 0 4px 14px rgba(28, 30, 29, 0.03);
 }
 
 .inventory-item-card:hover {
   border-color: var(--accent-moss);
-  transform: translateY(-2px);
+  transform: translateY(-3px);
+  box-shadow: 0 16px 36px rgba(28, 30, 29, 0.08);
 }
 
 .inventory-preview-area {
@@ -265,6 +267,10 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.01);
 }
 
+.road-milestone-content:hover {
+  box-shadow: 0 16px 34px rgba(28, 30, 29, 0.06);
+}
+
 .road-milestone-segment.achieved .road-milestone-content {
   background: radial-gradient(circle at 100% 0%, rgba(61, 90, 69, 0.02) 0%, transparent 40%), var(--bg-warm);
 }
@@ -317,6 +323,13 @@
   display: flex;
   align-items: center;
   gap: 12px;
+  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+}
+
+.road-unlock-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 26px rgba(28, 30, 29, 0.06);
+  border-color: rgba(35, 56, 43, 0.18);
 }
 
 .road-unlock-card .road-unlock-preview {

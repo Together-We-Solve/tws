@@ -25,6 +25,7 @@
   --font-display: 'DM Serif Display', serif;
   --font-body: 'DM Sans', sans-serif;
   --transition-smooth: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  --shadow-soft: 0 16px 36px rgba(28, 30, 29, 0.08);
 }
 
 html {
@@ -41,6 +42,23 @@ body {
   line-height: 1.8;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
+}
+
+a,
+button,
+input,
+textarea,
+select {
+  -webkit-tap-highlight-color: transparent;
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(200, 125, 85, 0.18);
 }
 
 /* ─── Tactile Paper Texture Overlay ────────────────── */
@@ -110,7 +128,7 @@ body::after {
   backdrop-filter: blur(16px);
   padding: 16px 64px;
   border-bottom: 1px solid var(--border-light);
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.02);
+  box-shadow: var(--shadow-soft);
 }
 
 .nav-inner {
@@ -239,6 +257,15 @@ body::after {
   box-shadow: 0 8px 24px rgba(35, 56, 43, 0.18);
 }
 
+.btn-primary:disabled,
+.btn-outline:disabled,
+.btn-ghost:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
 .btn-ghost {
   color: var(--text-charcoal);
   opacity: 0.8;
@@ -297,6 +324,10 @@ body::after {
   flex-direction: column;
   justify-content: center;
   max-width: 680px;
+}
+
+.hero-content > * {
+  max-width: 100%;
 }
 
 .hero-eyebrow {
@@ -428,13 +459,19 @@ body::after {
     padding: 120px 28px 80px 28px; /* Compact mobile spacing */
     max-width: 100%;
   }
+  .hero-headline {
+    font-size: clamp(42px, 12vw, 66px);
+  }
+  .hero-actions {
+    gap: 12px;
+  }
 }
 
 /* ─── REALITY (Chapter 1: The Chasm) ───────── */
 .reality {
   background: var(--bg-fog);
   margin-top: -8vh; /* Overlapping visual transition */
-  border-radius: 60px 60px 0 0; /* Soft organic corner shape */
+  border-radius: 48px 48px 0 0; /* Soft organic corner shape */
   position: relative;
   z-index: 3;
   box-shadow: 0 -15px 40px rgba(0,0,0,0.015);

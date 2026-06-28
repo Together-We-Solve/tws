@@ -43,6 +43,23 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+a,
+button,
+input,
+textarea,
+select {
+  -webkit-tap-highlight-color: transparent;
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(200, 125, 85, 0.18);
+}
+
 /* ─── Tactile Paper Texture Overlay ────────────────── */
 body::after {
   content: "";
@@ -74,7 +91,7 @@ body::after {
   backdrop-filter: blur(16px);
   padding: 16px 64px;
   border-bottom: 1px solid var(--border-light);
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.02);
+  box-shadow: 0 16px 36px rgba(28, 30, 29, 0.08);
 }
 
 .nav-inner {
@@ -209,6 +226,15 @@ body::after {
   border-color: #1a4a2e;
   transform: translateY(-2px);
   box-shadow: 0 8px 24px rgba(35, 56, 43, 0.18);
+}
+
+.btn-primary:focus-visible,
+.btn-outline:focus-visible,
+.btn-ghost:focus-visible,
+.nav-link:focus-visible,
+.nav-cta:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(200, 125, 85, 0.16);
 }
 
 .btn-ghost {

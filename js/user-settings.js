@@ -55,6 +55,64 @@
     link.href = window.TWS.profileUrl(username);
   }
 
+  function getIdentityFormValues() {
+    return {
+      displayName: document.getElementById('displayName')?.value.trim() || '',
+      username: window.TWS.toUsername(document.getElementById('displayUsername')?.value || ''),
+      specialty: document.getElementById('displaySpecialty')?.value.trim() || '',
+      initials: document.getElementById('avatarInitials')?.value.toUpperCase().slice(0, 2) || '',
+      bio: document.getElementById('profileBioInput')?.value.trim() || '',
+      country: document.getElementById('profileCountry')?.value.trim() || '',
+      website: document.getElementById('profileWebsite')?.value.trim() || '',
+      linkedin: document.getElementById('profileLinkedin')?.value.trim() || '',
+      github: document.getElementById('profileGithub')?.value.trim() || '',
+      profileAccent: document.getElementById('profileAccent')?.value || 'moss',
+      availability: document.getElementById('profileAvailability')?.value || ''
+    };
+  }
+
+  function buildProfilePayload(overrides = {}) {
+    const values = getIdentityFormValues();
+    return {
+      ...(profile || {}),
+      uid: session.uid || profile?.uid || '',
+      email: session.email || profile?.email || '',
+      displayName: values.displayName || profile?.displayName || session.displayName || '',
+      username: values.username || profile?.username || session.username || '',
+      usernameLower: values.username || profile?.usernameLower || session.username || '',
+      specialty: values.specialty,
+      initials: values.initials || window.TWS.initialsFromName(values.displayName || profile?.displayName || session.displayName),
+      avatar: editedAvatar,
+      profilePicture: editedAvatar,
+      banner: editedBanner,
+      bio: values.bio,
+      country: values.country,
+      website: values.website,
+      linkedin: values.linkedin,
+      github: values.github,
+      profileAccent: values.profileAccent,
+      availability: values.availability,
+      ...overrides
+    };
+  }
+
+  async function persistProfile(overrides = {}) {
+    const userId = activeUserId();
+    if (!userId) {
+      alert('Could not identify your account. Please sign in again.');
+      return false;
+    }
+    const payload = buildProfilePayload(overrides);
+    await window.TWS.saveUserProfile(userId, payload);
+    profile = { ...profile, ...payload };
+    session.displayName = payload.displayName;
+    session.username = payload.username;
+    session.avatar = payload.avatar;
+    sessionStorage.setItem('portal_session', JSON.stringify(session));
+    syncPublicProfileLink();
+    return true;
+  }
+
   async function load() {
     session = getSession();
     if (!session) {
@@ -319,7 +377,12 @@
         if (avatarPreview) {
           avatarPreview.innerHTML = window.TWS.renderAvatarSVG(tempAvatarConfig);
         }
-        modalAvatar.style.display = 'none';
+        persistProfile({ avatar: editedAvatar, profilePicture: editedAvatar }).then(() => {
+          modalAvatar.style.display = 'none';
+        }).catch((err) => {
+          console.error('Unable to save avatar', err);
+          alert('Your avatar preview updated, but we could not save it right now.');
+        });
       });
     }
     
@@ -330,7 +393,12 @@
         if (bannerPreview) {
           window.TWS.renderProfileBanner(editedBanner, bannerPreview);
         }
-        modalBanner.style.display = 'none';
+        persistProfile({ banner: editedBanner }).then(() => {
+          modalBanner.style.display = 'none';
+        }).catch((err) => {
+          console.error('Unable to save banner', err);
+          alert('Your banner preview updated, but we could not save it right now.');
+        });
       });
     }
   }
@@ -342,17 +410,18 @@
     initAppearanceEditor();
     document.getElementById('identityForm')?.addEventListener('submit', async (event) => {
       event.preventDefault();
-      const displayName = document.getElementById('displayName').value.trim();
-      const username = window.TWS.toUsername(document.getElementById('displayUsername').value);
-      const specialty = document.getElementById('displaySpecialty').value.trim();
-      const initials = document.getElementById('avatarInitials').value.toUpperCase().slice(0, 2);
+      const values = getIdentityFormValues();
+      const displayName = values.displayName;
+      const username = values.username;
+      const specialty = values.specialty;
+      const initials = values.initials;
       const avatar = editedAvatar;
       const banner = editedBanner;
+      const userId = activeUserId();
       if (displayName.length < 3 || !window.TWS.validUsername(username)) {
         alert('Use a valid display name and a username with lowercase letters, numbers, or underscores.');
         return;
       }
-      const userId = activeUserId();
       if (!userId) {
         alert('Could not identify your account. Please sign in again.');
         return;
@@ -389,11 +458,11 @@
         }
         throw err;
       }
+      profile = { ...profile, displayName, username, usernameLower: username, avatar, profilePicture: avatar, banner };
       session.displayName = displayName;
       session.username = username;
       session.avatar = avatar;
       sessionStorage.setItem('portal_session', JSON.stringify(session));
-      profile = { ...profile, displayName, username, usernameLower: username, avatar, profilePicture: avatar, banner };
       syncPublicProfileLink();
       alert('Profile updated.');
     });

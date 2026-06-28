@@ -8,7 +8,12 @@
   --ui-fog: #EBECE8;
   --ui-line: rgba(28, 30, 29, 0.12);
   --ui-shadow: 0 14px 36px rgba(28, 30, 29, 0.07);
+  --ui-shadow-strong: 0 18px 48px rgba(28, 30, 29, 0.1);
   --ui-font: 'DM Sans', sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 .nav {
@@ -64,8 +69,30 @@
 
 .btn,
 button,
-a {
+a,
+input,
+textarea,
+select {
   -webkit-tap-highlight-color: transparent;
+}
+
+a,
+button,
+input,
+textarea,
+select,
+[role="button"] {
+  transition: border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease, color 160ms ease, transform 160ms ease, opacity 160ms ease;
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+[role="button"]:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(200, 125, 85, 0.16);
 }
 
 input,
@@ -148,7 +175,7 @@ label,
 .audit-card,
 .tracker-table-container,
 .modal-card {
-  border-radius: 8px !important;
+  border-radius: 12px !important;
   border-color: var(--ui-line) !important;
   box-shadow: var(--ui-shadow);
 }
@@ -161,7 +188,7 @@ label,
 .tracker-empty-placeholder,
 .empty-pane-placeholder {
   border: 1px dashed var(--ui-line);
-  border-radius: 8px;
+  border-radius: 12px;
   background: rgba(235, 236, 232, 0.36);
   padding: 28px;
   color: rgba(28, 30, 29, 0.68);
@@ -235,8 +262,9 @@ input[type="radio"] {
   align-items: end;
   padding: 26px;
   border: 1px solid var(--ui-line);
-  border-radius: 8px;
+  border-radius: 16px;
   background: rgba(235, 236, 232, 0.36);
+  box-shadow: var(--ui-shadow);
 }
 
 .home-topline .label {
@@ -291,7 +319,8 @@ input[type="radio"] {
 
 .home-summary-card:hover {
   border-color: rgba(35, 56, 43, 0.28);
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: var(--ui-shadow-strong);
 }
 
 .home-summary-card strong {
@@ -372,6 +401,57 @@ input[type="radio"] {
 
 .home-workspace-section .member-bio {
   color: rgba(28, 30, 29, 0.66);
+}
+
+.member-card:hover,
+.audit-card:hover,
+.settings-card:hover,
+.modal-card:hover {
+  box-shadow: var(--ui-shadow-strong);
+}
+
+.tracker-table-container table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.tracker-table-container th,
+.tracker-table-container td {
+  padding: 14px 12px;
+}
+
+.tracker-table-container thead th {
+  position: sticky;
+  top: 0;
+  background: rgba(250, 246, 240, 0.98);
+  backdrop-filter: blur(8px);
+  z-index: 1;
+}
+
+.btn:hover,
+.nav-cta:hover,
+.home-summary-card:hover {
+  text-decoration: none;
+}
+
+.btn:disabled,
+button:disabled,
+[aria-disabled="true"] {
+  cursor: not-allowed;
+  opacity: 0.55;
+  transform: none;
+}
+
+@media (max-width: 768px) {
+  .home-topline,
+  .home-section-header {
+    grid-template-columns: 1fr;
+    align-items: start;
+  }
+
+  .home-summary-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* ─── NAVIGATION DESKTOP SCALING (1151px - 1350px) ─── */
@@ -1081,4 +1161,3 @@ label:focus-within {
   border-radius: 16px !important;
   overflow: hidden !important;
 }
-

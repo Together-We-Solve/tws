@@ -376,6 +376,7 @@ body::after {
 .btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   font-family: var(--font-body);
   font-size: 14px;
@@ -385,6 +386,9 @@ body::after {
   border: none;
   cursor: pointer;
   text-decoration: none;
+  line-height: 1;
+  min-height: 48px;
+  text-align: center;
   transition: var(--transition-smooth);
 }
 
@@ -412,6 +416,7 @@ body::after {
 .btn-sm {
   padding: 10px 20px;
   font-size: 12.5px;
+  min-height: 40px;
 }
 
 .btn-full {
@@ -629,8 +634,34 @@ body::after {
   padding-top: 24px;
   border-top: 1px solid var(--border-light);
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
+  gap: 12px;
+}
+
+.appearance-editor-actions .btn {
+  min-width: 172px;
+}
+
+@media (max-width: 768px) {
+  .appearance-editor-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .appearance-editor-actions .btn {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .form-field-group-inline {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .avatar-preview-wrap {
+    align-items: flex-start;
+  }
 }
 
 /* Footer Section */

@@ -213,7 +213,7 @@ body {
 .task-row {
   background: rgba(255, 255, 255, 0.32);
   border: 1px solid var(--border-light);
-  border-radius: 8px;
+  border-radius: 12px;
   color: var(--text-charcoal);
   cursor: pointer;
   display: flex;
@@ -221,11 +221,14 @@ body {
   gap: 8px;
   padding: 16px;
   text-align: left;
+  box-shadow: 0 6px 18px rgba(28, 30, 29, 0.03);
 }
 
 .task-row.active,
 .task-row:hover {
   border-color: rgba(200, 125, 85, 0.55);
+  transform: translateY(-1px);
+  box-shadow: 0 14px 30px rgba(28, 30, 29, 0.07);
 }
 
 .task-row strong {
@@ -272,8 +275,9 @@ body {
 
 .task-detail {
   border: 1px solid var(--border-light);
-  border-radius: 8px;
+  border-radius: 12px;
   padding: 28px;
+  box-shadow: 0 10px 24px rgba(28, 30, 29, 0.04);
 }
 
 .task-empty-detail,
@@ -330,8 +334,9 @@ body {
 
 .task-facts div {
   border: 1px solid var(--border-light);
-  border-radius: 8px;
+  border-radius: 12px;
   padding: 14px;
+  background: rgba(255, 255, 255, 0.5);
 }
 
 .task-facts dt {
@@ -379,7 +384,7 @@ body {
 .proof-form input[type="file"] {
   background: transparent;
   border: 1px solid var(--border-light);
-  border-radius: 8px;
+  border-radius: 12px;
   color: var(--text-charcoal);
   font-family: var(--font-body);
   font-size: 14px;
@@ -429,7 +434,7 @@ body {
 .review-note {
   background: rgba(200, 125, 85, 0.08);
   border-left: 3px solid var(--accent-clay);
-  border-radius: 0 8px 8px 0;
+  border-radius: 0 12px 12px 0;
   margin-top: 18px;
   padding: 14px;
 }

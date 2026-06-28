@@ -25,8 +25,9 @@
   margin-top: 16px;
   background: var(--bg-fog, #faf6f0);
   padding: 20px;
-  border-radius: 8px;
+  border-radius: 12px;
   border: 1px solid var(--border-light, rgba(28, 30, 29, 0.08));
+  box-shadow: 0 10px 24px rgba(28, 30, 29, 0.04);
 }
 
 .referral-field {
@@ -51,7 +52,7 @@
   justify-content: space-between;
   background: #fff;
   border: 1px solid var(--border-light);
-  border-radius: 6px;
+  border-radius: 10px;
   padding: 10px 16px;
 }
 
@@ -69,7 +70,7 @@
   gap: 12px;
   background: #fff;
   border: 1px solid var(--border-light);
-  border-radius: 6px;
+  border-radius: 10px;
   padding: 6px 12px;
 }
 
@@ -127,7 +128,7 @@
   padding: 16px;
   background: rgba(200, 125, 85, 0.05);
   border: 1px dashed var(--accent-clay);
-  border-radius: 8px;
+  border-radius: 12px;
 }
 
 .referrals-badge-display {
@@ -218,12 +219,13 @@
 .ref-stat-block {
   background: var(--bg-fog);
   border: 1px solid var(--border-light);
-  border-radius: 8px;
+  border-radius: 12px;
   padding: 16px 12px;
   text-align: center;
   display: flex;
   flex-direction: column;
   gap: 6px;
+  box-shadow: 0 8px 20px rgba(28, 30, 29, 0.03);
 }
 
 .ref-stat-block:nth-child(4),
@@ -269,7 +271,7 @@
 
 .ref-notification-item {
   padding: 12px;
-  border-radius: 6px;
+  border-radius: 10px;
   background: var(--bg-fog);
   border-left: 3px solid var(--accent-moss);
   font-size: 12px;
