@@ -21,10 +21,12 @@ html {
   background: rgba(250, 246, 240, 0.94);
   border-bottom: 1px solid var(--ui-line);
   backdrop-filter: blur(16px);
+  z-index: 1000 !important;
 }
 
 .nav-inner {
   gap: 18px;
+  min-width: 0;
 }
 
 .nav-logo,
@@ -32,10 +34,17 @@ html {
   white-space: nowrap;
 }
 
+.nav-logo {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .nav-links {
   gap: 8px !important;
   flex-wrap: wrap;
   justify-content: center;
+  min-width: 0;
 }
 
 .nav-link {
@@ -46,7 +55,8 @@ html {
   padding: 7px 12px;
   color: var(--ui-ink) !important;
   opacity: 0.74;
-  line-height: 1;
+  line-height: 1.2;
+  text-align: center;
 }
 
 .nav-link:hover,
@@ -65,6 +75,8 @@ html {
   white-space: nowrap;
   border-radius: 999px !important;
   text-decoration: none;
+  border: 0;
+  cursor: pointer;
 }
 
 .btn,
@@ -486,6 +498,7 @@ button:disabled,
     justify-content: space-between !important;
     width: 100%;
     position: relative;
+    padding: 0 !important;
   }
 
   .nav-mobile-toggle {
@@ -497,9 +510,12 @@ button:disabled,
     background: transparent;
     border: none;
     cursor: pointer;
-    z-index: 1002;
-    padding: 0;
+    position: relative;
+    z-index: 1003;
+    padding: 12px;
     margin-left: auto;
+    box-sizing: content-box;
+    border-radius: 999px;
   }
 
   .nav-mobile-toggle span {
@@ -531,34 +547,51 @@ button:disabled,
     display: none !important;
   }
 
+  .nav.menu-open {
+    background: rgba(250, 246, 240, 0.98) !important;
+  }
+
+  .nav.menu-open .nav-logo {
+    position: relative;
+    z-index: 1003;
+    max-width: calc(100vw - 120px);
+  }
+
   .nav.menu-open .nav-links {
     display: flex !important;
     flex-direction: column !important;
-    position: fixed !important;
-    top: 0 !important;
+    position: absolute !important;
+    top: calc(100% + 14px) !important;
     left: 0 !important;
-    width: 100vw !important;
-    height: 100vh !important;
+    right: 0 !important;
+    width: 100% !important;
+    max-height: calc(100vh - 150px) !important;
     background: rgba(250, 246, 240, 0.98) !important;
     backdrop-filter: blur(24px) !important;
     -webkit-backdrop-filter: blur(24px) !important;
-    z-index: 1000 !important;
+    z-index: 1002 !important;
     justify-content: flex-start !important;
-    align-items: center !important;
-    gap: 20px !important;
-    padding: 110px 32px 140px 32px !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+    padding: 16px 16px 88px !important;
     margin: 0 !important;
     overflow-y: auto !important;
     -webkit-overflow-scrolling: touch;
+    border: 1px solid var(--ui-line);
+    border-radius: 14px;
+    box-shadow: var(--ui-shadow-strong);
     animation: menuFadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
 
   .nav.menu-open .nav-links .nav-link {
-    font-size: 20px !important;
-    font-weight: 400 !important;
-    opacity: 0.8;
+    width: 100%;
+    min-height: 48px;
+    justify-content: center;
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    opacity: 0.86;
     color: var(--ui-ink) !important;
-    padding: 12px 24px !important;
+    padding: 13px 18px !important;
     border-radius: 999px;
     background: transparent !important;
   }
@@ -572,13 +605,16 @@ button:disabled,
 
   .nav.menu-open .nav-cta {
     display: inline-flex !important;
+    width: min(360px, calc(100vw - 48px));
+    justify-content: center;
     position: fixed !important;
-    bottom: 40px !important;
+    bottom: 22px !important;
     left: 50% !important;
-    transform: translate(-50%, 0) !important;
-    z-index: 1001 !important;
-    padding: 16px 40px !important;
-    font-size: 15px !important;
+    right: auto !important;
+    transform: translateX(-50%) !important;
+    z-index: 1003 !important;
+    padding: 14px 20px !important;
+    font-size: 14px !important;
     animation: ctaFadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
 }
@@ -715,6 +751,12 @@ button:disabled,
   .footer-top {
     align-items: stretch !important;
     flex-direction: column;
+  }
+
+  .btn,
+  .nav-cta {
+    white-space: normal;
+    text-align: center;
   }
 }
 

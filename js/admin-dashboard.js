@@ -1290,7 +1290,11 @@
     const reqAchievementInput = document.getElementById('cosmeticEditReqAchievement');
     const priceGroup = document.getElementById('cosmeticEditPriceGroup');
     const priceInput = document.getElementById('cosmeticEditPrice');
+    const reqRoleGroup = document.getElementById('cosmeticEditReqRoleGroup');
+    const reqRoleInput = document.getElementById('cosmeticEditReqRole');
     const descInput = document.getElementById('cosmeticEditDescription');
+    const assetPathGroup = document.getElementById('cosmeticEditAssetPathGroup');
+    const assetPathInput = document.getElementById('cosmeticEditAssetPath');
     const svgContentInput = document.getElementById('cosmeticEditSvgContent');
     const enabledInput = document.getElementById('cosmeticEditEnabled');
 
@@ -1329,7 +1333,9 @@
       if (reqLevelInput) reqLevelInput.value = cosmetic?.reqLevel || 1;
       if (reqAchievementInput) reqAchievementInput.value = cosmetic?.reqAchievement || '';
       if (priceInput) priceInput.value = cosmetic?.price || 10;
+      if (reqRoleInput) reqRoleInput.value = cosmetic?.reqRole || 'Founder';
       if (descInput) descInput.value = cosmetic?.description || '';
+      if (assetPathInput) assetPathInput.value = cosmetic?.assetPath || cosmetic?.imageUrl || '';
       if (svgContentInput) svgContentInput.value = cosmetic?.svgContent || '';
       if (enabledInput) enabledInput.checked = cosmetic ? Boolean(cosmetic.enabled) : true;
 
@@ -1360,14 +1366,17 @@
       if (reqLevelGroup) reqLevelGroup.style.display = acq === 'Level' ? 'block' : 'none';
       if (reqAchievementGroup) reqAchievementGroup.style.display = acq === 'Achievement' ? 'block' : 'none';
       if (priceGroup) priceGroup.style.display = acq === 'Marketplace' ? 'block' : 'none';
+      if (reqRoleGroup) reqRoleGroup.style.display = acq === 'Role' ? 'block' : 'none';
     }
 
     function updateCategoryFields() {
       const cat = catSelect?.value;
       const isReward = ['ai-credits', 'gift-card', 'physical-reward', 'external-service', 'other-reward'].includes(cat);
+      const isPremiumAvatar = cat === 'premiumAvatar';
       if (rewardInstructionsGroup) rewardInstructionsGroup.style.display = isReward ? 'block' : 'none';
       if (rewardCodeGroup) rewardCodeGroup.style.display = isReward ? 'block' : 'none';
       if (rewardUrlGroup) rewardUrlGroup.style.display = isReward ? 'block' : 'none';
+      if (assetPathGroup) assetPathGroup.style.display = isPremiumAvatar ? 'block' : 'none';
     }
 
     acqSelect?.addEventListener('change', updateAcquisitionFields);
@@ -1418,7 +1427,7 @@
             <span style="font-size:9px;font-weight:700;text-transform:uppercase;padding:2px 8px;border-radius:4px;background:var(--bg-warm);border:1px solid var(--border-light);">${esc(item.rarity)}</span>
           </div>
           <div style="font-size:11px;opacity:.7;margin-top:4px;">
-            Acquisition: <strong>${esc(item.acquisition)}</strong>${item.acquisition === 'Marketplace' ? ` &middot; ${item.price} IP` : ''}${item.acquisition === 'Level' ? ` &middot; Level ${item.reqLevel}` : ''}
+            Acquisition: <strong>${esc(item.acquisition)}</strong>${item.acquisition === 'Marketplace' ? ` &middot; ${item.price} IP` : ''}${item.acquisition === 'Level' ? ` &middot; Level ${item.reqLevel}` : ''}${item.acquisition === 'Role' ? ` &middot; ${esc(item.reqRole || 'Admin role')}` : ''}
           </div>
           <div style="font-size:11px;opacity:.55;margin-top:4px;">${esc(item.description || '—')}</div>
           <div style="display:flex;align-items:center;gap:8px;margin-top:8px;">
@@ -1475,6 +1484,7 @@
         acquisition: acq,
         reqLevel: acq === 'Level' ? Number(reqLevelInput?.value) || 1 : null,
         reqAchievement: acq === 'Achievement' ? reqAchievementInput?.value.trim() : null,
+        reqRole: acq === 'Role' ? reqRoleInput?.value || 'Founder' : null,
         price: acq === 'Marketplace' ? Number(priceInput?.value) || 10 : null,
         description: descInput?.value.trim() || '',
         enabled: enabledInput ? enabledInput.checked : true,
@@ -1482,6 +1492,7 @@
         redeemInstructions: rewardInstructionsInput?.value.trim() || '',
         redeemCode: rewardCodeInput?.value.trim() || '',
         externalUrl: rewardUrlInput?.value.trim() || '',
+        assetPath: assetPathInput?.value.trim() || '',
         svgContent: svgContentInput?.value.trim() || existing.svgContent || ''
       };
       try {

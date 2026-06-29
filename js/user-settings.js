@@ -7,6 +7,8 @@
   let editedAvatar = '';
   let editedBanner = '';
   let tempAvatarConfig = {};
+  let tempPremiumAvatarId = '';
+  let avatarEditMode = 'builder';
   let tempBannerValue = '';
   const DEFAULT_AVATAR = {
     face: 'face-round',
@@ -154,6 +156,20 @@
     return { ...DEFAULT_AVATAR };
   }
 
+  function premiumAvatarIdFromValue(avatarStr) {
+    return avatarStr && avatarStr.startsWith('avatar:premium:') ? avatarStr.slice('avatar:premium:'.length) : '';
+  }
+
+  function selectedPremiumAvatar() {
+    const premiumId = premiumAvatarIdFromValue(editedAvatar) || tempPremiumAvatarId;
+    return (window.TWS.memory.cosmetics || []).find(item => item.id === premiumId && item.category === 'premiumAvatar') || null;
+  }
+
+  function currentProfilePictureValue() {
+    const premiumItem = selectedPremiumAvatar();
+    return premiumItem ? window.TWS.cosmeticImageSource(premiumItem) || editedAvatar : editedAvatar;
+  }
+
   function renderProfile() {
     const points = window.TWS.impactPointsFromStats(profile);
     document.getElementById('displayName').value = profile?.displayName || profile?.name || session.displayName || '';
@@ -193,6 +209,10 @@
     grid.innerHTML = '';
     const cosmetics = window.TWS.memory.cosmetics || [];
     const categoryCosmetics = cosmetics.filter(c => c.category === category);
+    if (category === 'premiumAvatar') {
+      renderPremiumAvatarOptions(grid, categoryCosmetics);
+      return;
+    }
     categoryCosmetics.forEach(item => {
       const isUnlocked = window.TWS.isCosmeticUnlocked(item, profile);
       const isSelected = tempAvatarConfig[category] === item.id;
@@ -283,6 +303,51 @@
     });
   }
 
+  function renderPremiumAvatarOptions(grid, premiumAvatars) {
+    grid.innerHTML = '';
+    if (!premiumAvatars.length) {
+      grid.innerHTML = `<div class="span-full premium-avatar-empty">No premium profile pictures are available yet.</div>`;
+      return;
+    }
+    premiumAvatars.forEach(item => {
+      const isUnlocked = window.TWS.isCosmeticUnlocked(item, profile);
+      const isSelected = tempPremiumAvatarId === item.id;
+      const card = document.createElement('div');
+      card.className = `option-card premium-avatar-card ${isUnlocked ? 'unlocked' : 'locked'} ${isSelected ? 'active' : ''} rarity-${item.rarity.toLowerCase()}`;
+      let text = item.rarity;
+      if (!isUnlocked) {
+        if (item.acquisition === 'Role') {
+          text = item.reqRole || 'Role';
+        } else if (item.acquisition === 'Level') {
+          text = `Lv. ${item.reqLevel}`;
+        } else if (item.acquisition === 'Achievement') {
+          text = 'Reward';
+        } else {
+          text = 'Store';
+        }
+      }
+      const imagePath = window.TWS.cosmeticImageSource(item);
+      card.innerHTML = `
+        <div class="option-preview-area premium-avatar-preview">${imagePath ? `<img src="${esc(imagePath)}" alt="${esc(item.name)}" />` : `<span>${esc(String(item.name || item.id).slice(0, 2).toUpperCase())}</span>`}</div>
+        <div class="option-info-wrapper">
+          <div class="option-preview-badge">${esc(text)}</div>
+          <div class="option-item-name">${esc(item.name)}</div>
+        </div>
+      `;
+      card.addEventListener('click', () => {
+        if (!isUnlocked) {
+          window.TWS.showToast(`Locked: ${item.description || 'Unavailable'}`);
+          return;
+        }
+        tempPremiumAvatarId = item.id;
+        avatarEditMode = 'premium';
+        document.getElementById('builderAvatarPreview').innerHTML = window.TWS.renderPremiumAvatarHTML(item, profile);
+        renderPremiumAvatarOptions(grid, premiumAvatars);
+      });
+      grid.appendChild(card);
+    });
+  }
+
   function renderBannerOptions() {
     const grid = document.getElementById('bannerOptionsGrid');
     if (!grid) return;
@@ -342,10 +407,19 @@
     if (btnOpenAvatar && modalAvatar) {
       btnOpenAvatar.addEventListener('click', () => {
         tempAvatarConfig = parseAvatarConfig(editedAvatar);
+        tempPremiumAvatarId = premiumAvatarIdFromValue(editedAvatar);
+        avatarEditMode = tempPremiumAvatarId ? 'premium' : 'builder';
         modalAvatar.style.display = 'flex';
-        document.getElementById('builderAvatarPreview').innerHTML = window.TWS.renderAvatarSVG(tempAvatarConfig);
-        selectCategory.value = 'face';
-        renderBuilderOptions('face');
+        if (avatarEditMode === 'premium') {
+          const premiumItem = (window.TWS.memory.cosmetics || []).find(item => item.id === tempPremiumAvatarId);
+          document.getElementById('builderAvatarPreview').innerHTML = premiumItem ? window.TWS.renderPremiumAvatarHTML(premiumItem, profile) : window.TWS.renderAvatarSVG(tempAvatarConfig);
+          selectCategory.value = 'premiumAvatar';
+          renderBuilderOptions('premiumAvatar');
+        } else {
+          document.getElementById('builderAvatarPreview').innerHTML = window.TWS.renderAvatarSVG(tempAvatarConfig);
+          selectCategory.value = 'face';
+          renderBuilderOptions('face');
+        }
       });
     }
     
@@ -366,18 +440,27 @@
     
     if (selectCategory) {
       selectCategory.addEventListener('change', () => {
+        if (selectCategory.value !== 'premiumAvatar') {
+          avatarEditMode = 'builder';
+          document.getElementById('builderAvatarPreview').innerHTML = window.TWS.renderAvatarSVG(tempAvatarConfig);
+        }
         renderBuilderOptions(selectCategory.value);
       });
     }
     
     if (btnSaveAvatar) {
       btnSaveAvatar.addEventListener('click', () => {
-        editedAvatar = 'avatar:config:' + JSON.stringify(tempAvatarConfig);
+        editedAvatar = avatarEditMode === 'premium' && tempPremiumAvatarId
+          ? `avatar:premium:${tempPremiumAvatarId}`
+          : 'avatar:config:' + JSON.stringify(tempAvatarConfig);
+        const profilePictureValue = currentProfilePictureValue();
         const avatarPreview = document.getElementById('settingsAvatarPreview');
         if (avatarPreview) {
-          avatarPreview.innerHTML = window.TWS.renderAvatarSVG(tempAvatarConfig);
+          avatarPreview.innerHTML = avatarEditMode === 'premium' && tempPremiumAvatarId
+            ? window.TWS.renderAvatarHTML({ ...profile, avatar: editedAvatar, profilePicture: profilePictureValue })
+            : window.TWS.renderAvatarSVG(tempAvatarConfig);
         }
-        persistProfile({ avatar: editedAvatar, profilePicture: editedAvatar }).then(() => {
+        persistProfile({ avatar: editedAvatar, profilePicture: profilePictureValue }).then(() => {
           modalAvatar.style.display = 'none';
         }).catch((err) => {
           console.error('Unable to save avatar', err);
@@ -416,6 +499,7 @@
       const specialty = values.specialty;
       const initials = values.initials;
       const avatar = editedAvatar;
+      const profilePicture = currentProfilePictureValue();
       const banner = editedBanner;
       const userId = activeUserId();
       if (displayName.length < 3 || !window.TWS.validUsername(username)) {
@@ -441,7 +525,7 @@
           specialty,
           initials,
           avatar,
-          profilePicture: avatar,
+          profilePicture,
           banner,
           bio: document.getElementById('profileBioInput').value.trim(),
           country: document.getElementById('profileCountry').value.trim(),
@@ -458,7 +542,7 @@
         }
         throw err;
       }
-      profile = { ...profile, displayName, username, usernameLower: username, avatar, profilePicture: avatar, banner };
+      profile = { ...profile, displayName, username, usernameLower: username, avatar, profilePicture, banner };
       session.displayName = displayName;
       session.username = username;
       session.avatar = avatar;

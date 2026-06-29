@@ -1780,7 +1780,10 @@
       if (!menuBtn) {
         menuBtn = document.createElement('button');
         menuBtn.className = 'nav-mobile-toggle';
+        menuBtn.type = 'button';
         menuBtn.setAttribute('aria-label', 'Toggle Navigation Menu');
+        menuBtn.setAttribute('aria-expanded', 'false');
+        menuBtn.setAttribute('aria-controls', 'primary-navigation');
         menuBtn.innerHTML = '<span></span><span></span><span></span>';
         const inner = nav.querySelector('.nav-inner');
         if (inner) {
@@ -1788,27 +1791,49 @@
         }
       }
 
+      if (navLinks && !navLinks.id) {
+        navLinks.id = 'primary-navigation';
+      }
+
+      const closeMenu = () => {
+        nav.classList.remove('menu-open');
+        menuBtn.setAttribute('aria-expanded', 'false');
+        document.body.style.overflow = '';
+      };
+
+      const openMenu = () => {
+        nav.classList.add('menu-open');
+        menuBtn.setAttribute('aria-expanded', 'true');
+        document.body.style.overflow = 'hidden';
+      };
+
       menuBtn.onclick = (e) => {
         e.stopPropagation();
-        nav.classList.toggle('menu-open');
-        if (nav.classList.contains('menu-open')) {
-          document.body.style.overflow = 'hidden';
-        } else {
-          document.body.style.overflow = '';
-        }
+        if (nav.classList.contains('menu-open')) closeMenu();
+        else openMenu();
       };
 
       nav.querySelectorAll('.nav-link, .nav-cta').forEach(link => {
         link.addEventListener('click', () => {
-          nav.classList.remove('menu-open');
-          document.body.style.overflow = '';
+          closeMenu();
         });
       });
 
       document.addEventListener('click', (e) => {
         if (nav.classList.contains('menu-open') && !nav.contains(e.target)) {
-          nav.classList.remove('menu-open');
-          document.body.style.overflow = '';
+          closeMenu();
+        }
+      });
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && nav.classList.contains('menu-open')) {
+          closeMenu();
+        }
+      });
+
+      window.addEventListener('resize', () => {
+        if (window.innerWidth > 1150 && nav.classList.contains('menu-open')) {
+          closeMenu();
         }
       });
     }
@@ -2247,7 +2272,36 @@
       const owned = user.ownedCosmetics || [];
       return owned.includes(cosmetic.id);
     }
+    if (cosmetic.acquisition === 'Role') {
+      const requiredRole = String(cosmetic.reqRole || '').trim().toLowerCase();
+      if (!requiredRole) return false;
+      const userRoles = [user.role, user.adminRole].map(role => String(role || '').trim().toLowerCase());
+      return userRoles.includes(requiredRole);
+    }
     return false;
+  }
+
+  function cosmeticImageSource(cosmetic) {
+    if (!cosmetic) return '';
+    const imagePath = String(cosmetic.assetPath || cosmetic.imageUrl || '').trim();
+    if (!imagePath) return '';
+    if (imagePath.startsWith('http://') || imagePath.startsWith('https://') || imagePath.startsWith('data:')) return imagePath;
+    if (imagePath.startsWith('assets/avatars/')) return imagePath;
+    return '';
+  }
+
+  function renderPremiumAvatarHTML(cosmetic, user) {
+    const imagePath = cosmeticImageSource(cosmetic);
+    if (imagePath) {
+      return `<img src="${escapeHTML(imagePath)}" alt="${escapeHTML(cosmetic.name || user?.displayName || 'Avatar')}" style="width: 100%; height: 100%; object-fit: cover;" />`;
+    }
+    const initials = initialsFromName(cosmetic?.name || user?.displayName || 'TW');
+    return `<div class="avatar-initials" style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; font-family: var(--font-display); font-weight: 500; background: linear-gradient(135deg, var(--accent-moss) 0%, var(--accent-ocean) 100%); color: var(--bg-warm); font-size: 1.25rem; text-transform: uppercase; letter-spacing: 0.05em; border-radius: 16px;">${escapeHTML(initials)}</div>`;
+  }
+
+  function avatarImageValue(value) {
+    const imageValue = String(value || '').trim();
+    return imageValue.startsWith('http://') || imageValue.startsWith('https://') || imageValue.startsWith('data:') || imageValue.startsWith('assets/avatars/') ? imageValue : '';
   }
 
   function renderAvatarSVG(config) {
@@ -2603,8 +2657,14 @@
       } catch (e) {
         console.warn('Error parsing avatar config', e);
       }
-    } else if (avatarStr.startsWith('http://') || avatarStr.startsWith('https://') || avatarStr.startsWith('data:')) {
-      return `<img src="${escapeHTML(avatarStr)}" alt="${escapeHTML(user.displayName || 'Avatar')}" style="width: 100%; height: 100%; object-fit: cover;" />`;
+    } else if (avatarStr.startsWith('avatar:premium:')) {
+      const premiumId = avatarStr.slice('avatar:premium:'.length);
+      const cosmetic = (memory.cosmetics || []).find(item => item.id === premiumId && item.category === 'premiumAvatar');
+      if (cosmetic) return renderPremiumAvatarHTML(cosmetic, user);
+      const fallbackImage = avatarImageValue(user.profilePicture);
+      if (fallbackImage) return `<img src="${escapeHTML(fallbackImage)}" alt="${escapeHTML(user.displayName || 'Avatar')}" style="width: 100%; height: 100%; object-fit: cover;" />`;
+    } else if (avatarImageValue(avatarStr)) {
+      return `<img src="${escapeHTML(avatarImageValue(avatarStr))}" alt="${escapeHTML(user.displayName || 'Avatar')}" style="width: 100%; height: 100%; object-fit: cover;" />`;
     }
     const initials = user.initials || initialsFromName(user.displayName || user.name || 'TW');
     return `<div class="avatar-initials" style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; font-family: var(--font-display); font-weight: 500; background: linear-gradient(135deg, var(--accent-moss) 0%, var(--accent-ocean) 100%); color: var(--bg-warm); font-size: 1.25rem; text-transform: uppercase; letter-spacing: 0.05em; border-radius: 16px;">${escapeHTML(initials)}</div>`;
@@ -2759,6 +2819,8 @@
     deleteCosmetic,
     purchaseCosmetic,
     isCosmeticUnlocked,
+    cosmeticImageSource,
+    renderPremiumAvatarHTML,
     renderAvatarSVG,
     renderAvatarHTML,
     renderProfileBanner
