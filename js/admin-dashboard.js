@@ -375,7 +375,8 @@
       const member = members.find((item) => item.username === award.name || item.displayName === award.name || item.name === award.name);
       if (!member) return;
       const id = member.uid || member.id || member.username;
-      const current = window.TWS.impactPointsFromStats(member);
+      const currentSpendable = window.TWS.spendablePointsFromStats(member);
+      const currentLifetime = window.TWS.impactPointsFromStats(member);
       const currentExperience = window.TWS.experienceFromStats(member);
       const solved = Number(member.solved || member.stats?.problemsSolved || 0) + 1;
       const history = Array.isArray(member.awardHistory) ? member.awardHistory : [];
@@ -394,8 +395,8 @@
         stats: {
           ...(member.stats || {}),
           experience: currentExperience + experience,
-          impactPoints: current + points,
-          totalImpactPoints: current + points,
+          impactPoints: currentSpendable + points,
+          totalImpactPoints: currentLifetime + points,
           problemsSolved: solved
         }
       };
@@ -638,7 +639,7 @@
     selectedMemberId = memberId;
     const member = members.find((item) => [item.uid, item.id, item.username].includes(memberId));
     if (!member) return;
-    const points = window.TWS.impactPointsFromStats(member);
+    const points = window.TWS.spendablePointsFromStats(member);
     const progression = member.progression || window.TWS.progressionFromExperience(member.experience || member.stats?.experience || 0);
     document.getElementById('solverUnselectedState').style.display = 'none';
     document.getElementById('solverProfileForm').style.display = 'block';
@@ -704,7 +705,8 @@
     )));
     const currentAdminBadges = window.TWS.normalizeBadges(member.badges, member).filter((badge) => badge.source === 'admin').map((badge) => badge.id).sort();
     const nextAdminBadges = badges.filter((id) => window.TWS.resolveBadge(id).source === 'admin').sort();
-    const currentPoints = window.TWS.impactPointsFromStats(member);
+    const currentPoints = window.TWS.spendablePointsFromStats(member);
+    const currentTotalPoints = window.TWS.impactPointsFromStats(member);
     const currentExperience = Number(member.experience || member.stats?.experience || 0);
     const currentSolved = Number(member.solved || member.stats?.problemsSolved || 0);
     const progressionChanged = points !== currentPoints || experience !== currentExperience || solved !== currentSolved;
@@ -719,7 +721,7 @@
     await window.TWS.saveUserProfile(selectedMemberId, {
       ...member,
       specialty: document.getElementById('editSolverSpecialty').value.trim(),
-      badges: window.TWS.badgeStorageValues(badges, { ...member, stats: { ...(member.stats || {}), experience, impactPoints: points, totalImpactPoints: points, problemsSolved: solved } }),
+      badges: window.TWS.badgeStorageValues(badges, { ...member, stats: { ...(member.stats || {}), experience, impactPoints: points, totalImpactPoints: Math.max(currentTotalPoints, points), problemsSolved: solved } }),
       points,
       impactPoints: points,
       experience,
@@ -728,7 +730,7 @@
       adminRole,
       isSupportingPartner,
       dashboardAccess,
-      stats: { ...(member.stats || {}), experience, impactPoints: points, totalImpactPoints: points, problemsSolved: solved }
+      stats: { ...(member.stats || {}), experience, impactPoints: points, totalImpactPoints: Math.max(currentTotalPoints, points), problemsSolved: solved }
     });
     if (member.email && window.TWSAccess?.setRoleAssignment) {
       await window.TWSAccess.setRoleAssignment({

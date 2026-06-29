@@ -55,6 +55,7 @@
   }
 
   function writeLocalStore(patch) {
+    if (!localFallbackEnabled()) return readLocalStore();
     const next = { ...readLocalStore(), ...patch };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
     return next;
@@ -2698,6 +2699,7 @@
     progressionFromExperience,
     experienceForProgression,
     impactPointsFromStats,
+    spendablePointsFromStats,
     experienceFromStats,
     validUsername,
     normalizeMember,

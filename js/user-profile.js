@@ -65,7 +65,8 @@
     const experience = Number(stats.experience ?? raw.experience) || 0;
     const progression = raw.progression || window.TWS.progressionFromExperience(experience);
     const adminRole = raw.adminRole || (fixedRoles.includes(raw.role) && !['Member', 'Contributor'].includes(raw.role) ? raw.role : '');
-    const impactPoints = window.TWS.impactPointsFromStats(raw);
+    const totalImpactPoints = window.TWS.impactPointsFromStats(raw);
+    const spendableImpactPoints = window.TWS.spendablePointsFromStats(raw);
 
     return {
       id: String(raw.id || username),
@@ -93,8 +94,8 @@
         knowledgeContributions: Number(stats.knowledgeContributions) || 0,
         helpfulResponses: Number(stats.helpfulResponses) || 0,
         experience,
-        totalImpactPoints: Number(raw.stats?.totalImpactPoints ?? raw.totalImpactPoints ?? impactPoints) || 0,
-        impactPoints,
+        totalImpactPoints,
+        impactPoints: spendableImpactPoints,
         badgesEarned: Number(stats.badgesEarned) || 0,
         currentRank: progression.label,
         currentStreak: Number(stats.currentStreak) || 0,
