@@ -4,7 +4,34 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Together We Solve</title>
+    <title>Together We Solve — Community-Driven Problem Solving</title>
+    <meta name="description" content="Together We Solve is a community-driven platform where people post real-world problems, collaborate on verified solutions, and award impact points." />
+    <link rel="canonical" href="https://together-we-solve.firebaseapp.com/index.html" />
+    <meta property="og:title" content="Together We Solve — Community-Driven Problem Solving" />
+    <meta property="og:description" content="A movement built on the belief that knowledge shared, support offered, and solutions discovered together can create meaningful change." />
+    <meta property="og:url" content="https://together-we-solve.firebaseapp.com/index.html" />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="https://together-we-solve.firebaseapp.com/assets/avatars/avatar-founder.png" />
+    <meta property="og:site_name" content="Together We Solve" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "Together We Solve",
+        "url": "https://together-we-solve.firebaseapp.com/",
+        "logo": "https://together-we-solve.firebaseapp.com/assets/avatars/avatar-founder.png",
+        "founder": {
+          "@type": "Person",
+          "name": "Shivaprasad V",
+          "url": "https://spdly.is-a.dev",
+          "sameAs": [
+            "https://www.instagram.com/spdly_studios/",
+            "https://www.linkedin.com/in/spdly/"
+          ]
+        },
+        "description": "Together We Solve is a static community web application for crowdsourcing solutions, tracking social impact, and earning points."
+      }
+    </script>
     <link rel="stylesheet" href="css/styles.css" />
     <link rel="stylesheet" href="css/ui-polish.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -307,7 +334,7 @@
     <script src="https://unpkg.com/lenis@1.1.13/dist/lenis.min.js"></script>
     <script src="https://unpkg.com/split-type@0.3.4/umd/index.min.js"></script>
     <script>
-      if (sessionStorage.getItem('portal_session')) {
+      if (localStorage.getItem('portal_session')) {
         window.location.href = 'home.html';
       }
     </script>

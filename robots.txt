@@ -1,0 +1,11 @@
+User-agent: *
+Disallow: /admin-dashboard.html
+Disallow: /evaluator-dashboard.html
+Disallow: /supporting-partner-dashboard.html
+Disallow: /user-settings.html
+Disallow: /post-problem.html
+Disallow: /my-frictions.html
+Disallow: /referrals.html
+Disallow: /tasks.html
+
+Sitemap: https://together-we-solve.firebaseapp.com/sitemap.xml
