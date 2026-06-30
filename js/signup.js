@@ -6,10 +6,7 @@ import { auth, db } from './firebase-core.js';
 (function () {
   'use strict';
 
-  const lenis = new Lenis({ lerp: 0.08, smoothWheel: true, touchMultiplier: 1.5 });
-  lenis.on('scroll', ScrollTrigger.update);
-  gsap.ticker.add((time) => lenis.raf(time * 1000));
-  gsap.ticker.lagSmoothing(0);
+
 
   function friendlySignupError(error) {
     const code = error?.code || '';

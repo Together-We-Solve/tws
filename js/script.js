@@ -6,27 +6,17 @@
 (function () {
   'use strict';
 
-  /* ─── LENIS SMOOTH SCROLL ──────────────────── */
-  const lenis = new Lenis({
-    lerp: 0.08,
-    smoothWheel: true,
-    touchMultiplier: 1.5,
-  });
 
-  lenis.on('scroll', ScrollTrigger.update);
-
-  gsap.ticker.add((time) => {
-    lenis.raf(time * 1000);
-  });
-
-  gsap.ticker.lagSmoothing(0);
 
   /* ─── SCROLL LINKS ─────────────────────────── */
   document.querySelectorAll('.scroll-link').forEach(link => {
     link.addEventListener('click', (e) => {
       e.preventDefault();
       const target = document.querySelector(link.getAttribute('href'));
-      if (target) lenis.scrollTo(target, { offset: -80 });
+      if (target) {
+        const top = target.getBoundingClientRect().top + window.scrollY - 80;
+        window.scrollTo({ top, behavior: 'smooth' });
+      }
     });
   });
 
@@ -36,7 +26,10 @@
       if (href && href.startsWith('#')) {
         e.preventDefault();
         const target = document.querySelector(href);
-        if (target) lenis.scrollTo(target, { offset: -80 });
+        if (target) {
+          const top = target.getBoundingClientRect().top + window.scrollY - 80;
+          window.scrollTo({ top, behavior: 'smooth' });
+        }
       }
     });
   });

@@ -10,20 +10,7 @@
     return JSON.parse(localStorage.getItem('portal_session') || 'null');
   }
 
-  /* ─── LENIS SMOOTH SCROLL ──────────────────── */
-  const lenis = new Lenis({
-    lerp: 0.08,
-    smoothWheel: true,
-    touchMultiplier: 1.5,
-  });
 
-  lenis.on('scroll', ScrollTrigger.update);
-
-  gsap.ticker.add((time) => {
-    lenis.raf(time * 1000);
-  });
-
-  gsap.ticker.lagSmoothing(0);
 
   /* ─── NAV SCROLL STATE ─────────────────────── */
   const nav = document.getElementById('nav');
@@ -119,7 +106,11 @@
         );
         
         // Scroll to top of the form wrapper
-        lenis.scrollTo('.form-wrapper', { offset: -100, duration: 0.8 });
+        const formWrapper = document.querySelector('.form-wrapper');
+        if (formWrapper) {
+          const top = formWrapper.getBoundingClientRect().top + window.scrollY - 100;
+          window.scrollTo({ top, behavior: 'smooth' });
+        }
       }
     });
 
@@ -430,7 +421,6 @@
         // Form is complete, trigger full-screen celebration
         if (overlay) {
           overlay.classList.add('active');
-          lenis.stop(); // Prevent scrolling under overlay
           runCelebrationCanvas();
         }
       }

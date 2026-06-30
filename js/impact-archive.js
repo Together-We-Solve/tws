@@ -2,14 +2,8 @@
   'use strict';
 
   const esc = window.TWS.escapeHTML;
-  let lenis = null;
-
   function initSmoothScroll() {
-    if (!window.Lenis || !window.gsap || !window.ScrollTrigger) return;
-    lenis = new Lenis({ lerp: 0.08, smoothWheel: true, touchMultiplier: 1.5 });
-    lenis.on('scroll', ScrollTrigger.update);
-    gsap.ticker.add((time) => lenis.raf(time * 1000));
-    gsap.ticker.lagSmoothing(0);
+    if (!window.gsap || !window.ScrollTrigger) return;
     const nav = document.getElementById('nav');
     if (nav) {
       ScrollTrigger.create({
@@ -205,7 +199,6 @@
 
   function refreshLayout() {
     if (window.ScrollTrigger) ScrollTrigger.refresh();
-    if (lenis) lenis.resize();
   }
 
   function initAccordions() {

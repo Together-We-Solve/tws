@@ -42,7 +42,9 @@ service cloud.firestore {
       return signedIn() && (
         hasPrivilege('manage_system') ||
         hasDashboard('superadmin') ||
-        roleData().role in ['Founder', 'Co-Founder']
+        roleData().role in ['Founder', 'Co-Founder'] ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['Founder', 'Co-Founder'])
       );
     }
 

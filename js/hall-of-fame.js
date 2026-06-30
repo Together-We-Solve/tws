@@ -7,20 +7,7 @@
   'use strict';
   const esc = window.TWS.escapeHTML;
 
-  /* ─── LENIS SMOOTH SCROLL ──────────────────── */
-  const lenis = new Lenis({
-    lerp: 0.08,
-    smoothWheel: true,
-    touchMultiplier: 1.5,
-  });
 
-  lenis.on('scroll', ScrollTrigger.update);
-
-  gsap.ticker.add((time) => {
-    lenis.raf(time * 1000);
-  });
-
-  gsap.ticker.lagSmoothing(0);
 
   /* ─── NAV SCROLL STATE ─────────────────────── */
   const nav = document.getElementById('nav');
@@ -197,7 +184,6 @@
         const modal = document.getElementById(`modal-${id}`);
         if (modal) {
           modal.classList.add('active');
-          lenis.stop(); // Stop scroll when modal is active
           
           // Animate content elements slightly for premium feel
           const content = modal.querySelector('.story-modal-card');
@@ -220,7 +206,6 @@
         ease: 'power2.in',
         onComplete: () => {
           modal.classList.remove('active');
-          lenis.start(); // Resume scroll
         }
       });
     }

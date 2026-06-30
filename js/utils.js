@@ -2137,8 +2137,8 @@
     } catch (err) {
       list = localFallbackOrEmpty(err, local.cosmetics || []);
     }
+    const seed = getSeedCosmeticsList();
     if (!list || list.length === 0) {
-      const seed = getSeedCosmeticsList();
       list = seed;
       local.cosmetics = seed;
       writeLocalStore(local);
@@ -2150,6 +2150,23 @@
             await saveDocument(configModule.accessCollections.cosmetics, item.id, item);
           }
         } catch (e) {}
+      }
+    } else {
+      const existingIds = new Set(list.map(item => item.id));
+      const missingSeed = seed.filter(item => !existingIds.has(item.id));
+      if (missingSeed.length > 0) {
+        list = list.concat(missingSeed);
+        local.cosmetics = list;
+        writeLocalStore(local);
+        const session = getPortalSession();
+        if (session && (session.role === 'Founder' || session.role === 'Co-Founder')) {
+          try {
+            const { configModule } = await getFirebaseDataApiSafe();
+            for (const item of missingSeed) {
+              await saveDocument(configModule.accessCollections.cosmetics, item.id, item);
+            }
+          } catch (e) {}
+        }
       }
     }
     memory.cosmetics = list;
