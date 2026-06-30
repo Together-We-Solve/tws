@@ -162,7 +162,7 @@
 
   function selectedPremiumAvatar() {
     const premiumId = premiumAvatarIdFromValue(editedAvatar) || tempPremiumAvatarId;
-    return (window.TWS.memory.cosmetics || []).find(item => item.id === premiumId && item.category === 'premiumAvatar') || null;
+    return (window.TWS.memory.cosmetics || []).find(item => item.id === premiumId && (item.category === 'premiumAvatar' || item.category === 'adminRoleAvatar')) || null;
   }
 
   function currentProfilePictureValue() {
@@ -209,7 +209,7 @@
     grid.innerHTML = '';
     const cosmetics = window.TWS.memory.cosmetics || [];
     const categoryCosmetics = cosmetics.filter(c => c.category === category);
-    if (category === 'premiumAvatar') {
+    if (category === 'premiumAvatar' || category === 'adminRoleAvatar') {
       renderPremiumAvatarOptions(grid, categoryCosmetics);
       return;
     }
@@ -413,8 +413,9 @@
         if (avatarEditMode === 'premium') {
           const premiumItem = (window.TWS.memory.cosmetics || []).find(item => item.id === tempPremiumAvatarId);
           document.getElementById('builderAvatarPreview').innerHTML = premiumItem ? window.TWS.renderPremiumAvatarHTML(premiumItem, profile) : window.TWS.renderAvatarSVG(tempAvatarConfig);
-          selectCategory.value = 'premiumAvatar';
-          renderBuilderOptions('premiumAvatar');
+          const activeCat = premiumItem?.category === 'adminRoleAvatar' ? 'adminRoleAvatar' : 'premiumAvatar';
+          selectCategory.value = activeCat;
+          renderBuilderOptions(activeCat);
         } else {
           document.getElementById('builderAvatarPreview').innerHTML = window.TWS.renderAvatarSVG(tempAvatarConfig);
           selectCategory.value = 'face';
@@ -440,11 +441,12 @@
     
     if (selectCategory) {
       selectCategory.addEventListener('change', () => {
-        if (selectCategory.value !== 'premiumAvatar') {
+        const cat = selectCategory.value;
+        if (cat !== 'premiumAvatar' && cat !== 'adminRoleAvatar') {
           avatarEditMode = 'builder';
           document.getElementById('builderAvatarPreview').innerHTML = window.TWS.renderAvatarSVG(tempAvatarConfig);
         }
-        renderBuilderOptions(selectCategory.value);
+        renderBuilderOptions(cat);
       });
     }
     

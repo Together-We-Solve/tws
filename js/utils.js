@@ -2119,7 +2119,12 @@
       { id: 'banner-abstract', name: 'Abstract Waves', category: 'banner', rarity: 'Epic', acquisition: 'Marketplace', price: 15, description: 'Smooth gradient wave shapes banner.', enabled: true, releaseDate: '2026-06-27' },
       { id: 'banner-founder', name: 'Founder Pride', category: 'banner', rarity: 'Legendary', acquisition: 'Achievement', reqAchievement: 'founder', description: 'An elegant golden geometry banner.', enabled: true, releaseDate: '2026-06-27' },
       { id: 'banner-referrals', name: 'Referral Connector', category: 'banner', rarity: 'Legendary', acquisition: 'Achievement', reqAchievement: 'referral-connector-l1', description: 'A glowing teal referral milestone banner.', enabled: true, releaseDate: '2026-06-27' },
-      { id: 'banner-community', name: 'TWS Community', category: 'banner', rarity: 'Common', acquisition: 'Level', reqLevel: 1, description: 'A classic community-red theme banner.', enabled: true, releaseDate: '2026-06-27' }
+      { id: 'banner-community', name: 'TWS Community', category: 'banner', rarity: 'Common', acquisition: 'Level', reqLevel: 1, description: 'A classic community-red theme banner.', enabled: true, releaseDate: '2026-06-27' },
+      { id: 'avatar-founder', name: 'Founder Avatar', category: 'adminRoleAvatar', rarity: 'Legendary', acquisition: 'Role', reqRole: 'Founder', assetPath: 'assets/avatars/avatar-founder.png', description: 'Exclusive avatar for community Founders.', enabled: true, releaseDate: '2026-06-30' },
+      { id: 'avatar-cofounder', name: 'Co-Founder Avatar', category: 'adminRoleAvatar', rarity: 'Legendary', acquisition: 'Role', reqRole: 'Co-Founder', assetPath: 'assets/avatars/avatar-cofounder.png', description: 'Exclusive avatar for Co-Founders.', enabled: true, releaseDate: '2026-06-30' },
+      { id: 'avatar-innovator', name: 'Innovator Avatar', category: 'adminRoleAvatar', rarity: 'Rare', acquisition: 'Role', reqRole: 'Innovator', assetPath: 'assets/avatars/avatar-innovator.png', description: 'Exclusive avatar for Innovators.', enabled: true, releaseDate: '2026-06-30' },
+      { id: 'avatar-evaluator', name: 'Evaluator Avatar', category: 'adminRoleAvatar', rarity: 'Epic', acquisition: 'Role', reqRole: 'Evaluator', assetPath: 'assets/avatars/avatar-evaluator.png', description: 'Exclusive avatar for Evaluators.', enabled: true, releaseDate: '2026-06-30' },
+      { id: 'avatar-steward', name: 'Steward Avatar', category: 'adminRoleAvatar', rarity: 'Uncommon', acquisition: 'Role', reqRole: 'Steward', assetPath: 'assets/avatars/avatar-steward.png', description: 'Exclusive avatar for Stewards.', enabled: true, releaseDate: '2026-06-30' }
     ];
   }
 
@@ -2659,7 +2664,7 @@
       }
     } else if (avatarStr.startsWith('avatar:premium:')) {
       const premiumId = avatarStr.slice('avatar:premium:'.length);
-      const cosmetic = (memory.cosmetics || []).find(item => item.id === premiumId && item.category === 'premiumAvatar');
+      const cosmetic = (memory.cosmetics || []).find(item => item.id === premiumId && (item.category === 'premiumAvatar' || item.category === 'adminRoleAvatar'));
       if (cosmetic) return renderPremiumAvatarHTML(cosmetic, user);
       const fallbackImage = avatarImageValue(user.profilePicture);
       if (fallbackImage) return `<img src="${escapeHTML(fallbackImage)}" alt="${escapeHTML(user.displayName || 'Avatar')}" style="width: 100%; height: 100%; object-fit: cover;" />`;

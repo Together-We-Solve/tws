@@ -1372,7 +1372,7 @@
     function updateCategoryFields() {
       const cat = catSelect?.value;
       const isReward = ['ai-credits', 'gift-card', 'physical-reward', 'external-service', 'other-reward'].includes(cat);
-      const isPremiumAvatar = cat === 'premiumAvatar';
+      const isPremiumAvatar = cat === 'premiumAvatar' || cat === 'adminRoleAvatar';
       if (rewardInstructionsGroup) rewardInstructionsGroup.style.display = isReward ? 'block' : 'none';
       if (rewardCodeGroup) rewardCodeGroup.style.display = isReward ? 'block' : 'none';
       if (rewardUrlGroup) rewardUrlGroup.style.display = isReward ? 'block' : 'none';

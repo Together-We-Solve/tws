@@ -1,6 +1,6 @@
 # Together We Solve Agent RAG Knowledge Base
 
-Last updated: 2026-06-29
+Last updated: 2026-06-30
 
 Use this file as the shared retrieval knowledge base for Codex, Antigravity, and every other AI agent working in this repository. Read this before opening broad source files. Treat it as a compact map of stable project facts, retrieval routes, and update obligations.
 
@@ -214,8 +214,9 @@ Categories:
 - `frame`
 - `banner`
 - `premiumAvatar`
+- `adminRoleAvatar`
 
-Premium profile-picture avatars use `category: premiumAvatar`, equip as `avatar:premium:{cosmeticId}`, and use `assetPath` or `imageUrl`. Local premium avatar images must live under `assets/avatars/`. Role-gated cosmetics use `acquisition: Role` and `reqRole` with one of the fixed roles.
+Premium profile-picture avatars and admin role-based avatars use `category: premiumAvatar` or `category: adminRoleAvatar`, equip as `avatar:premium:{cosmeticId}`, and use `assetPath` or `imageUrl`. Local premium and role avatar images live under `assets/avatars/`. Role-gated cosmetics use `acquisition: Role` and `reqRole` with one of the fixed roles.
 
 ## Impact Points
 
