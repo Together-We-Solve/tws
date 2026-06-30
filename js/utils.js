@@ -1755,23 +1755,155 @@
     if (logo && session) logo.href = 'home.html';
 
     if (session && navLinks) {
-      const desiredLinks = [
-        ['home.html', 'Home'],
-        ['open-frictions.html', 'Open Frictions'],
-        ['tasks.html', 'Tasks'],
-        ['referrals.html', 'Referrals'],
-        ['members.html', 'Members'],
-        ['impact-archive.html', 'Impact Archive'],
-        ['core-team.html', 'Partners']
-      ];
       const current = window.location.pathname.split('/').pop() || 'index.html';
-      navLinks.innerHTML = desiredLinks.map(([href, label]) => {
-        const active = href.split('?')[0] === current ? ' active' : '';
-        return `<a href="${escapeHTML(href)}" class="nav-link${active}">${escapeHTML(label)}</a>`;
-      }).join('');
-      if (cta && cta.tagName === 'A') {
-        cta.href = 'post-problem.html';
-        cta.innerHTML = 'Share a Problem <span class="nav-cta-arrow">&nearr;</span>';
+      navLinks.innerHTML = `
+        <a href="home.html" class="nav-link${current === 'home.html' ? ' active' : ''}">Home</a>
+        <div class="nav-dropdown">
+          <button type="button" class="nav-link nav-dropdown-trigger" aria-haspopup="true" aria-expanded="false">
+            Contribute <svg class="dropdown-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="nav-dropdown-menu">
+            <a href="open-frictions.html" class="dropdown-item${current === 'open-frictions.html' ? ' active' : ''}">
+              <strong>Open Frictions</strong>
+              <span>Solve community problems</span>
+            </a>
+            <a href="tasks.html" class="dropdown-item${current === 'tasks.html' ? ' active' : ''}">
+              <strong>Community Tasks</strong>
+              <span>Submit task proof & earn points</span>
+            </a>
+          </div>
+        </div>
+        <div class="nav-dropdown">
+          <button type="button" class="nav-link nav-dropdown-trigger" aria-haspopup="true" aria-expanded="false">
+            Community <svg class="dropdown-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="nav-dropdown-menu">
+            <a href="members.html" class="dropdown-item${current === 'members.html' ? ' active' : ''}">
+              <strong>Members</strong>
+              <span>Connect with other solvers</span>
+            </a>
+            <a href="leaderboard.html" class="dropdown-item${current === 'leaderboard.html' ? ' active' : ''}">
+              <strong>Leaderboard</strong>
+              <span>View top contributors</span>
+            </a>
+            <a href="hall-of-fame.html" class="dropdown-item${current === 'hall-of-fame.html' ? ' active' : ''}">
+              <strong>Hall of Fame</strong>
+              <span>Milestone achievements</span>
+            </a>
+            <a href="core-team.html" class="dropdown-item${current === 'core-team.html' ? ' active' : ''}">
+              <strong>Partners</strong>
+              <span>Founding team & sponsors</span>
+            </a>
+            <a href="impact-archive.html" class="dropdown-item${current === 'impact-archive.html' ? ' active' : ''}">
+              <strong>Impact Archive</strong>
+              <span>Browse resolved cases</span>
+            </a>
+          </div>
+        </div>
+        <div class="nav-dropdown nav-mobile-only">
+          <button type="button" class="nav-link nav-dropdown-trigger" aria-haspopup="true" aria-expanded="false">
+            Account <svg class="dropdown-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="nav-dropdown-menu">
+            <a href="my-frictions.html" class="dropdown-item${current === 'my-frictions.html' ? ' active' : ''}">
+              <strong>My Frictions</strong>
+              <span>Review posts you created</span>
+            </a>
+            <a href="referrals.html" class="dropdown-item${current === 'referrals.html' ? ' active' : ''}">
+              <strong>Referrals Hub</strong>
+              <span>Invite members & track rewards</span>
+            </a>
+            <a href="marketplace.html" class="dropdown-item${current === 'marketplace.html' ? ' active' : ''}">
+              <strong>Cosmetics Shop</strong>
+              <span>Spend points on avatar parts</span>
+            </a>
+            <a href="inventory.html" class="dropdown-item${current === 'inventory.html' ? ' active' : ''}">
+              <strong>My Inventory</strong>
+              <span>View owned items and progress</span>
+            </a>
+            <a href="user-settings.html" class="dropdown-item${current === 'user-settings.html' ? ' active' : ''}">
+              <strong>Account Settings</strong>
+              <span>Customize avatar & banner</span>
+            </a>
+            <button type="button" class="dropdown-item nav-user-logout-mobile" style="width: 100%; border: none; background: transparent; text-align: left; cursor: pointer;">
+              <strong>Sign Out</strong>
+              <span>End your session safely</span>
+            </button>
+          </div>
+        </div>
+      `;
+
+      if (cta) {
+        const newCta = document.createElement('a');
+        newCta.className = 'nav-cta';
+        newCta.href = 'post-problem.html';
+        newCta.innerHTML = 'Share a Problem <span class="nav-cta-arrow">&nearr;</span>';
+        cta.parentNode.replaceChild(newCta, cta);
+      }
+
+      if (nav) {
+        let userMenu = nav.querySelector('.nav-user-menu');
+        if (!userMenu) {
+          userMenu = document.createElement('div');
+          userMenu.className = 'nav-user-menu';
+          const inner = nav.querySelector('.nav-inner');
+          if (inner) {
+            const currentCta = inner.querySelector('.nav-cta');
+            if (currentCta) {
+              inner.insertBefore(userMenu, currentCta);
+            } else {
+              inner.appendChild(userMenu);
+            }
+          }
+        }
+
+        const displayName = session.displayName || session.username || 'Member';
+        const username = session.username || 'member';
+        const role = session.role || 'Member';
+        const avatarHTML = renderAvatarHTML(session);
+
+        userMenu.innerHTML = `
+          <button type="button" class="nav-user-trigger" aria-haspopup="true" aria-expanded="false">
+            <div class="nav-user-avatar">
+              ${avatarHTML}
+            </div>
+            <span class="nav-user-name">${escapeHTML(displayName)}</span>
+            <svg class="dropdown-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="nav-user-dropdown">
+            <div class="nav-user-header">
+              <strong>${escapeHTML(displayName)}</strong>
+              <span class="nav-user-username">@${escapeHTML(username)}</span>
+              <span class="role-badge role-${role.toLowerCase().replace(/\s+/g, '-')}">${role}</span>
+            </div>
+            <div class="nav-user-divider"></div>
+            <a href="my-frictions.html" class="nav-user-item${current === 'my-frictions.html' ? ' active' : ''}">
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 20h9M3 20v-8c0-2.2 1.8-4 4-4h10c2.2 0 4 1.8 4 4v8M3 12h18"/></svg>
+              My Frictions
+            </a>
+            <a href="referrals.html" class="nav-user-item${current === 'referrals.html' ? ' active' : ''}">
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 7a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm14 14v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              Referrals Hub
+            </a>
+            <a href="marketplace.html" class="nav-user-item${current === 'marketplace.html' ? ' active' : ''}">
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4zM3 6h18M16 10a4 4 0 0 1-8 0"/></svg>
+              Cosmetics Shop
+            </a>
+            <a href="inventory.html" class="nav-user-item${current === 'inventory.html' ? ' active' : ''}">
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+              My Inventory
+            </a>
+            <a href="user-settings.html" class="nav-user-item${current === 'user-settings.html' ? ' active' : ''}">
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+              Settings
+            </a>
+            <div class="nav-user-divider"></div>
+            <button type="button" class="nav-user-item nav-user-logout" id="signOutBtn">
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+              Sign Out
+            </button>
+          </div>
+        `;
       }
     }
 
@@ -1813,21 +1945,76 @@
         else openMenu();
       };
 
-      nav.querySelectorAll('.nav-link, .nav-cta').forEach(link => {
+      nav.querySelectorAll('.nav-dropdown-trigger').forEach(trigger => {
+        trigger.onclick = (e) => {
+          e.stopPropagation();
+          if (window.innerWidth <= 1150) return;
+          const dropdown = trigger.parentElement;
+          const isOpen = dropdown.classList.contains('active');
+          nav.querySelectorAll('.nav-dropdown, .nav-user-menu').forEach(el => {
+            el.classList.remove('active');
+            const trig = el.querySelector('.nav-dropdown-trigger, .nav-user-trigger');
+            if (trig) trig.setAttribute('aria-expanded', 'false');
+          });
+          if (!isOpen) {
+            dropdown.classList.add('active');
+            trigger.setAttribute('aria-expanded', 'true');
+          }
+        };
+      });
+
+      const userMenu = nav.querySelector('.nav-user-menu');
+      if (userMenu) {
+        const userTrigger = userMenu.querySelector('.nav-user-trigger');
+        if (userTrigger) {
+          userTrigger.onclick = (e) => {
+            e.stopPropagation();
+            const isOpen = userMenu.classList.contains('active');
+            nav.querySelectorAll('.nav-dropdown').forEach(el => {
+              el.classList.remove('active');
+              const trig = el.querySelector('.nav-dropdown-trigger');
+              if (trig) trig.setAttribute('aria-expanded', 'false');
+            });
+            if (isOpen) {
+              userMenu.classList.remove('active');
+              userTrigger.setAttribute('aria-expanded', 'false');
+            } else {
+              userMenu.classList.add('active');
+              userTrigger.setAttribute('aria-expanded', 'true');
+            }
+          };
+        }
+      }
+
+      nav.querySelectorAll('.nav-link, .dropdown-item, .nav-cta').forEach(link => {
         link.addEventListener('click', () => {
           closeMenu();
         });
       });
 
       document.addEventListener('click', (e) => {
+        nav.querySelectorAll('.nav-dropdown, .nav-user-menu').forEach(el => {
+          if (!el.contains(e.target)) {
+            el.classList.remove('active');
+            const trig = el.querySelector('.nav-dropdown-trigger, .nav-user-trigger');
+            if (trig) trig.setAttribute('aria-expanded', 'false');
+          }
+        });
         if (nav.classList.contains('menu-open') && !nav.contains(e.target)) {
           closeMenu();
         }
       });
 
       document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && nav.classList.contains('menu-open')) {
-          closeMenu();
+        if (e.key === 'Escape') {
+          nav.querySelectorAll('.nav-dropdown, .nav-user-menu').forEach(el => {
+            el.classList.remove('active');
+            const trig = el.querySelector('.nav-dropdown-trigger, .nav-user-trigger');
+            if (trig) trig.setAttribute('aria-expanded', 'false');
+          });
+          if (nav.classList.contains('menu-open')) {
+            closeMenu();
+          }
         }
       });
 
@@ -1836,6 +2023,21 @@
           closeMenu();
         }
       });
+
+      const performSignOut = () => {
+        localStorage.removeItem('portal_session');
+        window.location.href = 'login.html';
+      };
+
+      if (userMenu) {
+        const signOutMobile = navLinks.querySelector('.nav-user-logout-mobile');
+        if (signOutMobile) {
+          signOutMobile.onclick = (e) => {
+            e.preventDefault();
+            performSignOut();
+          };
+        }
+      }
     }
   }
 

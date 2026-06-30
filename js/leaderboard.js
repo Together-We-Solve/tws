@@ -439,9 +439,11 @@
   /* ─── INIT ─────────────────────────────────── */
   async function init() {
     gsap.registerPlugin(ScrollTrigger);
-
     initLeaderboardCanvas();
-    await loadLeaderboardData();
+    await Promise.all([
+      window.TWS.loadCosmeticsAsync(),
+      loadLeaderboardData()
+    ]);
     animateHero();
     initScrollTriggers();
     initFiltering();

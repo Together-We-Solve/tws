@@ -292,7 +292,10 @@
     gsap.registerPlugin(ScrollTrigger);
 
     initGoldDustCanvas();
-    await renderHallOfFame();
+    await Promise.all([
+      window.TWS.loadCosmeticsAsync(),
+      renderHallOfFame()
+    ]);
     animateHero();
     initScrollTriggers();
   }

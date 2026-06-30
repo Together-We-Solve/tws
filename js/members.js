@@ -159,7 +159,12 @@
   function init() {
     gsap.registerPlugin(ScrollTrigger);
     initCanvas();
-    loadMembers().then(renderMembers);
+    Promise.all([
+      window.TWS.loadCosmeticsAsync(),
+      loadMembers()
+    ]).then(([_, members]) => {
+      renderMembers(members);
+    });
     initSearch();
   }
 

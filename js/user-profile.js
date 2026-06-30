@@ -61,7 +61,7 @@
       uid: String(raw.uid || ''),
       username,
       displayName: name,
-      avatar: raw.avatar || '',
+      avatar: raw.avatar || raw.profilePicture || '',
       banner: raw.banner || '',
       bio: raw.bio || '',
       profileAccent: raw.profileAccent || 'moss',
@@ -162,7 +162,7 @@
       id: solver.id,
       username: solver.username || toSlug(solver.name),
       displayName: solver.name,
-      avatar: solver.avatar || '',
+      avatar: solver.avatar || solver.profilePicture || '',
       banner: solver.banner || '',
       bio: solver.bio || '',
       profileAccent: solver.profileAccent || 'moss',
@@ -557,7 +557,10 @@
 
   async function init() {
     gsap.registerPlugin(ScrollTrigger);
-    await loadProfileData();
+    await Promise.all([
+      window.TWS.loadCosmeticsAsync(),
+      loadProfileData()
+    ]);
     renderProfile();
     initSproutCanvas();
     animateProfile();
