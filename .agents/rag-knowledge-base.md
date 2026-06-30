@@ -42,6 +42,8 @@ Use this file as the shared retrieval knowledge base for Codex, Antigravity, and
 - Role assignment and dashboard access helpers are exposed through `window.TWSAccess` in `js/firebase-access.js`.
 - Page-specific behavior should stay in the matching `js/*.js` file.
 - Global styles live in `css/styles.css`; shared refinements live in `css/ui-polish.css`; page/component styles live in matching CSS files.
+- `robots.txt` and `sitemap.xml` are located in the root directory. All 21 HTML pages are fully indexable, containing self-sufficient title tags, meta descriptions, canonical URLs, and Open Graph tags.
+- `index.html` contains Schema.org JSON-LD structured data mapping the founder Shivaprasad V's profile links.
 
 ## Data Integrity Rules
 

@@ -1,6 +1,6 @@
 # Agent Instructions for Together We Solve
 
-Last updated: 2026-06-29 (Agent RAG knowledge base added)
+Last updated: 2026-06-30 (SEO indexability, robots.txt, and sitemap.xml added)
 
 This file is the required first read for AI agents working in this workspace. Use it to understand the project quickly. Do not scan the whole repository unless the task requires it.
 
@@ -14,7 +14,7 @@ The app is built with plain HTML, CSS, and browser JavaScript. It uses Firebase 
 
 ## Workspace Map
 
-- `index.html`: public landing page.
+- `index.html`: public landing page with Schema JSON-LD structured data including founder profiles.
 - `home.html`: signed-in/community home page.
 - `signup.html`, `login.html`: authentication pages.
 - `post-problem.html`, `open-frictions.html`, `my-frictions.html`: problem posting and browsing flows.
@@ -42,6 +42,7 @@ The app is built with plain HTML, CSS, and browser JavaScript. It uses Firebase 
 - `css/marketplace.css`: Marketplace page styles.
 - `css/inventory.css`: Inventory and progression road styles.
 - `assets/avatars/`: generated avatar PNG assets for the initial phase (founder, innovator, steward).
+- `robots.txt`, `sitemap.xml`: search engine directives and fully indexable page definitions.
 - `.agents/rag-knowledge-base.md`: shared RAG-style project knowledge base for all AI agents.
 - `.agents/rag-maintenance.md`: protocol for keeping the RAG current with commits and durable project changes.
 - `.agents/hooks/pre-commit.ps1`: optional local Git hook reminder for staged durable changes without staged RAG updates.
