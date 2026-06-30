@@ -95,7 +95,7 @@
 
   function getPortalSession() {
     try {
-      return JSON.parse(sessionStorage.getItem('portal_session') || 'null');
+      return JSON.parse(localStorage.getItem('portal_session') || 'null');
     } catch (_) {
       return null;
     }
@@ -1687,7 +1687,7 @@
     const session = getPortalSession();
     if (session && (session.uid === userId || session.username === updatedUser.username)) {
       session.role = updatedUser.role;
-      sessionStorage.setItem('portal_session', JSON.stringify(session));
+      localStorage.setItem('portal_session', JSON.stringify(session));
     }
   }
 
@@ -1746,7 +1746,7 @@
   }
 
   function enhanceNavigation() {
-    const session = JSON.parse(sessionStorage.getItem('portal_session') || 'null');
+    const session = JSON.parse(localStorage.getItem('portal_session') || 'null');
     const navLinks = document.querySelector('.nav-links');
     const logo = document.querySelector('.nav-logo');
     const cta = document.querySelector('.nav-cta');

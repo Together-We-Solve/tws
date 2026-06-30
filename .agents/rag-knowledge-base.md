@@ -156,7 +156,7 @@ Known task submission statuses:
 - `Information Requested`
 - `Flagged`
 
-Community Task EXP and Impact Points are awarded only after an evaluator approves a `taskSubmissions` document. Automatic platform EXP uses `platformExperienceHistory` and `lastPlatformExperienceAward`; verified task rewards use `taskSubmissionHistory` and `lastTaskAward`.
+Community Task EXP and Impact Points are awarded only after an evaluator approves a `taskSubmissions` document. Automatic platform EXP uses `platformExperienceHistory` and `lastPlatformExperienceAward` (restricted to max 500 EXP and whitelisted actions: `profile_completion`, `first_login`, `daily_visit`, `problem_post`, `referral_milestone`); verified task rewards use `taskSubmissionHistory` and `lastTaskAward`.
 
 ## Cosmetics
 

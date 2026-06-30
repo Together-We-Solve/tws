@@ -5,7 +5,7 @@
   let problems = [];
 
   function getSession() {
-    return JSON.parse(sessionStorage.getItem('portal_session') || 'null');
+    return JSON.parse(localStorage.getItem('portal_session') || 'null');
   }
 
   function participantKey(session) {

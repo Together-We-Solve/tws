@@ -274,7 +274,7 @@ import { auth, db } from './firebase-core.js';
           loginTime: Date.now()
         };
 
-        sessionStorage.setItem('portal_session', JSON.stringify(sessionData));
+        localStorage.setItem('portal_session', JSON.stringify(sessionData));
         window.TWS.ensureSolverProfile(sessionData, []);
 
         gsap.to('.login-card', {

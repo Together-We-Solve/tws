@@ -2,7 +2,7 @@
   'use strict';
 
   const esc = window.TWS.escapeHTML;
-  const session = JSON.parse(sessionStorage.getItem('portal_session') || 'null');
+  const session = JSON.parse(localStorage.getItem('portal_session') || 'null');
   const communityInviteUrl = 'https://chat.whatsapp.com/E2X7hTCxEZjB4MczNIeHFG';
 
   if (!session) {

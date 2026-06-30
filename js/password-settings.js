@@ -37,7 +37,7 @@ import { auth } from './firebase-core.js';
 
     form.addEventListener('submit', async (event) => {
       event.preventDefault();
-      const session = JSON.parse(sessionStorage.getItem('portal_session') || 'null');
+      const session = JSON.parse(localStorage.getItem('portal_session') || 'null');
       const currentPassword = document.getElementById('currentPassword').value;
       const newPassword = document.getElementById('newPassword').value;
       const confirmPassword = document.getElementById('confirmNewPassword').value;

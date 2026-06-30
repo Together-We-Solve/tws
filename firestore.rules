@@ -277,7 +277,7 @@ service cloud.firestore {
         && award.action is string
         && award.experience is number
         && award.experience > 0
-        && award.experience <= 1000;
+        && award.experience <= 500;
     }
 
     function platformExperienceAwardUpdate() {
@@ -300,7 +300,8 @@ service cloud.firestore {
         && nextHistory.size() == previousHistory.size() + 1
         && nextHistory.hasAll(previousHistory)
         && nextHistory.hasAny([award.action])
-        && !previousHistory.hasAny([award.action]);
+        && !previousHistory.hasAny([award.action])
+        && award.action in ['profile_completion', 'first_login', 'daily_visit', 'problem_post', 'referral_milestone'];
     }
 
     function marketplacePurchaseShape() {

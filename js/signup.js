@@ -279,7 +279,7 @@ import { auth, db } from './firebase-core.js';
           transaction.set(userRef, userDoc, { merge: true });
         });
 
-        sessionStorage.setItem('portal_session', JSON.stringify({
+        localStorage.setItem('portal_session', JSON.stringify({
           uid: credential.user.uid,
           email,
           displayName,
@@ -288,7 +288,7 @@ import { auth, db } from './firebase-core.js';
           privileges: [],
           loginTime: Date.now()
         }));
-        sessionStorage.setItem('community_invite_ready', 'true');
+        localStorage.setItem('community_invite_ready', 'true');
 
         window.location.href = 'home.html';
       } catch (error) {

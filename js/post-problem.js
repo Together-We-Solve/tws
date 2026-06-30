@@ -7,7 +7,7 @@
   'use strict';
 
   function getSession() {
-    return JSON.parse(sessionStorage.getItem('portal_session') || 'null');
+    return JSON.parse(localStorage.getItem('portal_session') || 'null');
   }
 
   /* ─── LENIS SMOOTH SCROLL ──────────────────── */

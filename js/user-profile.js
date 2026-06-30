@@ -218,7 +218,7 @@
   }
 
   async function loadProfileData() {
-    currentUserSession = JSON.parse(sessionStorage.getItem('portal_session') || 'null');
+    currentUserSession = JSON.parse(localStorage.getItem('portal_session') || 'null');
     const route = getRouteIdentifier();
     let members = [];
     let problems = [];

@@ -34,7 +34,7 @@
   };
 
   function getSession() {
-    return JSON.parse(sessionStorage.getItem('portal_session') || 'null');
+    return JSON.parse(localStorage.getItem('portal_session') || 'null');
   }
 
   function activeUserId() {
@@ -110,7 +110,7 @@
     session.displayName = payload.displayName;
     session.username = payload.username;
     session.avatar = payload.avatar;
-    sessionStorage.setItem('portal_session', JSON.stringify(session));
+    localStorage.setItem('portal_session', JSON.stringify(session));
     syncPublicProfileLink();
     return true;
   }
@@ -548,7 +548,7 @@
       session.displayName = displayName;
       session.username = username;
       session.avatar = avatar;
-      sessionStorage.setItem('portal_session', JSON.stringify(session));
+      localStorage.setItem('portal_session', JSON.stringify(session));
       syncPublicProfileLink();
       alert('Profile updated.');
     });
@@ -556,7 +556,7 @@
 
   function initSignOut() {
     document.getElementById('signOutBtn')?.addEventListener('click', () => {
-      sessionStorage.removeItem('portal_session');
+      localStorage.removeItem('portal_session');
       window.location.href = 'login.html';
     });
   }

@@ -31,7 +31,7 @@
   };
 
   function getSession() {
-    return JSON.parse(sessionStorage.getItem('portal_session') || 'null');
+    return JSON.parse(localStorage.getItem('portal_session') || 'null');
   }
 
   function sameIdentity(member) {
@@ -338,7 +338,7 @@
     confirmBtn?.addEventListener('click', onConfirmClick);
 
     document.getElementById('signOutBtn')?.addEventListener('click', () => {
-      sessionStorage.removeItem('portal_session');
+      localStorage.removeItem('portal_session');
       window.location.href = 'login.html';
     });
   }
